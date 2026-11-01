@@ -8,6 +8,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
+import { findLinkOffsetParents, findStackingTraps } from "@/lib/testing/stacking";
 import { ListItem } from "./list-item";
 
 const renderItem = (onToggle = vi.fn()) =>
@@ -49,7 +50,7 @@ describe("ListItem", () => {
     const link = screen.getByRole("link", { name: "Roadmap" });
     expect(link.getAttribute("href")).toBe("/ws/projects/p1/pages/1/");
     expect(link.id).toBe("item-1");
-    fireEvent.click(link);
+    expect(fireEvent.click(link)).toBe(false);
     expect(screen.getByText("Page opened")).toBeTruthy();
   });
 
@@ -68,5 +69,9 @@ describe("ListItem", () => {
     const raised = screen.getByRole("button", { name: "Expand" }).closest(".z-\\[2\\]");
     expect(raised).not.toBeNull();
     expect(card?.contains(raised)).toBe(true);
+    if (card) {
+      expect(findStackingTraps(card)).toEqual([]);
+      expect(findLinkOffsetParents(card)).toEqual([]);
+    }
   });
 });

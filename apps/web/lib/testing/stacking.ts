@@ -21,8 +21,14 @@ const toSelector = (classNames: string) =>
 const RAISED_SELECTOR = toSelector(clickableCardRaisedClassName);
 const LINK_SELECTOR = toSelector("after:absolute");
 
+// These variants style a pseudo-element, not the element itself
+const PSEUDO_ELEMENT_VARIANT =
+  /(^|:)(before|after|placeholder|file|marker|selection|first-letter|first-line|backdrop):/;
+
 const matchingClasses = (node: Element, pattern: RegExp) =>
-  (node.getAttribute("class") ?? "").split(/\s+/).filter((name) => pattern.test(name));
+  (node.getAttribute("class") ?? "")
+    .split(/\s+/)
+    .filter((name) => !PSEUDO_ELEMENT_VARIANT.test(name) && pattern.test(name));
 
 /**
  * Returns the classes of every element between a raised layer and its clickable card that starts

@@ -41,10 +41,13 @@ describe("findStackingTraps", () => {
     expect(findStackingTraps(card)).toEqual([className]);
   });
 
-  it.each(["z-auto", "relative", "shadow-md", "opacity"])("accepts an ancestor with %s", (className) => {
-    const card = element("relative isolate", element(className, element("relative z-[2]")));
-    expect(findStackingTraps(card)).toEqual([]);
-  });
+  it.each(["z-auto", "relative", "shadow-md", "opacity", "after:z-[1]", "before:absolute"])(
+    "accepts an ancestor with %s",
+    (className) => {
+      const card = element("relative isolate", element(className, element("relative z-[2]")));
+      expect(findStackingTraps(card)).toEqual([]);
+    }
+  );
 
   it("ignores layers nested in a raised layer", () => {
     const card = element(

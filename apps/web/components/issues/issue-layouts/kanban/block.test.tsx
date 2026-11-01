@@ -8,7 +8,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { TIssue } from "@plane/types";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
-import { findStackingTraps } from "@/lib/testing/stacking";
+import { findLinkOffsetParents, findStackingTraps } from "@/lib/testing/stacking";
 import { KanbanIssueBlock } from "./block";
 
 const handleRedirection = vi.fn();
@@ -88,7 +88,7 @@ describe("KanbanIssueBlock", () => {
     renderBlock();
     const link = screen.getByRole("link", { name: "Fix the login page" });
     expect(link.getAttribute("href")).toBe("/ws/browse/DEMO-1/");
-    fireEvent.click(link);
+    expect(fireEvent.click(link)).toBe(false);
     expect(handleRedirection).toHaveBeenCalledWith("ws", issue, false);
   });
 
@@ -96,10 +96,12 @@ describe("KanbanIssueBlock", () => {
     renderBlock();
     const card = screen.getByRole("link", { name: "Fix the login page" }).closest(".isolate");
     expect(card).not.toBeNull();
-    const menuButton = screen.getAllByRole("button").find((button) => button.textContent === "");
-    const raised = menuButton?.closest(".z-\\[2\\]");
-    expect(raised).toBeTruthy();
-    expect(card?.contains(raised ?? null)).toBe(true);
-    if (card) expect(findStackingTraps(card)).toEqual([]);
+    const raised = screen.getByRole("button", { name: "More actions" }).closest(".z-\\[2\\]");
+    expect(raised).not.toBeNull();
+    expect(card?.contains(raised)).toBe(true);
+    if (card) {
+      expect(findStackingTraps(card)).toEqual([]);
+      expect(findLinkOffsetParents(card)).toEqual([]);
+    }
   });
 });

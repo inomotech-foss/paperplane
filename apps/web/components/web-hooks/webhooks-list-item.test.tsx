@@ -3,7 +3,7 @@
  * See the LICENSE file for details.
  */
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import type { IWebhook } from "@plane/types";
@@ -36,5 +36,14 @@ describe("WebhooksListItem", () => {
     expect(findNestedInteractive(container)).toEqual([]);
     expect(screen.getByRole("link", { name: webhook.url }).getAttribute("href")).toBe("/ws/settings/webhooks/w1/");
     expect(screen.getByRole("switch", { name: "Toggle webhook" }).closest("a")).toBeNull();
+  });
+
+  it("opens the webhook from the row link", () => {
+    render(
+      <MemoryRouter>
+        <WebhooksListItem webhook={webhook} />
+      </MemoryRouter>
+    );
+    expect(fireEvent.click(screen.getByRole("link", { name: webhook.url }))).toBe(false);
   });
 });
