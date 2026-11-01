@@ -6,8 +6,7 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** A non-null object, arrays included. Use `isRecord` unless arrays must pass. */
-export const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
+export const isObject = (value: unknown): value is object => typeof value === "object" && value !== null;
 
 export const isOneOf = <const T>(values: readonly T[], value: unknown): value is T =>
   values.some((item) => item === value);
