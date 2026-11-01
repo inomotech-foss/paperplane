@@ -204,6 +204,12 @@ class PageViewSet(BaseViewSet):
             if page.is_locked:
                 return Response({"error": "Page is locked"}, status=status.HTTP_400_BAD_REQUEST)
 
+            if page.archived_at and "description_html" in request.data:
+                return Response(
+                    {"error_code": ERROR_CODES["PAGE_ARCHIVED"], "error_message": "PAGE_ARCHIVED"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             # Only update access if the page owner is the requesting  user
             if page.access != request.data.get("access", page.access) and page.owned_by_id != request.user.id:
                 return Response(

@@ -161,7 +161,7 @@ class PageSerializer(BaseSerializer):
 
 
 class PageDetailSerializer(PageSerializer):
-    description_html = serializers.CharField()
+    description_html = serializers.CharField(allow_blank=True)
 
     class Meta(PageSerializer.Meta):
         fields = PageSerializer.Meta.fields + ["description_html"]

@@ -4,6 +4,7 @@
 import base64
 
 import pytest
+from django.utils import timezone
 from rest_framework import status
 
 from plane.db.models import Page, Project, ProjectMember, ProjectPage
@@ -83,3 +84,23 @@ class TestPageDescriptionSanitizing:
         assert_sanitized(response.data["description_html"])
         page.refresh_from_db()
         assert_sanitized(page.description_html)
+
+    def test_patch_allows_an_empty_description(self, session_client, workspace, project, page):
+        response = session_client.patch(
+            f"{self.pages_url(workspace, project)}{page.id}/", {"description_html": ""}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        page.refresh_from_db()
+        assert page.description_html == ""
+
+    def test_patch_refuses_the_description_of_an_archived_page(self, session_client, workspace, project, page):
+        Page.objects.filter(pk=page.pk).update(archived_at=timezone.now())
+        response = session_client.patch(
+            f"{self.pages_url(workspace, project)}{page.id}/", {"description_html": "<p>new</p>"}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["error_message"] == "PAGE_ARCHIVED"
+        page.refresh_from_db()
+        assert page.description_html == "<p></p>"
