@@ -4,6 +4,8 @@
 
 # Python imports
 import base64
+import re
+
 import nh3
 from plane.utils.exception_logger import log_exception
 from bs4 import BeautifulSoup
@@ -126,7 +128,7 @@ ATTRIBUTES = {
         "data-comment-thread-id",
         "data-comment-resolved",
     },
-    "a": {"href", "target"},
+    "a": {"href", "target", "rel"},
     # editor node/tag attributes
     "image-component": {
         "id",
@@ -135,6 +137,7 @@ ATTRIBUTES = {
         "aspectRatio",
         "aspectratio",
         "src",
+        "alt",
         "alignment",
         "status",
     },
@@ -154,6 +157,8 @@ ATTRIBUTES = {
     "child-pages-component": {"depth"},
     "diagram-component": {"asset_id", "preview_asset_id", "width", "height", "title"},
     "columns-component": {"layout"},
+    # the editor renders columns as <div class="editor-columns-component" layout="...">
+    "div": {"layout"},
     "embed-component": {"url", "width", "height"},
     "math-inline-component": {"latex"},
     "math-block-component": {"latex"},
@@ -200,6 +205,12 @@ ATTRIBUTES = {
 }
 
 SAFE_PROTOCOLS = {"http", "https", "mailto", "tel"}
+
+# The editor's own rel value, forced onto every link so editor output round-trips unchanged.
+LINK_REL = "noopener noreferrer nofollow"
+
+# The HTML parser drops a newline that directly follows <pre>, so one is added back to keep sanitizing idempotent.
+PRE_LEADING_NEWLINE = re.compile(r"(<pre(?:\s[^>]*)?>)\n")
 
 
 def _compute_html_sanitization_diff(before_html: str, after_html: str):
@@ -269,7 +280,10 @@ def validate_html_content(html_content: str):
             tags=ALLOWED_TAGS,
             attributes=ATTRIBUTES,
             url_schemes=SAFE_PROTOCOLS,
+            link_rel=None,
+            set_tag_attribute_values={"a": {"rel": LINK_REL}},
         )
+        clean_html = PRE_LEADING_NEWLINE.sub("\\1\n\n", clean_html)
         # Report removals to logger (Sentry) if anything was stripped
         diff = _compute_html_sanitization_diff(html_content, clean_html)
         if diff.get("removed_tags") or diff.get("removed_attributes"):
