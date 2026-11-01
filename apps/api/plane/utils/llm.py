@@ -14,9 +14,8 @@ from plane.utils.exception_logger import log_exception
 @dataclass(frozen=True)
 class LLMProvider:
     name: str
+    # Used when LLM_MODEL is empty. Any model name the provider accepts works.
     default_model: str
-    # Suggestions only. Any model name the provider accepts works.
-    suggested_models: tuple[str, ...]
     # The provider's OpenAI-compatible endpoint. None means OpenAI itself.
     base_url: str | None = None
     # Anthropic requires an output limit, the others default to the model maximum.
@@ -27,19 +26,16 @@ SUPPORTED_PROVIDERS = {
     "openai": LLMProvider(
         name="OpenAI",
         default_model="gpt-5.4-mini",
-        suggested_models=("gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano", "gpt-5-mini"),
     ),
     "anthropic": LLMProvider(
         name="Anthropic",
         default_model="claude-haiku-4-5",
-        suggested_models=("claude-sonnet-4-6", "claude-opus-4-7", "claude-haiku-4-5", "claude-sonnet-4-5"),
         base_url="https://api.anthropic.com/v1/",
         max_tokens=8192,
     ),
     "gemini": LLMProvider(
         name="Gemini",
-        default_model="gemini-2.5-flash",
-        suggested_models=("gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"),
+        default_model="gemini-3.8-flash",
         base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
     ),
 }
@@ -93,7 +89,7 @@ def is_llm_configured() -> bool:
 
 def complete(config: LLMConfig, messages: list[dict[str, str]]) -> str:
     """Run a chat completion and return the reply text. Raises LLMError."""
-    client = OpenAI(api_key=config.api_key, base_url=config.provider.base_url, timeout=60, max_retries=1)
+    client = OpenAI(api_key=config.api_key, base_url=config.provider.base_url, timeout=60, max_retries=0)
     options = {"max_tokens": config.provider.max_tokens} if config.provider.max_tokens else {}
     name = config.provider.name
     try:
