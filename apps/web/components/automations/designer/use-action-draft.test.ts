@@ -9,7 +9,9 @@ import type { TAutomationActionConfig } from "@plane/types";
 import { useActionDraft } from "./use-action-draft";
 
 const rejectEmptyComment = (config: TAutomationActionConfig) =>
-  "comment_html" in config && config.comment_html ? Promise.resolve("action-1") : Promise.reject(new Error("empty"));
+  "comment_html" in config && config.comment_html
+    ? Promise.resolve("action-1")
+    : Promise.reject(new Error("The comment body is empty."));
 
 const setup = (savedId?: string, savedConfig?: TAutomationActionConfig) => {
   const create = vi.fn(rejectEmptyComment);
@@ -21,7 +23,7 @@ const setup = (savedId?: string, savedConfig?: TAutomationActionConfig) => {
       initialConfig: { comment_html: "" },
       create,
       update,
-      describeError: () => "The comment body is empty.",
+      describeError: (error) => (error instanceof Error ? error.message : "unknown"),
     })
   );
   return { create, update, hook };
@@ -72,12 +74,23 @@ describe("useActionDraft", () => {
 
   it("holds an invalid edit of a stored action instead of reverting it", async () => {
     const { update, hook } = setup("action-1", { property: "state", change_type: "set", value: "s1" });
-    update.mockRejectedValueOnce(new Error("Pick a value"));
+    update.mockRejectedValueOnce(new Error("Pick a value for the property you're changing."));
     const edit: TAutomationActionConfig = { property: "priority", change_type: "set" };
     await act(async () => {
       await hook.result.current.change(edit);
     });
     expect(hook.result.current.config).toEqual(edit);
-    expect(hook.result.current.error).toBe("The comment body is empty.");
+    expect(hook.result.current.error).toBe("Pick a value for the property you're changing.");
+  });
+
+  it("settles to the id of a create that is still in flight", async () => {
+    const { hook } = setup();
+    let settled: Promise<string | undefined> = Promise.resolve(undefined);
+    await act(async () => {
+      const saving = hook.result.current.change({ comment_html: "<p>a</p>" });
+      settled = hook.result.current.settle();
+      await saving;
+    });
+    await expect(settled).resolves.toBe("action-1");
   });
 });

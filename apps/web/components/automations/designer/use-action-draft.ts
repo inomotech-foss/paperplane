@@ -29,20 +29,30 @@ export const useActionDraft = (options: TOptions) => {
   const [inFlight, setInFlight] = useState(0);
   const latestRequest = useRef(0);
   const pendingCreate = useRef<Promise<string> | null>(null);
+  const createdId = useRef<string | null>(null);
 
   const save = async (config: TAutomationActionConfig): Promise<void> => {
-    if (savedId) return update(savedId, config);
+    const id = savedId ?? createdId.current;
+    if (id) return update(id, config);
     // An edit made while the action is being created updates it instead of creating another
     const pending = pendingCreate.current;
     if (pending) {
-      const id = await pending.catch(() => undefined);
-      if (id) return update(id, config);
-      if (pendingCreate.current === pending) pendingCreate.current = null;
+      await pending.catch(() => undefined);
       return save(config);
     }
     const creating = create(config);
     pendingCreate.current = creating;
-    await creating;
+    try {
+      createdId.current = await creating;
+    } finally {
+      pendingCreate.current = null;
+    }
+  };
+
+  /** Resolves to the stored action id once any create in flight has settled. */
+  const settle = async (): Promise<string | undefined> => {
+    if (pendingCreate.current) await pendingCreate.current.catch(() => undefined);
+    return savedId ?? createdId.current ?? undefined;
   };
 
   const change = async (config: TAutomationActionConfig): Promise<boolean> => {
@@ -66,5 +76,5 @@ export const useActionDraft = (options: TOptions) => {
     }
   };
 
-  return { config: draft ?? savedConfig ?? initialConfig, error, isSaving: inFlight > 0, change };
+  return { config: draft ?? savedConfig ?? initialConfig, error, isSaving: inFlight > 0, change, settle };
 };

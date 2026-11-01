@@ -289,6 +289,7 @@ export const AutomationDesignerRoot = observer(function AutomationDesignerRoot(p
       />
 
       <AutomationActionsBlock
+        key={automation.id}
         workspaceSlug={workspaceSlug}
         projectId={projectId}
         automation={automation}

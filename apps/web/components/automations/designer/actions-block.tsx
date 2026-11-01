@@ -92,12 +92,14 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
   });
 
   const handleDelete = async () => {
-    if (!action) {
+    // A create still in flight would bring the action back, so delete what it stores
+    const actionId = action?.id ?? (await draft.settle());
+    if (!actionId) {
       onDiscard?.();
       return;
     }
     try {
-      await deleteAction(workspaceSlug, automation.id, action.id, projectId);
+      await deleteAction(workspaceSlug, automation.id, actionId, projectId);
       onDiscard?.();
     } catch (error) {
       setToast({
@@ -197,16 +199,15 @@ export const AutomationActionsBlock = observer(function AutomationActionsBlock(p
     setLocalActions((current) => current.map((item) => (item.key === key ? { ...item, actionId } : item)));
   const discard = (key: string) => setLocalActions((current) => current.filter((item) => item.key !== key));
 
-  const claimedIds = new Set(localActions.map((item) => item.actionId));
-  const storedActions = orderBy(automation.actions, "sort_order").filter((action) => !claimedIds.has(action.id));
+  const localKeyById = new Map(localActions.map((item) => [item.actionId, item]));
   const cards = [
-    ...storedActions.map((action) => ({ key: action.id, actionType: action.action_type, action, local: undefined })),
-    ...localActions.map((local) => ({
-      key: local.key,
-      actionType: local.actionType,
-      action: automation.actions.find((action) => action.id === local.actionId),
-      local,
-    })),
+    ...orderBy(automation.actions, "sort_order").map((action) => {
+      const local = localKeyById.get(action.id);
+      return { key: local?.key ?? action.id, actionType: action.action_type, action, local };
+    }),
+    ...localActions
+      .filter((local) => !local.actionId)
+      .map((local) => ({ key: local.key, actionType: local.actionType, action: undefined, local })),
   ];
 
   return (
