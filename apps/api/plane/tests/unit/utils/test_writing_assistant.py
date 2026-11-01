@@ -78,6 +78,11 @@ class TestMarkdownToHtml:
         for tag in ("<h1>", "<blockquote>", "<table>", "<td>", "<code>", "<del>", '<a href="https://x.y"'):
             assert tag in html
 
+    def test_blocked_links_become_text(self):
+        html = markdown_to_html("[a](javascript:alert(1)) [b](data:text/html,x) [c](/relative) [d](https://ok.so)")
+        assert "harmful-link" not in html and "javascript" not in html and "data:" not in html
+        assert html.startswith("<p>a b c <a ") and 'href="https://ok.so"' in html
+
     def test_unwraps_a_markdown_fence(self):
         assert markdown_to_html("```markdown\n# Title\n```") == "<h1>Title</h1>"
 
