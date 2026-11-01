@@ -19463,7 +19463,7 @@ components:
       type: object
       properties:
         key:
-          type: string
+          $ref: '#/components/schemas/AutomationActionTypeEnum'
         i18n_label:
           type: string
         requires_entity:
@@ -20341,8 +20341,11 @@ components:
         description:
           type: string
         trigger_type:
-          type: string
+          description: Empty for a draft
           maxLength: 127
+          oneOf:
+          - $ref: '#/components/schemas/AutomationTriggerTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         trigger_config: {}
         condition:
           nullable: true
@@ -20446,7 +20449,8 @@ components:
           format: uuid
           readOnly: true
         action_type:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/AutomationActionTypeEnum'
           maxLength: 127
         config: {}
         sort_order:
@@ -20479,7 +20483,8 @@ components:
       type: object
       properties:
         action_type:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/AutomationActionTypeEnum'
           minLength: 1
           maxLength: 127
         config: {}
@@ -20488,6 +20493,22 @@ components:
           format: double
       required:
       - action_type
+    AutomationActionTypeEnum:
+      enum:
+      - change_property
+      - add_comment
+      - send_notification
+      - create_work_item
+      - archive_work_item
+      - call_webhook
+      type: string
+      description: |-
+        * `change_property` - change_property
+        * `add_comment` - add_comment
+        * `send_notification` - send_notification
+        * `create_work_item` - create_work_item
+        * `archive_work_item` - archive_work_item
+        * `call_webhook` - call_webhook
     AutomationCatalog:
       type: object
       properties:
@@ -20510,7 +20531,7 @@ components:
         notification_recipients:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/AutomationNotificationRecipientEnum'
         template_variables:
           type: array
           items:
@@ -20522,6 +20543,92 @@ components:
       - actions
       - notification_recipients
       - template_variables
+    AutomationChangeTypeEnum:
+      enum:
+      - set
+      - add
+      - remove
+      - clear
+      - shift_days
+      type: string
+      description: |-
+        * `set` - set
+        * `add` - add
+        * `remove` - remove
+        * `clear` - clear
+        * `shift_days` - shift_days
+    AutomationNotificationRecipientEnum:
+      enum:
+      - assignees
+      - created_by
+      - actor
+      - subscribers
+      - project_admins
+      - specific_members
+      type: string
+      description: |-
+        * `assignees` - assignees
+        * `created_by` - created_by
+        * `actor` - actor
+        * `subscribers` - subscribers
+        * `project_admins` - project_admins
+        * `specific_members` - specific_members
+    AutomationOperatorEnum:
+      enum:
+      - eq
+      - neq
+      - in
+      - not_in
+      - contains
+      - not_contains
+      - is_empty
+      - is_not_empty
+      - gt
+      - gte
+      - lt
+      - lte
+      - changed
+      - changed_to
+      - changed_from
+      - due_in_days
+      - overdue_by_days
+      - older_than_days
+      type: string
+      description: |-
+        * `eq` - eq
+        * `neq` - neq
+        * `in` - in
+        * `not_in` - not_in
+        * `contains` - contains
+        * `not_contains` - not_contains
+        * `is_empty` - is_empty
+        * `is_not_empty` - is_not_empty
+        * `gt` - gt
+        * `gte` - gte
+        * `lt` - lt
+        * `lte` - lte
+        * `changed` - changed
+        * `changed_to` - changed_to
+        * `changed_from` - changed_from
+        * `due_in_days` - due_in_days
+        * `overdue_by_days` - overdue_by_days
+        * `older_than_days` - older_than_days
+    AutomationPropertyKindEnum:
+      enum:
+      - text
+      - option
+      - multi_option
+      - date
+      - number
+      - boolean
+      type: string
+      description: |-
+        * `text` - text
+        * `option` - option
+        * `multi_option` - multi_option
+        * `date` - date
+        * `number` - number
+        * `boolean` - boolean
     AutomationRequest:
       type: object
       properties:
@@ -20540,8 +20647,11 @@ components:
         description:
           type: string
         trigger_type:
-          type: string
+          description: Empty for a draft
           maxLength: 127
+          oneOf:
+          - $ref: '#/components/schemas/AutomationTriggerTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         trigger_config: {}
         condition:
           nullable: true
@@ -20637,6 +20747,59 @@ components:
         * `failed` - Failed
         * `partial` - Partially completed
         * `skipped` - Skipped
+    AutomationTriggerEntityEnum:
+      enum:
+      - work_item
+      type: string
+      description: '* `work_item` - work_item'
+    AutomationTriggerGroupEnum:
+      enum:
+      - plane_events
+      - time_based
+      type: string
+      description: |-
+        * `plane_events` - plane_events
+        * `time_based` - time_based
+    AutomationTriggerTypeEnum:
+      type: string
+      enum:
+      - work_item.created
+      - work_item.updated
+      - work_item.deleted
+      - work_item.state_changed
+      - work_item.priority_changed
+      - work_item.assignees_changed
+      - work_item.labels_changed
+      - work_item.target_date_changed
+      - work_item.parent_changed
+      - work_item.comment_created
+      - work_item.added_to_cycle
+      - work_item.added_to_module
+      - schedule
+    AutomationValueSourceEnum:
+      enum:
+      - states
+      - state_groups
+      - priorities
+      - members
+      - labels
+      - modules
+      - cycles
+      - projects
+      - work_item_types
+      - estimate_points
+      type: string
+      description: |-
+        * `states` - states
+        * `state_groups` - state_groups
+        * `priorities` - priorities
+        * `members` - members
+        * `labels` - labels
+        * `modules` - modules
+        * `cycles` - cycles
+        * `projects` - projects
+        * `work_item_types` - work_item_types
+        * `estimate_points` - estimate_points
     BlankEnum:
       enum:
       - ''
@@ -20837,14 +21000,16 @@ components:
         i18n_label:
           type: string
         kind:
-          type: string
+          $ref: '#/components/schemas/AutomationPropertyKindEnum'
         source:
-          type: string
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/AutomationValueSourceEnum'
+          - $ref: '#/components/schemas/NullEnum'
         operators:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/AutomationOperatorEnum'
       required:
       - key
       - i18n_label
@@ -29071,14 +29236,16 @@ components:
         i18n_label:
           type: string
         kind:
-          type: string
+          $ref: '#/components/schemas/AutomationPropertyKindEnum'
         source:
-          type: string
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/AutomationValueSourceEnum'
+          - $ref: '#/components/schemas/NullEnum'
         change_types:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/AutomationChangeTypeEnum'
       required:
       - key
       - i18n_label
@@ -31308,7 +31475,8 @@ components:
       type: object
       properties:
         action_type:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/AutomationActionTypeEnum'
           minLength: 1
           maxLength: 127
         config: {}
@@ -31333,8 +31501,11 @@ components:
         description:
           type: string
         trigger_type:
-          type: string
+          description: Empty for a draft
           maxLength: 127
+          oneOf:
+          - $ref: '#/components/schemas/AutomationTriggerTypeEnum'
+          - $ref: '#/components/schemas/BlankEnum'
         trigger_config: {}
         condition:
           nullable: true
@@ -36818,21 +36989,23 @@ components:
       type: object
       properties:
         key:
-          type: string
+          $ref: '#/components/schemas/AutomationTriggerTypeEnum'
         i18n_label:
           type: string
         group:
-          type: string
+          $ref: '#/components/schemas/AutomationTriggerGroupEnum'
         entity:
-          type: string
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/AutomationTriggerEntityEnum'
+          - $ref: '#/components/schemas/NullEnum'
         changed_field:
           type: string
           nullable: true
         allowed_actions:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/AutomationActionTypeEnum'
       required:
       - key
       - i18n_label

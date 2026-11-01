@@ -5272,7 +5272,7 @@ export interface components {
          */
         AccountProviderEnum: "google" | "github" | "gitlab" | "gitea" | "oidc";
         ActionType: {
-            key: string;
+            key: components["schemas"]["AutomationActionTypeEnum"];
             i18n_label: string;
             requires_entity: boolean;
         };
@@ -5640,7 +5640,8 @@ export interface components {
             readonly projects: string[];
             name: string;
             description: string;
-            trigger_type: string;
+            /** @description Empty for a draft */
+            trigger_type: components["schemas"]["AutomationTriggerTypeEnum"] | components["schemas"]["BlankEnum"];
             trigger_config: unknown;
             condition: unknown;
             is_enabled: boolean;
@@ -5676,7 +5677,7 @@ export interface components {
             readonly id: string;
             /** Format: uuid */
             readonly automation: string;
-            action_type: string;
+            action_type: components["schemas"]["AutomationActionTypeEnum"];
             config: unknown;
             /** Format: double */
             sort_order: number;
@@ -5691,25 +5692,87 @@ export interface components {
             readonly created_by: string | null;
         };
         AutomationActionRequest: {
-            action_type: string;
+            action_type: components["schemas"]["AutomationActionTypeEnum"];
             config?: unknown;
             /** Format: double */
             sort_order?: number;
         };
+        /**
+         * @description * `change_property` - change_property
+         *     * `add_comment` - add_comment
+         *     * `send_notification` - send_notification
+         *     * `create_work_item` - create_work_item
+         *     * `archive_work_item` - archive_work_item
+         *     * `call_webhook` - call_webhook
+         * @enum {string}
+         */
+        AutomationActionTypeEnum: "change_property" | "add_comment" | "send_notification" | "create_work_item" | "archive_work_item" | "call_webhook";
         AutomationCatalog: {
             triggers: components["schemas"]["Trigger"][];
             condition_properties: components["schemas"]["ConditionProperty"][];
             mutable_properties: components["schemas"]["MutableProperty"][];
             actions: components["schemas"]["ActionType"][];
-            notification_recipients: string[];
+            notification_recipients: components["schemas"]["AutomationNotificationRecipientEnum"][];
             template_variables: string[];
         };
+        /**
+         * @description * `set` - set
+         *     * `add` - add
+         *     * `remove` - remove
+         *     * `clear` - clear
+         *     * `shift_days` - shift_days
+         * @enum {string}
+         */
+        AutomationChangeTypeEnum: "set" | "add" | "remove" | "clear" | "shift_days";
+        /**
+         * @description * `assignees` - assignees
+         *     * `created_by` - created_by
+         *     * `actor` - actor
+         *     * `subscribers` - subscribers
+         *     * `project_admins` - project_admins
+         *     * `specific_members` - specific_members
+         * @enum {string}
+         */
+        AutomationNotificationRecipientEnum: "assignees" | "created_by" | "actor" | "subscribers" | "project_admins" | "specific_members";
+        /**
+         * @description * `eq` - eq
+         *     * `neq` - neq
+         *     * `in` - in
+         *     * `not_in` - not_in
+         *     * `contains` - contains
+         *     * `not_contains` - not_contains
+         *     * `is_empty` - is_empty
+         *     * `is_not_empty` - is_not_empty
+         *     * `gt` - gt
+         *     * `gte` - gte
+         *     * `lt` - lt
+         *     * `lte` - lte
+         *     * `changed` - changed
+         *     * `changed_to` - changed_to
+         *     * `changed_from` - changed_from
+         *     * `due_in_days` - due_in_days
+         *     * `overdue_by_days` - overdue_by_days
+         *     * `older_than_days` - older_than_days
+         * @enum {string}
+         */
+        AutomationOperatorEnum: "eq" | "neq" | "in" | "not_in" | "contains" | "not_contains" | "is_empty" | "is_not_empty" | "gt" | "gte" | "lt" | "lte" | "changed" | "changed_to" | "changed_from" | "due_in_days" | "overdue_by_days" | "older_than_days";
+        /**
+         * @description * `text` - text
+         *     * `option` - option
+         *     * `multi_option` - multi_option
+         *     * `date` - date
+         *     * `number` - number
+         *     * `boolean` - boolean
+         * @enum {string}
+         */
+        AutomationPropertyKindEnum: "text" | "option" | "multi_option" | "date" | "number" | "boolean";
         AutomationRequest: {
             applies_to_all_projects?: boolean;
             project_ids?: string[];
             name: string;
             description?: string;
-            trigger_type?: string;
+            /** @description Empty for a draft */
+            trigger_type?: components["schemas"]["AutomationTriggerTypeEnum"] | components["schemas"]["BlankEnum"];
             trigger_config?: unknown;
             condition?: unknown;
             is_enabled?: boolean;
@@ -5746,6 +5809,33 @@ export interface components {
          * @enum {string}
          */
         AutomationRunStatusEnum: "success" | "failed" | "partial" | "skipped";
+        /**
+         * @description * `work_item` - work_item
+         * @enum {string}
+         */
+        AutomationTriggerEntityEnum: "work_item";
+        /**
+         * @description * `plane_events` - plane_events
+         *     * `time_based` - time_based
+         * @enum {string}
+         */
+        AutomationTriggerGroupEnum: "plane_events" | "time_based";
+        /** @enum {string} */
+        AutomationTriggerTypeEnum: "work_item.created" | "work_item.updated" | "work_item.deleted" | "work_item.state_changed" | "work_item.priority_changed" | "work_item.assignees_changed" | "work_item.labels_changed" | "work_item.target_date_changed" | "work_item.parent_changed" | "work_item.comment_created" | "work_item.added_to_cycle" | "work_item.added_to_module" | "schedule";
+        /**
+         * @description * `states` - states
+         *     * `state_groups` - state_groups
+         *     * `priorities` - priorities
+         *     * `members` - members
+         *     * `labels` - labels
+         *     * `modules` - modules
+         *     * `cycles` - cycles
+         *     * `projects` - projects
+         *     * `work_item_types` - work_item_types
+         *     * `estimate_points` - estimate_points
+         * @enum {string}
+         */
+        AutomationValueSourceEnum: "states" | "state_groups" | "priorities" | "members" | "labels" | "modules" | "cycles" | "projects" | "work_item_types" | "estimate_points";
         /** @enum {unknown} */
         BlankEnum: "";
         BulkLabelRequest: {
@@ -5837,9 +5927,9 @@ export interface components {
         ConditionProperty: {
             key: string;
             i18n_label: string;
-            kind: string;
-            source: string | null;
-            operators: string[];
+            kind: components["schemas"]["AutomationPropertyKindEnum"];
+            source: (components["schemas"]["AutomationValueSourceEnum"] | components["schemas"]["NullEnum"]) | null;
+            operators: components["schemas"]["AutomationOperatorEnum"][];
         };
         ConnectedApp: {
             /** @description OAuth application id */
@@ -9238,9 +9328,9 @@ export interface components {
         MutableProperty: {
             key: string;
             i18n_label: string;
-            kind: string;
-            source: string | null;
-            change_types: string[];
+            kind: components["schemas"]["AutomationPropertyKindEnum"];
+            source: (components["schemas"]["AutomationValueSourceEnum"] | components["schemas"]["NullEnum"]) | null;
+            change_types: components["schemas"]["AutomationChangeTypeEnum"][];
         };
         /**
          * @description * `ACCORDION` - Accordion
@@ -10123,7 +10213,7 @@ export interface components {
             attributes?: unknown;
         };
         PatchedAutomationActionRequest: {
-            action_type?: string;
+            action_type?: components["schemas"]["AutomationActionTypeEnum"];
             config?: unknown;
             /** Format: double */
             sort_order?: number;
@@ -10133,7 +10223,8 @@ export interface components {
             project_ids?: string[];
             name?: string;
             description?: string;
-            trigger_type?: string;
+            /** @description Empty for a draft */
+            trigger_type?: components["schemas"]["AutomationTriggerTypeEnum"] | components["schemas"]["BlankEnum"];
             trigger_config?: unknown;
             condition?: unknown;
             is_enabled?: boolean;
@@ -12540,12 +12631,12 @@ export interface components {
          */
         TriageStateGroupEnum: "triage";
         Trigger: {
-            key: string;
+            key: components["schemas"]["AutomationTriggerTypeEnum"];
             i18n_label: string;
-            group: string;
-            entity: string | null;
+            group: components["schemas"]["AutomationTriggerGroupEnum"];
+            entity: (components["schemas"]["AutomationTriggerEntityEnum"] | components["schemas"]["NullEnum"]) | null;
             changed_field: string | null;
-            allowed_actions: string[];
+            allowed_actions: components["schemas"]["AutomationActionTypeEnum"][];
         };
         /**
          * @description * `event` - Event
@@ -28229,7 +28320,16 @@ export const pathsApiWorkspacesSlugWorkItemQueryFieldsGetResponses200ContentAppl
 export const accessEe6EnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccessEe6Enum"]> = ["INTERNAL", "EXTERNAL"];
 export const accessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccessEnum"]> = [0, 1];
 export const accountProviderEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccountProviderEnum"]> = ["google", "github", "gitlab", "gitea", "oidc"];
+export const automationActionTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationActionTypeEnum"]> = ["change_property", "add_comment", "send_notification", "create_work_item", "archive_work_item", "call_webhook"];
+export const automationChangeTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationChangeTypeEnum"]> = ["set", "add", "remove", "clear", "shift_days"];
+export const automationNotificationRecipientEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationNotificationRecipientEnum"]> = ["assignees", "created_by", "actor", "subscribers", "project_admins", "specific_members"];
+export const automationOperatorEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationOperatorEnum"]> = ["eq", "neq", "in", "not_in", "contains", "not_contains", "is_empty", "is_not_empty", "gt", "gte", "lt", "lte", "changed", "changed_to", "changed_from", "due_in_days", "overdue_by_days", "older_than_days"];
+export const automationPropertyKindEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationPropertyKindEnum"]> = ["text", "option", "multi_option", "date", "number", "boolean"];
 export const automationRunStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationRunStatusEnum"]> = ["success", "failed", "partial", "skipped"];
+export const automationTriggerEntityEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationTriggerEntityEnum"]> = ["work_item"];
+export const automationTriggerGroupEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationTriggerGroupEnum"]> = ["plane_events", "time_based"];
+export const automationTriggerTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationTriggerTypeEnum"]> = ["work_item.created", "work_item.updated", "work_item.deleted", "work_item.state_changed", "work_item.priority_changed", "work_item.assignees_changed", "work_item.labels_changed", "work_item.target_date_changed", "work_item.parent_changed", "work_item.comment_created", "work_item.added_to_cycle", "work_item.added_to_module", "schedule"];
+export const automationValueSourceEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationValueSourceEnum"]> = ["states", "state_groups", "priorities", "members", "labels", "modules", "cycles", "projects", "work_item_types", "estimate_points"];
 export const blankEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["BlankEnum"]> = [""];
 export const cycleStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["CycleStatusEnum"]> = ["CURRENT", "UPCOMING", "COMPLETED", "DRAFT"];
 export const dashboardChartTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardChartTypeEnum"]> = ["number", "bar", "line", "area", "pie", "donut", "table"];
