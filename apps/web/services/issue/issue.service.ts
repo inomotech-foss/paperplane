@@ -15,7 +15,15 @@ import type {
 import { apiClient } from "@/services/api-client";
 import { toIssueListQuery, wantsRelations } from "./issue-query";
 import type { TIssueParamsRecord } from "./issue-query";
-import { toBaseIssue, toIssue, toIssueCreateBody, toIssueLink, toIssuesResponse, toIssueWriteBody } from "./work-item";
+import {
+  toBaseIssue,
+  toIssue,
+  toIssueCreateBody,
+  toIssueLink,
+  toIssuesResponse,
+  toIssueWriteBody,
+  toWorkItemById,
+} from "./work-item";
 
 export type TIssueLinkUpdateBody = ApiRequestBody<
   "/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/issue-links/{pk}/",
@@ -123,7 +131,7 @@ export class IssueService {
         params: { ...projectPath(workspaceSlug, projectId), query: { issues: issueIds.join(",") } },
       })
     );
-    return issues.map(toBaseIssue);
+    return issues.map(toWorkItemById);
   }
 
   /**

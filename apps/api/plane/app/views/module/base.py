@@ -36,14 +36,11 @@ from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
 from plane.app.serializers.request.cycle import IssueFiltersUpdateSerializer
 from plane.app.serializers.request.module import ModuleFavoriteSerializer
-from plane.utils.openapi.parameters import FIELDS_PARAMETER
 
 # Module imports
-from plane.utils.openapi.schema import single
 from plane.app.serializers.response.module import (
     ModuleDetailResponseSerializer,
     ModuleListItemSerializer,
-    ModuleListResponse,
 )
 from plane.app.permissions import (
     ProjectEntityPermission,
@@ -365,47 +362,44 @@ class ModuleViewSet(BaseViewSet):
             return Response(module, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(parameters=[FIELDS_PARAMETER], filters=False, responses={200: single(ModuleListResponse)})
+    @extend_schema(filters=False, responses={200: ModuleListItemSerializer(many=True)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER, ROLE.GUEST])
     def list(self, request, slug, project_id):
         queryset = self.get_queryset().filter(archived_at__isnull=True)
-        if self.fields:
-            modules = ModuleSerializer(queryset, many=True, fields=self.fields).data
-        else:
-            modules = queryset.values(  # Required fields
-                "id",
-                "workspace_id",
-                "project_id",
-                # Model fields
-                "name",
-                "description",
-                "description_text",
-                "description_html",
-                "start_date",
-                "target_date",
-                "status",
-                "lead_id",
-                "member_ids",
-                "view_props",
-                "sort_order",
-                "external_source",
-                "external_id",
-                "logo_props",
-                # computed fields
-                "completed_estimate_points",
-                "total_estimate_points",
-                "total_issues",
-                "is_favorite",
-                "cancelled_issues",
-                "completed_issues",
-                "started_issues",
-                "unstarted_issues",
-                "backlog_issues",
-                "created_at",
-                "updated_at",
-            )
-            datetime_fields = ["created_at", "updated_at"]
-            modules = user_timezone_converter(modules, datetime_fields, request.user.user_timezone)
+        modules = queryset.values(  # Required fields
+            "id",
+            "workspace_id",
+            "project_id",
+            # Model fields
+            "name",
+            "description",
+            "description_text",
+            "description_html",
+            "start_date",
+            "target_date",
+            "status",
+            "lead_id",
+            "member_ids",
+            "view_props",
+            "sort_order",
+            "external_source",
+            "external_id",
+            "logo_props",
+            # computed fields
+            "completed_estimate_points",
+            "total_estimate_points",
+            "total_issues",
+            "is_favorite",
+            "cancelled_issues",
+            "completed_issues",
+            "started_issues",
+            "unstarted_issues",
+            "backlog_issues",
+            "created_at",
+            "updated_at",
+        )
+        datetime_fields = ["created_at", "updated_at"]
+        modules = user_timezone_converter(modules, datetime_fields, request.user.user_timezone)
         return Response(modules, status=status.HTTP_200_OK)
 
     @extend_schema(responses={200: ModuleDetailResponseSerializer})

@@ -8,13 +8,20 @@ from datetime import date
 import pytest
 
 from plane.db.models import (
+    Cycle,
+    CycleIssue,
     DraftIssue,
+    FileAsset,
+    Intake,
+    IntakeIssue,
     Issue,
     IssueActivity,
     IssueAssignee,
     IssueComment,
     IssueDescriptionVersion,
     IssueLabel,
+    IssueLink,
+    IssueReaction,
     IssueRelation,
     IssueVersion,
     Label,
@@ -89,8 +96,6 @@ class TestWorkItemLists:
     def test_lists_by_id(self, session_client, workspace, project, issues):
         ids = ",".join(str(issue.id) for issue in issues)
         assert documented(session_client.get(url(workspace, project, "issues/list/"), {"issues": ids}))
-        expanded = {"issues": ids, "fields": "id"}
-        assert documented(session_client.get(url(workspace, project, "issues/list/"), expanded))
         assert documented(session_client.get(url(workspace, project, "issues-detail/")))["results"]
         parent, child = issues
         IssueRelation.objects.create(
@@ -104,6 +109,76 @@ class TestWorkItemLists:
         assert documented(session_client.get(url(workspace, project, "v2/issues/")))["results"]
         assert documented(session_client.get(url(workspace, project, "v2/issues/"), {"description": "true"}))
         documented(session_client.get(url(workspace, project, "deleted-issues/")))
+
+    def test_list_by_id_expanded(self, session_client, create_user, workspace, project, issues):
+        parent, child = issues
+        Issue.objects.filter(pk__in=[parent.id, child.id]).update(created_by=create_user)
+        context = {"project": project, "workspace": workspace}
+        cycle = Cycle.objects.create(name="Now", owned_by=create_user, **context)
+        CycleIssue.objects.create(issue=parent, cycle=cycle, **context)
+        IssueRelation.objects.create(issue=parent, related_issue=child, relation_type="relates_to", **context)
+        intake = Intake.objects.create(name="Intake", is_default=True, **context)
+        IntakeIssue.objects.create(intake=intake, issue=parent, **context)
+        IssueReaction.objects.create(issue=parent, actor=create_user, reaction="128077", **context)
+        IssueLink.objects.create(issue=parent, url="https://example.com", **context)
+        FileAsset.objects.create(
+            attributes={"name": "a.pdf", "type": "application/pdf", "size": 1},
+            asset=f"{workspace.id}/a.pdf",
+            size=1,
+            issue_id=parent.id,
+            entity_type=FileAsset.EntityTypeContext.ISSUE_ATTACHMENT,
+            is_uploaded=True,
+            **context,
+        )
+        relations = [
+            "workspace",
+            "project",
+            "state",
+            "parent",
+            "assignees",
+            "labels",
+            "issue_cycle",
+            "issue_relation",
+            "issue_related",
+            "issue_intake",
+            "issue_reactions",
+            "issue_link",
+            "issue_attachments",
+            "created_by",
+            "updated_by",
+        ]
+        query = {"issues": f"{parent.id},{child.id}", "expand": ",".join(relations)}
+        rows = documented(session_client.get(url(workspace, project, "issues/list/"), query))
+        by_id = {row["id"]: row for row in rows}
+        expanded = by_id[str(parent.id)]
+        assert expanded["created_by"]["id"] == str(create_user.id)
+        assert expanded["state"] and expanded["parent"] is None
+        for relation in ["assignees", "labels", "issue_cycle", "issue_relation", "issue_intake", "issue_reactions"]:
+            assert expanded[relation], relation
+        assert expanded["issue_link"] and expanded["issue_attachments"]
+        assert by_id[str(child.id)]["parent"]["id"] == str(parent.id)
+        assert by_id[str(child.id)]["issue_related"]
+
+    @pytest.mark.parametrize("key", ["bogus", "user", "sub_issues", "name"])
+    def test_list_by_id_ignores_keys_that_are_not_expandable(self, session_client, workspace, project, issues, key):
+        parent, child = issues
+        query = {"issues": str(parent.id), "expand": key}
+        rows = documented(session_client.get(url(workspace, project, "issues/list/"), query))
+        plain = documented(session_client.get(url(workspace, project, "issues/list/"), {"issues": str(parent.id)}))
+        assert rows == plain and "deleted_at" in rows[0]
+
+    def test_list_by_id_empty(self, session_client, workspace, project, issues):
+        for expand in [{}, {"expand": "state"}]:
+            query = {"issues": str(project.id), **expand}
+            assert documented(session_client.get(url(workspace, project, "issues/list/"), query)) == []
+
+    def test_detail_expands_link_and_parent(self, session_client, workspace, project, issues):
+        parent, child = issues
+        IssueLink.objects.create(issue=child, url="https://example.com", project=project, workspace=workspace)
+        query = {"expand": "issue_link,parent"}
+        detail = documented(session_client.get(url(workspace, project, f"issues/{child.id}/"), query))
+        assert detail["parent"]["id"] == str(parent.id)
+        assert detail["issue_link"][0]["url"] == "https://example.com"
 
     def test_workspace_lists(self, session_client, create_user, workspace, project, issues):
         assert documented(session_client.get(f"/api/workspaces/{workspace.slug}/issues/"))["results"]

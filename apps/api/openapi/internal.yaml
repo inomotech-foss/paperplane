@@ -10346,20 +10346,6 @@ paths:
         description: Comma-separated relations to include, such as issue_relation
           and issue_related
       - in: query
-        name: fields
-        schema:
-          type: string
-        description: Comma-separated list of fields to include in response
-        examples:
-          BasicFields:
-            value: id,name,description
-            summary: Basic fields
-            description: Include only basic fields
-          WithRelations:
-            value: id,name,assignees,state
-            summary: With relations
-            description: Include fields with relationships
-      - in: query
         name: filters
         schema:
           type: string
@@ -12184,7 +12170,7 @@ paths:
           description: Done
   /api/workspaces/{slug}/projects/{project_id}/issues/list/:
     get:
-      operationId: workspaces_projects_issues_list_retrieve
+      operationId: workspaces_projects_issues_list_list
       parameters:
       - in: query
         name: expand
@@ -12192,20 +12178,6 @@ paths:
           type: string
         description: Comma-separated relations to include, such as issue_relation
           and issue_related
-      - in: query
-        name: fields
-        schema:
-          type: string
-        description: Comma-separated list of fields to include in response
-        examples:
-          BasicFields:
-            value: id,name,description
-            summary: Basic fields
-            description: Include only basic fields
-          WithRelations:
-            value: id,name,assignees,state
-            summary: With relations
-            description: Include fields with relationships
       - in: query
         name: issues
         schema:
@@ -12255,7 +12227,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WorkItemsByIdResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkItemById'
           description: ''
   /api/workspaces/{slug}/projects/{project_id}/join/{pk}/:
     get:
@@ -12727,20 +12701,6 @@ paths:
     get:
       operationId: workspaces_projects_modules_list
       parameters:
-      - in: query
-        name: fields
-        schema:
-          type: string
-        description: Comma-separated list of fields to include in response
-        examples:
-          BasicFields:
-            value: id,name,description
-            summary: Basic fields
-            description: Include only basic fields
-          WithRelations:
-            value: id,name,assignees,state
-            summary: With relations
-            description: Include fields with relationships
       - in: path
         name: project_id
         schema:
@@ -12761,7 +12721,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModuleListResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModuleListItem'
           description: ''
     post:
       operationId: workspaces_projects_modules_create
@@ -20792,6 +20754,69 @@ components:
           format: uuid
       required:
       - cycle
+    CycleIssue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        issue_detail:
+          allOf:
+          - $ref: '#/components/schemas/IssueState'
+          readOnly: true
+        sub_issues_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        project:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+          readOnly: true
+        issue:
+          type: string
+          format: uuid
+        cycle:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - id
+      - issue_detail
+      - created_at
+      - updated_at
+      - deleted_at
+      - created_by
+      - updated_by
+      - project
+      - workspace
+      - issue
+      - cycle
     CycleIssuesAddRequest:
       type: object
       properties:
@@ -23040,6 +23065,196 @@ components:
       - created_at
       - updated_at
       - updated_by
+    ExpandedWorkItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: Issue Name
+        state_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        sort_order:
+          type: number
+          format: double
+          readOnly: true
+        completed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        estimate_point:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          readOnly: true
+          title: Issue Priority
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        sequence_id:
+          type: integer
+          readOnly: true
+          title: Issue Sequence ID
+        project_id:
+          type: string
+          format: uuid
+          readOnly: true
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        type_id:
+          type: string
+          format: uuid
+          readOnly: true
+        cycle_id:
+          type: string
+          readOnly: true
+          nullable: true
+        module_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        label_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        assignee_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        sub_issues_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        created_by:
+          oneOf:
+          - type: string
+            format: uuid
+          - $ref: '#/components/schemas/UserLite'
+          nullable: true
+        updated_by:
+          oneOf:
+          - type: string
+            format: uuid
+          - $ref: '#/components/schemas/UserLite'
+          nullable: true
+        attachment_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        link_count:
+          type: integer
+          readOnly: true
+          nullable: true
+        is_draft:
+          type: boolean
+          readOnly: true
+        archived_at:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        workspace:
+          $ref: '#/components/schemas/WorkspaceLite'
+        project:
+          $ref: '#/components/schemas/ProjectLite'
+        state:
+          allOf:
+          - $ref: '#/components/schemas/StateLite'
+          nullable: true
+        parent:
+          allOf:
+          - $ref: '#/components/schemas/IssueLite'
+          nullable: true
+        assignees:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserLite'
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+        issue_cycle:
+          type: array
+          items:
+            $ref: '#/components/schemas/CycleIssue'
+        issue_relation:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueRelation'
+        issue_related:
+          type: array
+          items:
+            $ref: '#/components/schemas/RelatedIssue'
+        issue_intake:
+          type: array
+          items:
+            $ref: '#/components/schemas/IntakeIssueLite'
+        issue_reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueReactionLite'
+        issue_link:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueLinkLite'
+        issue_attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/IssueAttachmentLite'
+      required:
+      - id
+      - name
+      - state_id
+      - sort_order
+      - completed_at
+      - estimate_point
+      - priority
+      - start_date
+      - target_date
+      - sequence_id
+      - project_id
+      - parent_id
+      - type_id
+      - created_at
+      - updated_at
+      - created_by
+      - updated_by
+      - is_draft
+      - archived_at
     ExportProviderEnum:
       enum:
       - json
@@ -23697,6 +23912,37 @@ components:
       - duplicate_issue_detail
       - source
       - issue
+    IntakeIssueLite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/IntakeWorkItemStatusEnum'
+          readOnly: true
+        duplicate_to:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        snoozed_till:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        source:
+          type: string
+          readOnly: true
+          nullable: true
+      required:
+      - id
+      - status
+      - duplicate_to
+      - snoozed_till
+      - source
     IntakeIssueRequest:
       type: object
       properties:
@@ -25856,6 +26102,189 @@ components:
       - source
       - source_email
       - extra
+    IssueState:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        label_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/LabelLite'
+          readOnly: true
+        state_detail:
+          allOf:
+          - $ref: '#/components/schemas/StateLite'
+          readOnly: true
+          nullable: true
+        project_detail:
+          allOf:
+          - $ref: '#/components/schemas/ProjectLite'
+          readOnly: true
+        assignee_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserLite'
+          readOnly: true
+        sub_issues_count:
+          type: integer
+          readOnly: true
+        attachment_count:
+          type: integer
+          readOnly: true
+        link_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        point:
+          type: integer
+          maximum: 12
+          minimum: 0
+          nullable: true
+        name:
+          type: string
+          title: Issue Name
+          maxLength: 255
+        description_json: {}
+        description_html:
+          type: string
+        description_stripped:
+          type: string
+          nullable: true
+        description_binary:
+          type: string
+          format: byte
+          readOnly: true
+          nullable: true
+        priority:
+          allOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          title: Issue Priority
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        sequence_id:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: Issue Sequence ID
+        sort_order:
+          type: number
+          format: double
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        archived_at:
+          type: string
+          format: date
+          nullable: true
+        is_draft:
+          type: boolean
+        external_source:
+          type: string
+          nullable: true
+          maxLength: 255
+        external_id:
+          type: string
+          nullable: true
+          maxLength: 255
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+        updated_by:
+          type: string
+          format: uuid
+          nullable: true
+          title: Last Modified By
+        project:
+          type: string
+          format: uuid
+        workspace:
+          type: string
+          format: uuid
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        state:
+          type: string
+          format: uuid
+          nullable: true
+        estimate_point:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          type: string
+          format: uuid
+        assignees:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+        labels:
+          type: array
+          items:
+            type: string
+            format: uuid
+          readOnly: true
+      required:
+      - id
+      - label_details
+      - state_detail
+      - project_detail
+      - assignee_details
+      - created_at
+      - updated_at
+      - deleted_at
+      - point
+      - name
+      - description_json
+      - description_html
+      - description_stripped
+      - description_binary
+      - priority
+      - start_date
+      - target_date
+      - sequence_id
+      - sort_order
+      - completed_at
+      - archived_at
+      - is_draft
+      - external_source
+      - external_id
+      - created_by
+      - updated_by
+      - project
+      - workspace
+      - parent
+      - state
+      - estimate_point
+      - type
+      - assignees
+      - labels
     IssueSubscriber:
       type: object
       properties:
@@ -26542,6 +26971,23 @@ components:
       - label_id
       - label_name
       - color
+    LabelLite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        color:
+          type: string
+          maxLength: 255
+      required:
+      - id
+      - name
+      - color
     LabelRequest:
       type: object
       properties:
@@ -26637,155 +27083,6 @@ components:
       - profile_complete
       - workspace_create
       - workspace_join
-    Module:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        workspace_id:
-          type: string
-          format: uuid
-          readOnly: true
-        project_id:
-          type: string
-          format: uuid
-          readOnly: true
-        name:
-          type: string
-          readOnly: true
-          title: Module Name
-        description:
-          type: string
-          readOnly: true
-          title: Module Description
-        description_text:
-          readOnly: true
-          nullable: true
-          title: Module Description RT
-        description_html:
-          readOnly: true
-          nullable: true
-          title: Module Description HTML
-        start_date:
-          type: string
-          format: date
-          readOnly: true
-          nullable: true
-        target_date:
-          type: string
-          format: date
-          readOnly: true
-          nullable: true
-        status:
-          allOf:
-          - $ref: '#/components/schemas/ModuleStatusEnum'
-          readOnly: true
-        lead_id:
-          type: string
-          format: uuid
-          nullable: true
-          readOnly: true
-        member_ids:
-          type: array
-          items:
-            type: string
-            format: uuid
-          nullable: true
-        view_props:
-          allOf:
-          - $ref: '#/components/schemas/ClientJson'
-          readOnly: true
-        sort_order:
-          type: number
-          format: double
-          readOnly: true
-        external_source:
-          type: string
-          readOnly: true
-          nullable: true
-        external_id:
-          type: string
-          readOnly: true
-          nullable: true
-        logo_props:
-          allOf:
-          - $ref: '#/components/schemas/ClientJson'
-          readOnly: true
-        total_estimate_points:
-          type: number
-          format: double
-          readOnly: true
-        completed_estimate_points:
-          type: number
-          format: double
-          readOnly: true
-        is_favorite:
-          type: boolean
-          readOnly: true
-        total_issues:
-          type: integer
-          readOnly: true
-        cancelled_issues:
-          type: integer
-          readOnly: true
-        completed_issues:
-          type: integer
-          readOnly: true
-        started_issues:
-          type: integer
-          readOnly: true
-        unstarted_issues:
-          type: integer
-          readOnly: true
-        backlog_issues:
-          type: integer
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-          title: Last Modified At
-        archived_at:
-          type: string
-          format: date-time
-          readOnly: true
-          nullable: true
-      required:
-      - id
-      - workspace_id
-      - project_id
-      - name
-      - description
-      - description_text
-      - description_html
-      - start_date
-      - target_date
-      - status
-      - lead_id
-      - member_ids
-      - view_props
-      - sort_order
-      - external_source
-      - external_id
-      - logo_props
-      - total_estimate_points
-      - completed_estimate_points
-      - is_favorite
-      - total_issues
-      - cancelled_issues
-      - completed_issues
-      - started_issues
-      - unstarted_issues
-      - backlog_issues
-      - created_at
-      - updated_at
-      - archived_at
     ModuleDetailResponse:
       type: object
       properties:
@@ -27178,14 +27475,6 @@ components:
       - started_issues
       - unstarted_issues
       - backlog_issues
-    ModuleListResponse:
-      oneOf:
-      - type: array
-        items:
-          $ref: '#/components/schemas/ModuleListItem'
-      - type: array
-        items:
-          $ref: '#/components/schemas/Module'
     ModuleStatusEnum:
       enum:
       - backlog
@@ -33172,6 +33461,64 @@ components:
       - $ref: '#/components/schemas/IssueRecentVisit'
       - $ref: '#/components/schemas/PageRecentVisit'
       - $ref: '#/components/schemas/ProjectRecentVisit'
+    RelatedIssue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        project_id:
+          type: string
+          format: uuid
+          readOnly: true
+        sequence_id:
+          type: integer
+          readOnly: true
+        relation_type:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        state_id:
+          type: string
+          format: uuid
+          readOnly: true
+        priority:
+          type: string
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+          title: Last Modified By
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Last Modified At
+      required:
+      - id
+      - project_id
+      - sequence_id
+      - relation_type
+      - name
+      - priority
+      - created_by
+      - created_at
+      - updated_by
+      - updated_at
     RelatedWorkItem:
       type: object
       properties:
@@ -33572,6 +33919,30 @@ components:
       required:
       - state_group
       - state_count
+    StateLite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: State Name
+        color:
+          type: string
+          readOnly: true
+          title: State Color
+        group:
+          allOf:
+          - $ref: '#/components/schemas/Group272Enum'
+          readOnly: true
+      required:
+      - id
+      - name
+      - color
+      - group
     StateRequest:
       type: object
       properties:
@@ -37097,6 +37468,10 @@ components:
           description: property:<id> or estimate_points. Absent for count
       required:
       - function
+    WorkItemById:
+      oneOf:
+      - $ref: '#/components/schemas/WorkItemSnapshot'
+      - $ref: '#/components/schemas/ExpandedWorkItem'
     WorkItemDetailRow:
       type: object
       properties:
@@ -37794,14 +38169,6 @@ components:
       - is_draft
       - archived_at
       - state__group
-    WorkItemsByIdResponse:
-      oneOf:
-      - type: array
-        items:
-          $ref: '#/components/schemas/WorkItemSnapshot'
-      - type: array
-        items:
-          $ref: '#/components/schemas/Issue'
     WorkSpace:
       type: object
       properties:

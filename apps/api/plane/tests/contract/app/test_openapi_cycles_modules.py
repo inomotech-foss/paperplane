@@ -168,7 +168,6 @@ class TestModuleResponses:
     def test_modules(self, session_client, workspace, project, plan):
         module = plan["module"]
         assert documented(session_client.get(url(workspace, project, "modules/")))
-        assert documented(session_client.get(url(workspace, project, "modules/"), {"fields": "id,name"}))
         detail = documented(session_client.get(url(workspace, project, f"modules/{module.id}/")))
         assert detail["distribution"]["completion_chart"] and detail["estimate_distribution"]["labels"]
         documented(session_client.patch(url(workspace, project, f"modules/{module.id}/"), {"name": "M"}, format="json"))
@@ -316,7 +315,7 @@ class TestModuleRequests:
         documented(session_client.patch(url, body, format="json"), 201)
 
     def test_query_parameters(self, session_client, workspace, project, plan):
-        assert documented_query(BASE + "/modules/", "get") == {"fields"}
+        assert documented_query(BASE + "/modules/", "get") == set()
         assert documented_query("/api/workspaces/{slug}/modules/", "get") == set()
         assert documented_query(BASE + "/modules/{module_id}/module-links/", "get") == set()
         route = BASE + "/modules/{module_id}/issues/"

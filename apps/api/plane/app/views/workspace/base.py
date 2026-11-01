@@ -188,7 +188,6 @@ class UserWorkSpacesEndpoint(BaseAPIView):
 
     @extend_schema(responses={200: WorkSpaceSerializer(many=True)})
     def get(self, request):
-        fields = [field for field in request.GET.get("fields", "").split(",") if field]
         member_count = (
             WorkspaceMember.objects.filter(workspace=OuterRef("id"), member__is_bot=False, is_active=True)
             .order_by()
@@ -212,11 +211,7 @@ class UserWorkSpacesEndpoint(BaseAPIView):
             .distinct()
         )
 
-        workspaces = WorkSpaceSerializer(
-            self.filter_queryset(workspace),
-            fields=fields if fields else None,
-            many=True,
-        ).data
+        workspaces = WorkSpaceSerializer(self.filter_queryset(workspace), many=True).data
 
         return Response(workspaces, status=status.HTTP_200_OK)
 
