@@ -66,8 +66,8 @@ export const CommentCreate = observer(function CommentCreate(props: TCommentCrea
       const comment = await activityOperations.createComment(formData);
       if (comment?.id) onSubmitCallback?.(comment.id);
       if (uploadedAssetIds.length > 0) {
-        if (projectId) {
-          await fileService.updateBulkProjectAssetsUploadStatus(workspaceSlug, projectId.toString(), entityId, {
+        if (projectId && comment?.id) {
+          await fileService.updateBulkProjectAssetsUploadStatus(workspaceSlug, projectId, comment.id, {
             asset_ids: uploadedAssetIds,
           });
         }

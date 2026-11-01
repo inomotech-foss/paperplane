@@ -207,6 +207,7 @@ from .page.base import (
 from .page.attachment import PageAttachmentContentEndpoint, PageAttachmentEndpoint
 from .page.query import PageQueryEndpoint
 from .page.version import PageVersionEndpoint
+from .page.mention import PageMentionEndpoint
 from .page.comment import PageCommentViewSet, PageCommentReactionViewSet
 
 from .search.base import GlobalSearchEndpoint, SearchEndpoint

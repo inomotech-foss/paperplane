@@ -70,6 +70,12 @@ class ProgressSnapshotSerializer(serializers.Serializer):
     started_issues = serializers.IntegerField()
     unstarted_issues = serializers.IntegerField()
     backlog_issues = serializers.IntegerField()
+    total_estimate_points = serializers.FloatField()
+    completed_estimate_points = serializers.FloatField()
+    cancelled_estimate_points = serializers.FloatField()
+    started_estimate_points = serializers.FloatField()
+    unstarted_estimate_points = serializers.FloatField()
+    backlog_estimate_points = serializers.FloatField()
     distribution = DistributionSerializer()
     estimate_distribution = EstimateDistributionSerializer()
 
@@ -81,6 +87,12 @@ class ProgressSnapshotSerializer(serializers.Serializer):
             "started_issues",
             "unstarted_issues",
             "backlog_issues",
+            "total_estimate_points",
+            "completed_estimate_points",
+            "cancelled_estimate_points",
+            "started_estimate_points",
+            "unstarted_estimate_points",
+            "backlog_estimate_points",
             "distribution",
             "estimate_distribution",
         )

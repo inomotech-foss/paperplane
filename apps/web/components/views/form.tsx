@@ -25,7 +25,7 @@ import {
 import { EmojiPicker, Logo } from "@plane/blocks/emoji-icon-picker";
 import { ViewsOutline } from "@makeplane/propel/icons";
 import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, IProjectView, IIssueFilters } from "@plane/types";
-import { EViewAccess, EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
+import { EIssueLayoutTypes, EIssuesStoreType } from "@plane/types";
 import { getComputedDisplayFilters, getComputedDisplayProperties, getTabIndex } from "@plane/utils";
 // components
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
@@ -50,7 +50,6 @@ type Props = {
 const DEFAULT_VALUES: Partial<IProjectView> = {
   name: "",
   description: "",
-  access: EViewAccess.PUBLIC,
   display_properties: getComputedDisplayProperties(),
   display_filters: { ...getComputedDisplayFilters(), group_by: "state" },
 };
@@ -100,7 +99,6 @@ export const ProjectViewForm = observer(function ProjectViewForm(props: Props) {
       rich_filters: formData.rich_filters,
       display_filters: formData.display_filters,
       display_properties: formData.display_properties,
-      access: formData.access,
     });
 
     reset({

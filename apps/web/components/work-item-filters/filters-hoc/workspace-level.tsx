@@ -12,7 +12,7 @@ import { observer } from "mobx-react";
 import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissionsLevel } from "@plane/constants";
 import { setToast } from "@plane/blocks/toast";
 import type { IWorkspaceView, TWorkItemFilterExpression } from "@plane/types";
-import { EUserProjectRoles, EViewAccess } from "@plane/types";
+import { EUserProjectRoles } from "@plane/types";
 // components
 import { removeNillKeys } from "@/components/issues/issue-layouts/utils";
 import { CreateUpdateWorkspaceViewModal } from "@/components/workspace/views/modal";
@@ -96,7 +96,6 @@ export const WorkspaceLevelWorkItemFiltersHOC = observer(function WorkspaceLevel
     () => ({
       name: viewDetails ? `${viewDetails?.name} 2` : "Untitled",
       description: viewDetails ? viewDetails.description : "",
-      access: viewDetails ? viewDetails.access : EViewAccess.PUBLIC,
     }),
     [viewDetails]
   );

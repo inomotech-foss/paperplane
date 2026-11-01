@@ -98,7 +98,7 @@ export const EmailReplyCreate = observer(function EmailReplyCreate(props: TEmail
 
   const onSubmit = async (formData: TEmailReplyFormData) => {
     try {
-      await serviceDeskService.sendEmailReply(workspaceSlug, projectId, issueId, {
+      const reply = await serviceDeskService.sendEmailReply(workspaceSlug, projectId, issueId, {
         comment_html: formData.comment_html || "<p></p>",
         ...(replyAttachments.length > 0
           ? { attachment_asset_ids: replyAttachments.map((attachment) => attachment.assetId) }
@@ -107,7 +107,7 @@ export const EmailReplyCreate = observer(function EmailReplyCreate(props: TEmail
       // refetch comments so the customer-visible comment created by the backend shows up
       await fetchComments(workspaceSlug, projectId, issueId, "mutate");
       if (uploadedAssetIds.length > 0) {
-        await fileService.updateBulkProjectAssetsUploadStatus(workspaceSlug, projectId, issueId, {
+        await fileService.updateBulkProjectAssetsUploadStatus(workspaceSlug, projectId, reply.comment.id, {
           asset_ids: uploadedAssetIds,
         });
         setUploadedAssetIds([]);

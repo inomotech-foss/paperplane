@@ -79,3 +79,9 @@ PageQueryResponse = PolymorphicProxySerializer(
     many=False,
     help_text="Rows depend on kind: pages, label-list, task-report or decision-report, contributors",
 )
+
+
+class PageMentionUserSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    display_name = serializers.CharField()
+    avatar_url = serializers.CharField(allow_null=True)
