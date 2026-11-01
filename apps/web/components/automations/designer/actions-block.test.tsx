@@ -34,7 +34,11 @@ vi.mock("@makeplane/propel/components/menu", () => ({
   ),
 }));
 
-const makeAction = (id: string, action_type: TAutomationAction["action_type"], sort_order: number): TAutomationAction => ({
+const makeAction = (
+  id: string,
+  action_type: TAutomationAction["action_type"],
+  sort_order: number
+): TAutomationAction => ({
   id,
   automation: "rule-1",
   action_type,
@@ -83,11 +87,21 @@ const deferred = <T,>() => {
 
 const renderBlock = (actions: TAutomationAction[]) => {
   const view = render(
-    <AutomationActionsBlock workspaceSlug="ws" projectId="p1" automation={makeAutomation(actions)} metadata={undefined} />
+    <AutomationActionsBlock
+      workspaceSlug="ws"
+      projectId="p1"
+      automation={makeAutomation(actions)}
+      metadata={undefined}
+    />
   );
   const rerender = (next: TAutomationAction[]) =>
     view.rerender(
-      <AutomationActionsBlock workspaceSlug="ws" projectId="p1" automation={makeAutomation(next)} metadata={undefined} />
+      <AutomationActionsBlock
+        workspaceSlug="ws"
+        projectId="p1"
+        automation={makeAutomation(next)}
+        metadata={undefined}
+      />
     );
   return { rerender };
 };
