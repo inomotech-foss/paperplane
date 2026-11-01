@@ -163,9 +163,22 @@ class TestWorkItemLists:
     def test_list_by_id_ignores_keys_that_are_not_expandable(self, session_client, workspace, project, issues, key):
         parent, child = issues
         query = {"issues": str(parent.id), "expand": key}
-        (row,) = documented(session_client.get(url(workspace, project, "issues/list/"), query))
-        assert row["name"] == "parent"
-        assert "user" not in row and "sub_issues" not in row and "bogus" not in row
+        rows = documented(session_client.get(url(workspace, project, "issues/list/"), query))
+        plain = documented(session_client.get(url(workspace, project, "issues/list/"), {"issues": str(parent.id)}))
+        assert rows == plain and "deleted_at" in rows[0]
+
+    def test_list_by_id_empty(self, session_client, workspace, project, issues):
+        for expand in [{}, {"expand": "state"}]:
+            query = {"issues": str(project.id), **expand}
+            assert documented(session_client.get(url(workspace, project, "issues/list/"), query)) == []
+
+    def test_detail_expands_link_and_parent(self, session_client, workspace, project, issues):
+        parent, child = issues
+        IssueLink.objects.create(issue=child, url="https://example.com", project=project, workspace=workspace)
+        query = {"expand": "issue_link,parent"}
+        detail = documented(session_client.get(url(workspace, project, f"issues/{child.id}/"), query))
+        assert detail["parent"]["id"] == str(parent.id)
+        assert detail["issue_link"][0]["url"] == "https://example.com"
 
     def test_workspace_lists(self, session_client, create_user, workspace, project, issues):
         assert documented(session_client.get(f"/api/workspaces/{workspace.slug}/issues/"))["results"]

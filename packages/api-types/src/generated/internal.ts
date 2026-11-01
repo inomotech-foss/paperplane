@@ -3403,7 +3403,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["workspaces_projects_issues_list_retrieve"];
+        get: operations["workspaces_projects_issues_list_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -13223,6 +13223,7 @@ export interface components {
             /** @description property:<id> or estimate_points. Absent for count */
             field?: string;
         };
+        WorkItemById: components["schemas"]["WorkItemSnapshot"] | components["schemas"]["ExpandedWorkItem"];
         WorkItemDetailRow: {
             /** Format: uuid */
             id: string;
@@ -13486,7 +13487,6 @@ export interface components {
             /** @description Present when description=true */
             description_html?: string;
         };
-        WorkItemsByIdResponse: components["schemas"]["WorkItemSnapshot"][] | components["schemas"]["ExpandedWorkItem"][];
         WorkSpace: {
             /** Format: uuid */
             readonly id: string;
@@ -22812,7 +22812,7 @@ export interface operations {
             };
         };
     };
-    workspaces_projects_issues_list_retrieve: {
+    workspaces_projects_issues_list_list: {
         parameters: {
             query: {
                 /** @description Comma-separated relations to include, such as issue_relation and issue_related */
@@ -22836,7 +22836,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["WorkItemsByIdResponse"];
+                    "application/json": components["schemas"]["WorkItemById"][];
                 };
             };
         };

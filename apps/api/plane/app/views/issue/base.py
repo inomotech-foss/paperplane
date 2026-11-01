@@ -34,6 +34,7 @@ from rest_framework.response import Response
 
 # Module imports
 from plane.app.permissions import ROLE, allow_permission
+from plane.app.serializers.base import expandable_keys
 from plane.app.serializers import (
     IssueCreateSerializer,
     IssueDetailSerializer,
@@ -122,6 +123,7 @@ class IssueListEndpoint(BaseAPIView):
             return Response({"error": "Issues are required"}, status=status.HTTP_400_BAD_REQUEST)
 
         issue_ids = [issue_id for issue_id in issue_ids.split(",") if issue_id != ""]
+        expand = [name for name in self.expand or [] if name in expandable_keys(Issue)]
 
         # Base queryset with basic filters
         queryset = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk__in=issue_ids)
@@ -146,7 +148,7 @@ class IssueListEndpoint(BaseAPIView):
         issue_queryset = queryset.filter(**filters)
         issue_queryset = issue_queryset.filter(state__deleted_at__isnull=True)
 
-        if self.expand:
+        if expand:
             issue_queryset = issue_queryset.select_related("workspace", "project", "state", "parent").prefetch_related(
                 "assignees", "labels", "issue_module__module"
             )
@@ -201,8 +203,8 @@ class IssueListEndpoint(BaseAPIView):
             user_id=request.user.id,
         )
 
-        if self.expand:
-            issues = IssueSerializer(issue_queryset, many=True, expand=self.expand).data
+        if expand:
+            issues = IssueSerializer(issue_queryset, many=True, expand=expand).data
         else:
             issues = issue_queryset.values(
                 "id",

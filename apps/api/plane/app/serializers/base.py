@@ -8,10 +8,6 @@ from django.db import models
 from rest_framework import serializers
 
 
-# Distinguishes "the instance has no such attribute" from "the attribute is None".
-_MISSING = object()
-
-
 # Relations in the expansion mapper that are to-many.
 MANY_EXPANSION_FIELDS = frozenset(
     {
@@ -94,7 +90,8 @@ def expandable_keys(model):
     expansion = get_expansion_mapper()
     keys = set()
     for field in model._meta.get_fields():
-        if not field.is_relation or field.related_model is None:
+        # A missing reverse one-to-one row raises on access, so those are left out.
+        if not field.is_relation or field.related_model is None or (field.one_to_one and not field.concrete):
             continue
         name = field.get_accessor_name() if field.auto_created and not field.concrete else field.name
         serializer = expansion.get(name)
@@ -134,8 +131,7 @@ class DynamicBaseSerializer(BaseSerializer):
         for expand in self.expand:
             if expand not in expansion:
                 continue
-            # A missing reverse one-to-one row keeps the value the serializer produced.
-            related = getattr(instance, expand, _MISSING)
+            related = getattr(instance, expand)
             if isinstance(related, models.Manager):
                 response[expand] = expansion[expand](related, many=True).data
             elif isinstance(related, models.Model):

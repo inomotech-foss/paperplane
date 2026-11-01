@@ -154,10 +154,10 @@ class ExpandedWorkItemSerializer(IssueSerializer):
 
 
 WorkItemsByIdResponse = PolymorphicProxySerializer(
-    component_name="WorkItemsByIdResponse",
-    serializers=[WorkItemSnapshotSerializer(many=True), ExpandedWorkItemSerializer(many=True)],
+    component_name="WorkItemById",
+    serializers=[WorkItemSnapshotSerializer, ExpandedWorkItemSerializer],
     resource_type_field_name=None,
-    many=False,
+    many=True,
     help_text="Expanded work items when expand is given",
 )
 

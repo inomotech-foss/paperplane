@@ -313,6 +313,5 @@ class TestResponseKeys:
         url = f"/api/workspaces/{workspace.slug}/projects/{project.id}/issues/list/"
         query = {"issues": str(records["issue"].id), **params}
         assert set(row(documented(session_client.get(url, query)))) == WORK_ITEM_SNAPSHOT
-        response = session_client.get(url, {**query, "expand": "state"})
-        assert response.status_code == 200
-        assert set(row(response.json())) == WORK_ITEM_DETAIL | {"state"}
+        expanded = documented(session_client.get(url, {**query, "expand": "state"}))
+        assert set(row(expanded)) == WORK_ITEM_DETAIL | {"state"}
