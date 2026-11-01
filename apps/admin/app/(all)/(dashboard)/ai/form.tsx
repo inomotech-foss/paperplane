@@ -4,9 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import { useForm } from "react-hook-form";
-import { ThoughtsOutline } from "@makeplane/propel/icons";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Button } from "@makeplane/propel/components/button";
+import { Select, SelectContent, SelectItem, SelectList, SelectTrigger } from "@makeplane/propel/components/select";
+import { useTranslation } from "@plane/i18n";
 import type { IFormattedInstanceConfiguration, TInstanceAIConfigurationKeys } from "@plane/types";
 // components
 import type { TControllerInputFormField } from "@/components/common/controller-input";
@@ -21,64 +22,57 @@ type IInstanceAIForm = {
 
 type AIFormValues = Record<TInstanceAIConfigurationKeys, string>;
 
+const LLM_PROVIDERS = { openai: "OpenAI", anthropic: "Anthropic", gemini: "Gemini" } as const;
+
+type TLLMProvider = keyof typeof LLM_PROVIDERS;
+
+const isLLMProvider = (value: string | null | undefined): value is TLLMProvider =>
+  !!value && Object.hasOwn(LLM_PROVIDERS, value);
+
+const API_KEY_PLACEHOLDERS: Record<TLLMProvider, string> = {
+  openai: "sk-...",
+  anthropic: "sk-ant-...",
+  gemini: "AIza...",
+};
+
 export function InstanceAIForm(props: IInstanceAIForm) {
   const { config } = props;
+  const { t } = useTranslation();
   // store
   const { updateInstanceConfigurations } = useInstance();
+  const configuredProvider = config["LLM_PROVIDER"]?.toLowerCase();
   // form data
   const {
     handleSubmit,
     control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<AIFormValues>({
     defaultValues: {
+      LLM_PROVIDER: isLLMProvider(configuredProvider) ? configuredProvider : "openai",
       LLM_API_KEY: config["LLM_API_KEY"],
       LLM_MODEL: config["LLM_MODEL"],
     },
   });
 
+  const selectedProvider = useWatch({ control, name: "LLM_PROVIDER" });
+
   const aiFormFields: TControllerInputFormField<AIFormValues>[] = [
     {
       key: "LLM_MODEL",
       type: "text",
-      label: "LLM Model",
-      description: (
-        <>
-          Choose an OpenAI engine.{" "}
-          <a
-            href="https://platform.openai.com/docs/models/overview"
-            target="_blank"
-            className="text-accent-primary hover:underline"
-            rel="noreferrer"
-            aria-label="OpenAI models documentation"
-          >
-            Learn more
-          </a>
-        </>
-      ),
-      placeholder: "gpt-4o-mini",
+      label: t("instance_ai.model.label"),
+      description: t("instance_ai.model.description"),
+      placeholder: t("instance_ai.model.placeholder"),
       error: Boolean(errors.LLM_MODEL),
       required: false,
     },
     {
       key: "LLM_API_KEY",
       type: "password",
-      label: "API key",
-      description: (
-        <>
-          You will find your API key{" "}
-          <a
-            href="https://platform.openai.com/api-keys"
-            target="_blank"
-            className="text-accent-primary hover:underline"
-            rel="noreferrer"
-            aria-label="OpenAI API keys page"
-          >
-            here.
-          </a>
-        </>
-      ),
-      placeholder: "sk-asddassdfasdefqsdfasd23das3dasdcasd",
+      label: t("instance_ai.api_key.label"),
+      description: t("instance_ai.api_key.description"),
+      placeholder: API_KEY_PLACEHOLDERS[isLLMProvider(selectedProvider) ? selectedProvider : "openai"],
       error: Boolean(errors.LLM_API_KEY),
       required: false,
     },
@@ -91,8 +85,8 @@ export function InstanceAIForm(props: IInstanceAIForm) {
       .then(() =>
         setToast({
           type: "success",
-          title: "Success",
-          message: "AI Settings updated successfully",
+          title: t("instance_ai.toast.success_title"),
+          message: t("instance_ai.toast.success_message"),
         })
       )
       .catch((err: unknown) => console.error(err));
@@ -102,10 +96,40 @@ export function InstanceAIForm(props: IInstanceAIForm) {
     <div className="space-y-8">
       <div className="space-y-3">
         <div>
-          <div className="pb-1 text-18 font-medium text-primary">OpenAI</div>
-          <div className="text-13 font-regular text-tertiary">If you use ChatGPT, this is for you.</div>
+          <div className="pb-1 text-18 font-medium text-primary">{t("instance_ai.title")}</div>
+          <div className="text-13 font-regular text-tertiary">{t("instance_ai.description")}</div>
         </div>
-        <div className="grid-col grid w-full grid-cols-1 items-center justify-between gap-x-12 gap-y-8 lg:grid-cols-3">
+        <div className="grid-col grid w-full grid-cols-1 items-start justify-between gap-x-12 gap-y-8 lg:grid-cols-3">
+          <div className="flex flex-col gap-1">
+            <h4 className="text-13 text-tertiary">{t("instance_ai.provider.label")}</h4>
+            <Controller
+              control={control}
+              name="LLM_PROVIDER"
+              render={({ field: { value, onChange } }) => (
+                <Select
+                  items={LLM_PROVIDERS}
+                  value={isLLMProvider(value) ? value : "openai"}
+                  onValueChange={(provider) => {
+                    if (!isLLMProvider(provider) || provider === value) return;
+                    onChange(provider);
+                    // neither a model name nor an API key carries over to another provider
+                    setValue("LLM_MODEL", "", { shouldDirty: true });
+                    setValue("LLM_API_KEY", "", { shouldDirty: true });
+                  }}
+                >
+                  <SelectTrigger size="lg" placeholder={t("instance_ai.provider.label")} />
+                  <SelectContent>
+                    <SelectList>
+                      {Object.entries(LLM_PROVIDERS).map(([key, label]) => (
+                        <SelectItem key={key} value={key} label={label} size="lg" />
+                      ))}
+                    </SelectList>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <p className="text-11 text-tertiary">{t("instance_ai.provider.description")}</p>
+          </div>
           {aiFormFields.map((field) => (
             <ControllerInput
               key={field.key}
@@ -129,18 +153,8 @@ export function InstanceAIForm(props: IInstanceAIForm) {
           stretch="auto"
           onClick={handleSubmit(onSubmit)}
           loading={isSubmitting}
-          label={isSubmitting ? "Saving" : "Save changes"}
+          label={isSubmitting ? t("instance_ai.saving") : t("instance_ai.save")}
         />
-
-        <div className="relative inline-flex items-center gap-1.5 rounded-sm border border-accent-subtle bg-accent-subtle px-4 py-2 text-caption-sm-regular text-accent-secondary">
-          <ThoughtsOutline className="size-4" />
-          <div>
-            If you have a preferred AI models vendor, please get in{" "}
-            <a className="font-medium underline" href="https://plane.so/contact">
-              touch with us.
-            </a>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import { useTranslation } from "@plane/i18n";
 import type { EFileAssetType, TNameDescriptionLoader } from "@plane/types";
 import { getDescriptionPlaceholderI18n } from "@plane/utils";
 // components
+import { useWritingAssistant } from "@/components/editor/ai/use-writing-assistant";
 import { RichTextEditor } from "@/components/editor/rich-text";
 // hooks
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
@@ -137,6 +138,7 @@ export const DescriptionInput = observer(function DescriptionInput(props: Props)
   const { uploadEditorAsset, duplicateEditorAsset } = useEditorAsset();
   // derived values
   const workspaceDetails = getWorkspaceBySlug(workspaceSlug);
+  const aiHandler = useWritingAssistant({ workspaceId: workspaceDetails?.id ?? "", workspaceSlug, projectId });
   // translation
   const { t } = useTranslation();
   // form info
@@ -230,6 +232,7 @@ export const DescriptionInput = observer(function DescriptionInput(props: Props)
       control={control}
       render={({ field: { onChange } }) => (
         <RichTextEditor
+          aiHandler={aiHandler}
           key={entityId}
           editable={!disabled}
           ref={editorRef}

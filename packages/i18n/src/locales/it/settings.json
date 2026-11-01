@@ -166,5 +166,29 @@
         "label": "Tema personalizzato"
       }
     }
+  },
+  "instance_ai": {
+    "title": "Fornitore di IA",
+    "description": "L'assistente di scrittura IA in pagine ed elementi di lavoro invia il testo a questo fornitore.",
+    "sidebar_description": "Configuri il fornitore di IA per l'assistente di scrittura.",
+    "provider": {
+      "label": "Fornitore",
+      "description": "Cambiando fornitore vengono cancellati il modello e la chiave API, perché nessuno dei due funziona con un altro fornitore."
+    },
+    "model": {
+      "label": "Modello",
+      "description": "Lasci vuoto per usare il modello predefinito del fornitore. Funziona qualsiasi modello offerto dal fornitore.",
+      "placeholder": "Predefinito del fornitore"
+    },
+    "api_key": {
+      "label": "Chiave API",
+      "description": "Crei una chiave nella console del fornitore."
+    },
+    "save": "Salva modifiche",
+    "saving": "Salvataggio in corso",
+    "toast": {
+      "success_title": "Successo",
+      "success_message": "Impostazioni IA salvate."
+    }
   }
 }

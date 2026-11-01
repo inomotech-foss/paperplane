@@ -1,0 +1,182 @@
+/**
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * See the LICENSE file for details.
+ */
+
+import { getHTMLFromFragment } from "@tiptap/core";
+import type { Editor, EditorEvents, Range } from "@tiptap/core";
+import { DOMParser as ProseMirrorDOMParser } from "@tiptap/pm/model";
+import type { Node as ProseMirrorNode, Slice } from "@tiptap/pm/model";
+import type { Mapping } from "@tiptap/pm/transform";
+import {
+  absolutePositionToRelativePosition,
+  ProsemirrorBinding,
+  relativePositionToAbsolutePosition,
+  ySyncPluginKey,
+} from "@tiptap/y-tiptap";
+import * as Y from "yjs";
+// plane imports
+import { convertHTMLToMarkdown } from "@plane/utils";
+import { readField } from "@plane/types";
+// types
+import type { IEditorProps } from "@/types";
+
+// Atoms that survive the Markdown round trip. Any other atom (mention, image, embed) would be lost on replace.
+const MARKDOWN_SAFE_ATOMS = new Set(["hardBreak", "horizontalRule"]);
+
+// An inert document: nothing in it loads or runs while it is parsed.
+const parseHTML = (html: string): HTMLElement => new DOMParser().parseFromString(html, "text/html").body;
+
+const isWritable = (editor: Editor) => editor.isEditable && !editor.isDestroyed;
+
+/** The selected content as Markdown. */
+export const getSelectionMarkdown = (editor: Editor, getEditorMetaData: IEditorProps["getEditorMetaData"]): string => {
+  const html = getHTMLFromFragment(editor.state.selection.content().content, editor.schema);
+  return convertHTMLToMarkdown({ description_html: html, metaData: getEditorMetaData(html) }).trim();
+};
+
+/** Whether the content has nodes, such as mentions, images or embeds, that a Markdown result cannot bring back. */
+export const hasNodesLostByMarkdown = (slice: Slice): boolean => {
+  let found = false;
+  slice.content.descendants((node) => {
+    if (found) return false;
+    if (node.isAtom && !node.isText && !MARKDOWN_SAFE_ATOMS.has(node.type.name)) found = true;
+    return !found;
+  });
+  return found;
+};
+
+/** Follows a range through a change. Returns null once the range's content is gone. */
+export const mapRange = (range: Range, mapping: Mapping): Range | null => {
+  const from = mapping.mapResult(range.from, 1);
+  const to = mapping.mapResult(range.to, -1);
+  if (to.pos <= from.pos) return null;
+  return { from: from.pos, to: to.pos };
+};
+
+const getYSyncBinding = (editor: Editor): ProsemirrorBinding | undefined => {
+  const binding = readField(ySyncPluginKey.getState(editor.state), "binding");
+  return binding instanceof ProsemirrorBinding ? binding : undefined;
+};
+
+type TTextChar = { char: string; pos: number };
+
+/** The text characters between two positions with their positions. Blocks are separated by "\n". */
+const collectText = (doc: ProseMirrorNode, from: number, to: number): TTextChar[] => {
+  const chars: TTextChar[] = [];
+  doc.nodesBetween(from, to, (node, pos) => {
+    if (node.isTextblock && chars.length > 0) chars.push({ char: "\n", pos });
+    if (node.isText && node.text) {
+      for (let index = 0; index < node.text.length; index++) {
+        const charPos = pos + index;
+        if (charPos >= from && charPos < to) chars.push({ char: node.text[index], pos: charPos });
+      }
+    }
+  });
+  return chars;
+};
+
+const textOf = (chars: TTextChar[]) => chars.map(({ char }) => char).join("");
+
+/**
+ * Moves a range onto the occurrence of `text` nearest to it. y-tiptap turns a remote edit into a
+ * character diff, which can credit a typed character to the existing one it matches (typing "D" before
+ * "Delta" reuses the old "D"), so an anchor on that character drifts into the collaborator's text.
+ */
+export const snapRangeToText = (doc: ProseMirrorNode, range: Range, text: string): Range => {
+  if (!text) return range;
+  const window = collectText(
+    doc,
+    Math.max(0, range.from - text.length - 2),
+    Math.min(doc.content.size, range.to + text.length + 2)
+  );
+  const windowText = textOf(window);
+  let best: Range | null = null;
+  for (let index = windowText.indexOf(text); index >= 0; index = windowText.indexOf(text, index + 1)) {
+    const candidate = { from: window[index].pos, to: window[index + text.length - 1].pos + 1 };
+    if (!best || Math.abs(candidate.from - range.from) < Math.abs(best.from - range.from)) best = candidate;
+  }
+  return best ?? range;
+};
+
+export type TRangeTracker = {
+  /** Starts following local changes. Returns the cleanup. */
+  start: () => () => void;
+  /** The range now, or null when its content was deleted. */
+  resolve: () => Range | null;
+};
+
+/**
+ * Keeps a range on the same content while the document changes.
+ * Collaborative documents use Yjs relative positions, because a remote update reaches ProseMirror
+ * as one replace of the whole document, which no step mapping can follow.
+ */
+export const createRangeTracker = (editor: Editor, range: Range): TRangeTracker => {
+  const binding = getYSyncBinding(editor);
+  if (binding) {
+    const toRelative = (pos: number, assoc: number): Y.RelativePosition | null => {
+      const relative: unknown = absolutePositionToRelativePosition(pos, binding.type, binding.mapping);
+      if (!(relative instanceof Y.RelativePosition)) return null;
+      // y-tiptap anchors to the left (assoc -1). The start anchors to the right instead, so text inserted
+      // exactly at the start stays outside the range, like the step mapping does.
+      const absolute = Y.createAbsolutePositionFromRelativePosition(relative, binding.doc);
+      return absolute ? Y.createRelativePositionFromTypeIndex(absolute.type, absolute.index, assoc) : null;
+    };
+    const relativeFrom = toRelative(range.from, 0);
+    const relativeTo = toRelative(range.to, -1);
+    const selectedText = textOf(collectText(editor.state.doc, range.from, range.to));
+    return {
+      start: () => () => {},
+      resolve: () => {
+        const current = getYSyncBinding(editor);
+        if (!current || !relativeFrom || !relativeTo) return null;
+        // y-tiptap only resolves the left-anchored form it creates itself (a start-of-text position
+        // points at the parent, not a character), so turn each anchor back into that form first.
+        const toAbsolute = (relative: Y.RelativePosition): number | null => {
+          const absolute = Y.createAbsolutePositionFromRelativePosition(relative, current.doc);
+          if (!absolute) return null;
+          const leftAnchored = Y.createRelativePositionFromTypeIndex(absolute.type, absolute.index, -1);
+          return relativePositionToAbsolutePosition(current.doc, current.type, leftAnchored, current.mapping);
+        };
+        const from = toAbsolute(relativeFrom);
+        const to = toAbsolute(relativeTo);
+        if (from === null || to === null || to <= from) return null;
+        return snapRangeToText(editor.state.doc, { from, to }, selectedText);
+      },
+    };
+  }
+
+  let current: Range | null = range;
+  return {
+    start: () => {
+      const handleTransaction = ({ transaction }: EditorEvents["transaction"]) => {
+        if (current && transaction.docChanged) current = mapRange(current, transaction.mapping);
+      };
+      editor.on("transaction", handleTransaction);
+      return () => {
+        editor.off("transaction", handleTransaction);
+      };
+    },
+    resolve: () => current,
+  };
+};
+
+/** Replaces the range with the HTML. A single paragraph goes inline, like a paste. */
+export const replaceRangeWithHTML = (editor: Editor, range: Range, html: string): boolean => {
+  if (!isWritable(editor)) return false;
+  const slice = ProseMirrorDOMParser.fromSchema(editor.schema).parseSlice(parseHTML(html));
+  editor.view.dispatch(editor.state.tr.replaceRange(range.from, range.to, slice).scrollIntoView());
+  editor.commands.focus();
+  return true;
+};
+
+/** Inserts the HTML as new blocks after the top-level block that contains the end of the range. */
+export const insertHTMLBelowRange = (editor: Editor, range: Range, html: string): boolean => {
+  if (!isWritable(editor)) return false;
+  const $to = editor.state.doc.resolve(Math.min(range.to, editor.state.doc.content.size));
+  const position = $to.depth > 0 ? $to.after(1) : $to.pos;
+  const content = ProseMirrorDOMParser.fromSchema(editor.schema).parse(parseHTML(html)).content;
+  editor.view.dispatch(editor.state.tr.insert(position, content).scrollIntoView());
+  editor.commands.focus();
+  return true;
+};

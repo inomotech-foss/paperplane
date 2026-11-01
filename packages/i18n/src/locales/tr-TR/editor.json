@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "Projede değil"
+  },
+  "ai_writing": {
+    "label": "AI",
+    "actions": {
+      "rephrase": "Yeniden ifade et",
+      "simplify": "Sadeleştir",
+      "elaborate": "Ayrıntılandır",
+      "summarize": "Özetle",
+      "fix_grammar": "Yazım ve dil bilgisini düzelt"
+    },
+    "tone": {
+      "label": "Tonu değiştir",
+      "professional": "Profesyonel",
+      "casual": "Gündelik",
+      "friendly": "Samimi",
+      "confident": "Kendinden emin"
+    },
+    "instruction_placeholder": "AI için bir talimat yazın...",
+    "send": "Gönder",
+    "generating": "AI yazıyor...",
+    "result": {
+      "replace": "Seçimi değiştir",
+      "insert_below": "Altına ekle",
+      "try_again": "Tekrar dene",
+      "discard": "Vazgeç",
+      "replace_unavailable": "Seçim, değiştirme işleminin kaldıracağı bahsetmeler, görseller veya gömülü öğeler içeriyor. Bunun yerine sonucu altına ekleyin."
+    },
+    "consent": "Metniniz üçüncü taraf bir AI sağlayıcısına gönderilir.",
+    "draft_description": "Açıklama taslağı oluştur",
+    "drafting": "Taslak oluşturuluyor...",
+    "errors": {
+      "not_configured": "Bu örnek için ayarlanmış bir AI sağlayıcısı yok.",
+      "provider_auth": "AI sağlayıcısı API anahtarını reddetti. Örnek yöneticinizden anahtarı kontrol etmesini isteyin.",
+      "provider_model": "AI sağlayıcısı yapılandırılan modeli sunmuyor. Örnek yöneticinizden ayarı kontrol etmesini isteyin.",
+      "rate_limited": "Çok fazla istek. Biraz bekleyip tekrar deneyin.",
+      "empty_response": "AI sağlayıcısı metin döndürmedi. Tekrar deneyin.",
+      "too_long": "Metin çok uzun. Daha az metin seçip tekrar deneyin.",
+      "generic": "Bir sorun oluştu. Tekrar deneyin.",
+      "empty_text": "Seçimde işlenecek metin yok."
+    }
   }
 }

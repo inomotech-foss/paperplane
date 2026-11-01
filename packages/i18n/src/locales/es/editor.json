@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "No está en el proyecto"
+  },
+  "ai_writing": {
+    "label": "IA",
+    "actions": {
+      "rephrase": "Reformular",
+      "simplify": "Simplificar",
+      "elaborate": "Desarrollar",
+      "summarize": "Resumir",
+      "fix_grammar": "Corregir ortografía y gramática"
+    },
+    "tone": {
+      "label": "Cambiar tono",
+      "professional": "Profesional",
+      "casual": "Informal",
+      "friendly": "Amigable",
+      "confident": "Seguro"
+    },
+    "instruction_placeholder": "Indique a la IA qué hacer...",
+    "send": "Enviar",
+    "generating": "La IA está escribiendo...",
+    "result": {
+      "replace": "Reemplazar selección",
+      "insert_below": "Insertar debajo",
+      "try_again": "Reintentar",
+      "discard": "Descartar",
+      "replace_unavailable": "La selección contiene menciones, imágenes o contenido insertado que se eliminarían al reemplazarla. Inserte el resultado debajo."
+    },
+    "consent": "Su texto se envía a un proveedor de IA externo.",
+    "draft_description": "Redactar descripción",
+    "drafting": "Redactando...",
+    "errors": {
+      "not_configured": "No hay ningún proveedor de IA configurado para esta instancia.",
+      "provider_auth": "El proveedor de IA rechazó la clave de API. Pida al administrador de su instancia que la revise.",
+      "provider_model": "El proveedor de IA no ofrece el modelo configurado. Pida al administrador de su instancia que revise la configuración.",
+      "rate_limited": "Demasiadas solicitudes. Espere un momento e inténtelo de nuevo.",
+      "empty_response": "El proveedor de IA no devolvió ningún texto. Inténtelo de nuevo.",
+      "too_long": "El texto es demasiado largo. Seleccione menos texto e inténtelo de nuevo.",
+      "generic": "Algo salió mal. Inténtelo de nuevo.",
+      "empty_text": "La selección no contiene texto con el que trabajar."
+    }
   }
 }

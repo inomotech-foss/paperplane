@@ -166,5 +166,29 @@
         "label": "Vlastná téma"
       }
     }
+  },
+  "instance_ai": {
+    "title": "Poskytovateľ AI",
+    "description": "Asistent písania s AI na stránkach a v pracovných položkách odosiela text tomuto poskytovateľovi.",
+    "sidebar_description": "Nastavte poskytovateľa AI pre asistenta písania.",
+    "provider": {
+      "label": "Poskytovateľ",
+      "description": "Zmena poskytovateľa vymaže model aj kľúč API, pretože ani jedno nefunguje u iného poskytovateľa."
+    },
+    "model": {
+      "label": "Model",
+      "description": "Ak chcete použiť predvolený model poskytovateľa, nechajte prázdne. Funguje akýkoľvek model, ktorý váš poskytovateľ ponúka.",
+      "placeholder": "Predvolený model poskytovateľa"
+    },
+    "api_key": {
+      "label": "Kľúč API",
+      "description": "Vytvorte kľúč v konzole svojho poskytovateľa."
+    },
+    "save": "Uložiť zmeny",
+    "saving": "Ukladanie",
+    "toast": {
+      "success_title": "Úspech",
+      "success_message": "Nastavenia AI boli uložené."
+    }
   }
 }

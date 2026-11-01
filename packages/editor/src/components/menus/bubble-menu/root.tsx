@@ -5,18 +5,20 @@
  */
 
 import { isNodeSelection } from "@tiptap/core";
-import type { Editor } from "@tiptap/core";
+import type { Editor, Range } from "@tiptap/core";
 import { PluginKey } from "@tiptap/pm/state";
 import { useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import type { BubbleMenuProps } from "@tiptap/react/menus";
 import { MessageSquareText } from "lucide-react";
+import { AiStar1Outline } from "@makeplane/propel/icons";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 // plane utils
 import { cn } from "@plane/utils";
 // components
 import type { EditorMenuItem } from "@/components/menus";
 import {
+  AIFeaturesMenu,
   BackgroundColorItem,
   BoldItem,
   BubbleMenuColorSelector,
@@ -35,9 +37,10 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 // extensions
 import { isCellSelection } from "@/extensions/table/table/utilities/helpers";
 // helpers
+import { getSelectionMarkdown, hasNodesLostByMarkdown } from "@/helpers/ai";
 import { observeLayoutShift } from "@/helpers/observe-layout-shift";
 // types
-import type { IEditorPropsExtended, TEditorCommands, TExtensions } from "@/types";
+import type { IEditorProps, IEditorPropsExtended, TAIHandler, TEditorCommands, TExtensions } from "@/types";
 // local imports
 import { TextAlignmentSelector } from "./alignment-selector";
 import { BubbleMenuLinkSelector } from "./link-selector";
@@ -49,6 +52,7 @@ type EditorBubbleMenuProps = Omit<BubbleMenuProps, "children">;
 
 export type EditorStateType = {
   code: boolean;
+  codeBlock: boolean;
   bold: boolean;
   italic: boolean;
   underline: boolean;
@@ -75,16 +79,20 @@ export type EditorStateType = {
 };
 
 type Props = {
+  aiHandler?: TAIHandler;
   disabledExtensions: TExtensions[];
   editor: Editor;
   extendedEditorProps: IEditorPropsExtended;
   flaggedExtensions: TExtensions[];
+  getEditorMetaData: IEditorProps["getEditorMetaData"];
 };
 
 export function EditorBubbleMenu(props: Props) {
-  const { editor } = props;
+  const { aiHandler, editor, getEditorMetaData } = props;
   // states
   const [isSelecting, setIsSelecting] = useState(false);
+  const [aiSession, setAISession] = useState<{ range: Range; selection: string; canReplace: boolean } | null>(null);
+  const aiMenu = aiHandler?.menu;
   // refs
   const menuRef = useRef<HTMLDivElement>(null);
   // read by the plugin's shouldShow, which outlives a render
@@ -117,6 +125,7 @@ export function EditorBubbleMenu(props: Props) {
     editor,
     selector: ({ editor: currentEditor }) => ({
       code: formattingItems.code.isActive(),
+      codeBlock: currentEditor.isActive(CORE_EXTENSIONS.CODE_BLOCK),
       bold: formattingItems.bold.isActive(),
       italic: formattingItems.italic.isActive(),
       underline: formattingItems.underline.isActive(),
@@ -229,70 +238,106 @@ export function EditorBubbleMenu(props: Props) {
     };
   }, [editor, canShowBubbleMenu]);
 
+  const openAIMenu = () => {
+    const { from, to } = editor.state.selection;
+    setAISession({
+      range: { from, to },
+      selection: getSelectionMarkdown(editor, getEditorMetaData),
+      canReplace: !hasNodesLostByMarkdown(editor.state.selection.content()),
+    });
+  };
+
   return (
-    <BubbleMenu
-      editor={editor}
-      pluginKey={bubbleMenuPluginKey}
-      shouldShow={canShowBubbleMenu}
-      options={options}
-      style={{ zIndex: 9, transition: "transform 0.15s ease-out" }}
-    >
-      {!isSelecting && (
-        <div
-          ref={menuRef}
-          className="horizontal-scrollbar flex scrollbar-xs divide-x divide-subtle-1 overflow-x-scroll rounded-lg border border-subtle bg-surface-1 py-2 shadow-raised-200"
-        >
-          <div className="px-2">
-            <BubbleMenuNodeSelector editor={editor} />
-          </div>
-          {!editorState.code && (
+    <>
+      <BubbleMenu
+        editor={editor}
+        pluginKey={bubbleMenuPluginKey}
+        shouldShow={canShowBubbleMenu}
+        options={options}
+        style={{ zIndex: 9, transition: "transform 0.15s ease-out" }}
+      >
+        {!isSelecting && !aiSession && (
+          <div
+            ref={menuRef}
+            className="horizontal-scrollbar flex scrollbar-xs divide-x divide-subtle-1 overflow-x-scroll rounded-lg border border-subtle bg-surface-1 py-2 shadow-raised-200"
+          >
+            {aiMenu && !editorState.code && !editorState.codeBlock && (
+              <div className="px-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openAIMenu();
+                  }}
+                  className="flex h-7 items-center gap-1 rounded-sm px-2 text-13 font-medium whitespace-nowrap text-accent-primary transition-colors hover:bg-layer-1 active:bg-layer-1"
+                >
+                  <AiStar1Outline className="size-3.5 shrink-0" />
+                  {aiHandler?.label}
+                </button>
+              </div>
+            )}
             <div className="px-2">
-              <BubbleMenuLinkSelector editor={editor} />
+              <BubbleMenuNodeSelector editor={editor} />
             </div>
-          )}
-          {!editorState.code && (
-            <div className="px-2">
-              <BubbleMenuColorSelector editor={editor} editorState={editorState} />
-            </div>
-          )}
-          <div className="flex gap-0.5 px-2">
-            {basicFormattingOptions.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={(e) => {
-                  item.command();
-                  e.stopPropagation();
-                }}
-                className={cn(
-                  "grid size-7 place-items-center rounded-sm text-tertiary transition-colors hover:bg-layer-1 active:bg-layer-1",
-                  {
-                    "bg-layer-1 text-primary": editorState[item.key],
-                  }
-                )}
-              >
-                <item.icon className="size-4" />
-              </button>
-            ))}
-          </div>
-          <TextAlignmentSelector editor={editor} editorState={editorState} />
-          {!editorState.code && editor.schema.marks[CORE_EXTENSIONS.COMMENT] && (
+            {!editorState.code && (
+              <div className="px-2">
+                <BubbleMenuLinkSelector editor={editor} />
+              </div>
+            )}
+            {!editorState.code && (
+              <div className="px-2">
+                <BubbleMenuColorSelector editor={editor} editorState={editorState} />
+              </div>
+            )}
             <div className="flex gap-0.5 px-2">
-              <button
-                type="button"
-                aria-label="Comment"
-                onClick={(e) => {
-                  CommentItem(editor).command();
-                  e.stopPropagation();
-                }}
-                className="grid size-7 place-items-center rounded-sm text-tertiary transition-colors hover:bg-layer-1 active:bg-layer-1"
-              >
-                <MessageSquareText className="size-4" />
-              </button>
+              {basicFormattingOptions.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={(e) => {
+                    item.command();
+                    e.stopPropagation();
+                  }}
+                  className={cn(
+                    "grid size-7 place-items-center rounded-sm text-tertiary transition-colors hover:bg-layer-1 active:bg-layer-1",
+                    {
+                      "bg-layer-1 text-primary": editorState[item.key],
+                    }
+                  )}
+                >
+                  <item.icon className="size-4" />
+                </button>
+              ))}
             </div>
-          )}
-        </div>
+            <TextAlignmentSelector editor={editor} editorState={editorState} />
+            {!editorState.code && editor.schema.marks[CORE_EXTENSIONS.COMMENT] && (
+              <div className="flex gap-0.5 px-2">
+                <button
+                  type="button"
+                  aria-label="Comment"
+                  onClick={(e) => {
+                    CommentItem(editor).command();
+                    e.stopPropagation();
+                  }}
+                  className="grid size-7 place-items-center rounded-sm text-tertiary transition-colors hover:bg-layer-1 active:bg-layer-1"
+                >
+                  <MessageSquareText className="size-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </BubbleMenu>
+      {aiMenu && aiSession && (
+        <AIFeaturesMenu
+          editor={editor}
+          menu={aiMenu}
+          range={aiSession.range}
+          selection={aiSession.selection}
+          canReplace={aiSession.canReplace}
+          onClose={() => setAISession(null)}
+        />
       )}
-    </BubbleMenu>
+    </>
   );
 }

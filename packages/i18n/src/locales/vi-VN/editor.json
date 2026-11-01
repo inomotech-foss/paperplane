@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "Không thuộc dự án"
+  },
+  "ai_writing": {
+    "label": "AI",
+    "actions": {
+      "rephrase": "Diễn đạt lại",
+      "simplify": "Đơn giản hóa",
+      "elaborate": "Viết chi tiết hơn",
+      "summarize": "Tóm tắt",
+      "fix_grammar": "Sửa chính tả và ngữ pháp"
+    },
+    "tone": {
+      "label": "Đổi giọng văn",
+      "professional": "Chuyên nghiệp",
+      "casual": "Thoải mái",
+      "friendly": "Thân thiện",
+      "confident": "Tự tin"
+    },
+    "instruction_placeholder": "Hãy cho AI biết cần làm gì...",
+    "send": "Gửi",
+    "generating": "AI đang viết...",
+    "result": {
+      "replace": "Thay thế phần đã chọn",
+      "insert_below": "Chèn bên dưới",
+      "try_again": "Thử lại",
+      "discard": "Hủy bỏ",
+      "replace_unavailable": "Phần đã chọn có lượt đề cập, hình ảnh hoặc nội dung nhúng sẽ bị xóa khi thay thế. Hãy chèn kết quả bên dưới."
+    },
+    "consent": "Văn bản của bạn được gửi đến một nhà cung cấp AI bên thứ ba.",
+    "draft_description": "Soạn nháp mô tả",
+    "drafting": "Đang soạn nháp...",
+    "errors": {
+      "not_configured": "Chưa có nhà cung cấp AI nào được thiết lập cho hệ thống này.",
+      "provider_auth": "Nhà cung cấp AI đã từ chối khóa API. Hãy yêu cầu quản trị viên hệ thống kiểm tra khóa này.",
+      "provider_model": "Nhà cung cấp AI không hỗ trợ mô hình đã cấu hình. Hãy yêu cầu quản trị viên hệ thống kiểm tra cấu hình.",
+      "rate_limited": "Quá nhiều yêu cầu. Hãy đợi một lát rồi thử lại.",
+      "empty_response": "Nhà cung cấp AI không trả về văn bản nào. Hãy thử lại.",
+      "too_long": "Văn bản quá dài. Hãy chọn ít văn bản hơn rồi thử lại.",
+      "generic": "Đã xảy ra lỗi. Hãy thử lại.",
+      "empty_text": "Phần đã chọn không có văn bản để xử lý."
+    }
   }
 }

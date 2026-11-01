@@ -166,6 +166,7 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
           extendedDocumentEditorProps={extendedDocumentEditorProps}
           editor={editor}
           flaggedExtensions={flaggedExtensions}
+          getEditorMetaData={getEditorMetaData}
           titleEditor={titleEditor}
           editorContainerClassName={cn(editorContainerClassNames, "document-editor")}
           extendedEditorProps={extendedEditorProps}

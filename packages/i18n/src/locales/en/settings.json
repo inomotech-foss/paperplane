@@ -166,5 +166,29 @@
         "label": "Custom theme"
       }
     }
+  },
+  "instance_ai": {
+    "title": "AI provider",
+    "description": "The AI writing assistant in pages and work items sends text to this provider.",
+    "sidebar_description": "Set up the AI provider for the writing assistant.",
+    "provider": {
+      "label": "Provider",
+      "description": "Changing the provider clears the model and the API key, because neither works with another provider."
+    },
+    "model": {
+      "label": "Model",
+      "description": "Leave empty to use the provider's default model. Any model your provider offers works.",
+      "placeholder": "Provider default"
+    },
+    "api_key": {
+      "label": "API key",
+      "description": "Create a key in your provider's console."
+    },
+    "save": "Save changes",
+    "saving": "Saving",
+    "toast": {
+      "success_title": "Success",
+      "success_message": "AI settings saved."
+    }
   }
 }

@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "Poza projektem"
+  },
+  "ai_writing": {
+    "label": "AI",
+    "actions": {
+      "rephrase": "Przeformułuj",
+      "simplify": "Uprość",
+      "elaborate": "Rozwiń",
+      "summarize": "Podsumuj",
+      "fix_grammar": "Popraw pisownię i gramatykę"
+    },
+    "tone": {
+      "label": "Zmień ton",
+      "professional": "Profesjonalny",
+      "casual": "Swobodny",
+      "friendly": "Przyjazny",
+      "confident": "Pewny siebie"
+    },
+    "instruction_placeholder": "Polecenie dla AI...",
+    "send": "Wyślij",
+    "generating": "AI pisze...",
+    "result": {
+      "replace": "Zastąp zaznaczenie",
+      "insert_below": "Wstaw poniżej",
+      "try_again": "Spróbuj ponownie",
+      "discard": "Odrzuć",
+      "replace_unavailable": "Zaznaczenie zawiera wzmianki, obrazy lub osadzone elementy, które zastąpienie by usunęło. Zamiast tego wstaw wynik poniżej."
+    },
+    "consent": "Tekst jest wysyłany do zewnętrznego dostawcy AI.",
+    "draft_description": "Utwórz szkic opisu",
+    "drafting": "Tworzenie szkicu...",
+    "errors": {
+      "not_configured": "Dla tej instancji nie skonfigurowano dostawcy AI.",
+      "provider_auth": "Dostawca AI odrzucił klucz API. Poproś administratora instancji o jego sprawdzenie.",
+      "provider_model": "Dostawca AI nie oferuje skonfigurowanego modelu. Poproś administratora instancji o sprawdzenie ustawień.",
+      "rate_limited": "Zbyt wiele żądań. Odczekaj chwilę i spróbuj ponownie.",
+      "empty_response": "Dostawca AI nie zwrócił żadnego tekstu. Spróbuj ponownie.",
+      "too_long": "Tekst jest za długi. Zaznacz mniej tekstu i spróbuj ponownie.",
+      "generic": "Coś poszło nie tak. Spróbuj ponownie.",
+      "empty_text": "Zaznaczenie nie zawiera tekstu do przetworzenia."
+    }
   }
 }

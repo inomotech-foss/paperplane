@@ -166,5 +166,29 @@
         "label": "Motyw niestandardowy"
       }
     }
+  },
+  "instance_ai": {
+    "title": "Dostawca AI",
+    "description": "Asystent pisania AI na stronach i w elementach pracy wysyła tekst do tego dostawcy.",
+    "sidebar_description": "Skonfiguruj dostawcę AI dla asystenta pisania.",
+    "provider": {
+      "label": "Dostawca",
+      "description": "Zmiana dostawcy czyści model i klucz API, ponieważ żadne z nich nie działa u innego dostawcy."
+    },
+    "model": {
+      "label": "Model",
+      "description": "Pozostaw puste, aby użyć domyślnego modelu dostawcy. Działa każdy model oferowany przez dostawcę.",
+      "placeholder": "Domyślny model dostawcy"
+    },
+    "api_key": {
+      "label": "Klucz API",
+      "description": "Utwórz klucz w konsoli dostawcy."
+    },
+    "save": "Zapisz zmiany",
+    "saving": "Zapisywanie",
+    "toast": {
+      "success_title": "Sukces",
+      "success_message": "Zapisano ustawienia AI."
+    }
   }
 }

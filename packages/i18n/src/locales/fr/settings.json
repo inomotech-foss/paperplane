@@ -166,5 +166,29 @@
         "label": "Thème personnalisé"
       }
     }
+  },
+  "instance_ai": {
+    "title": "Fournisseur d'IA",
+    "description": "L'assistant de rédaction IA des pages et des éléments de travail envoie du texte à ce fournisseur.",
+    "sidebar_description": "Configurez le fournisseur d'IA de l'assistant de rédaction.",
+    "provider": {
+      "label": "Fournisseur",
+      "description": "Changer de fournisseur efface le modèle et la clé API, car aucun des deux ne fonctionne avec un autre fournisseur."
+    },
+    "model": {
+      "label": "Modèle",
+      "description": "Laissez vide pour utiliser le modèle par défaut du fournisseur. Tout modèle proposé par votre fournisseur fonctionne.",
+      "placeholder": "Modèle par défaut du fournisseur"
+    },
+    "api_key": {
+      "label": "Clé API",
+      "description": "Créez une clé dans la console de votre fournisseur."
+    },
+    "save": "Enregistrer les modifications",
+    "saving": "Enregistrement",
+    "toast": {
+      "success_title": "Succès",
+      "success_message": "Paramètres d'IA enregistrés."
+    }
   }
 }

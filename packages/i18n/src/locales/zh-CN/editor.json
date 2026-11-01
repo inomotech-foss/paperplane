@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "不在项目中"
+  },
+  "ai_writing": {
+    "label": "AI",
+    "actions": {
+      "rephrase": "改写",
+      "simplify": "简化",
+      "elaborate": "扩写",
+      "summarize": "总结",
+      "fix_grammar": "修正拼写和语法"
+    },
+    "tone": {
+      "label": "更改语气",
+      "professional": "专业",
+      "casual": "随意",
+      "friendly": "友好",
+      "confident": "自信"
+    },
+    "instruction_placeholder": "输入给 AI 的指令…",
+    "send": "发送",
+    "generating": "AI 正在撰写…",
+    "result": {
+      "replace": "替换所选内容",
+      "insert_below": "插入到下方",
+      "try_again": "重试",
+      "discard": "放弃",
+      "replace_unavailable": "所选内容包含提及、图片或嵌入内容，替换会将其删除。请改为在下方插入结果。"
+    },
+    "consent": "您的文本将发送给第三方 AI 提供商。",
+    "draft_description": "起草描述",
+    "drafting": "正在起草…",
+    "errors": {
+      "not_configured": "此实例尚未设置 AI 提供商。",
+      "provider_auth": "AI 提供商拒绝了 API 密钥。请联系实例管理员检查。",
+      "provider_model": "AI 提供商不提供所配置的模型。请联系实例管理员检查。",
+      "rate_limited": "请求过多。请稍候再试。",
+      "empty_response": "AI 提供商未返回任何文本。请重试。",
+      "too_long": "文本过长。请减少所选文本后重试。",
+      "generic": "出现错误。请重试。",
+      "empty_text": "所选内容中没有可处理的文本。"
+    }
   }
 }

@@ -4,83 +4,112 @@
  * See the LICENSE file for details.
  */
 
-import { autoUpdate, computePosition, flip, shift } from "@floating-ui/dom";
-import { useCallback, useEffect, useRef, useState } from "react";
-// plane utils
-import { cn } from "@plane/utils";
+import {
+  autoUpdate,
+  flip,
+  FloatingPortal,
+  offset,
+  shift,
+  useDismiss,
+  useFloating,
+  useInteractions,
+} from "@floating-ui/react";
+import { posToDOMRect } from "@tiptap/core";
+import type { Editor, Range } from "@tiptap/core";
+import { useEffect, useState } from "react";
+// helpers
+import { createRangeTracker, insertHTMLBelowRange, replaceRangeWithHTML } from "@/helpers/ai";
 // types
 import type { TAIHandler } from "@/types";
 
 type Props = {
-  menu: TAIHandler["menu"];
+  editor: Editor;
+  menu: NonNullable<TAIHandler["menu"]>;
+  /** The selection the menu works on, taken when it opened. */
+  range: Range;
+  /** The same selection as Markdown. */
+  selection: string;
+  canReplace: boolean;
+  onClose: () => void;
 };
 
 export function AIFeaturesMenu(props: Props) {
-  const { menu } = props;
-  // states
-  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  // refs
-  const menuRef = useRef<HTMLDivElement>(null);
-  const isPopupVisible = !!anchor;
+  const { editor, menu, range, selection, canReplace, onClose } = props;
+  // keeps the range on the same content, so the result lands where the selection is now
+  const [tracker] = useState(() => createRangeTracker(editor, range));
+  // inside a modal dialog, so its focus trap and outside-press handling treat the menu as its own
+  const [portalRoot] = useState(() => {
+    const dialog = editor.view.dom.closest("[role='dialog']");
+    return dialog instanceof HTMLElement ? dialog : null;
+  });
+  const { refs, floatingStyles, context } = useFloating({
+    open: true,
+    onOpenChange: (open) => {
+      if (!open) onClose();
+    },
+    placement: "bottom-start",
+    strategy: "fixed",
+    middleware: [offset(8), flip({ padding: 8 }), shift({ padding: 8 })],
+    whileElementsMounted: autoUpdate,
+  });
+  const { getFloatingProps } = useInteractions([useDismiss(context, { escapeKey: false })]);
 
-  const hidePopup = useCallback(() => setAnchor(null), []);
+  useEffect(() => tracker.start(), [tracker]);
 
-  // keep the menu below the AI handle while it is open
+  // Escape closes only the menu, in every state, wherever focus is. A window capture listener runs before
+  // the document listeners of the peek and the modal, and stops them.
   useEffect(() => {
-    const menuElement = menuRef.current;
-    if (!anchor || !menuElement) return;
-
-    const cleanup = autoUpdate(anchor, menuElement, () => {
-      computePosition(anchor, menuElement, {
-        placement: "bottom-start",
-        strategy: "fixed",
-        middleware: [flip(), shift()],
-      })
-        .then(({ x, y }) => Object.assign(menuElement.style, { left: `${x}px`, top: `${y}px` }))
-        .catch((error: unknown) => console.error("An error occurred while positioning the AI menu:", error));
-    });
-    menuElement.focus();
-
-    return cleanup;
-  }, [anchor]);
-
-  useEffect(() => {
-    const handleClickAIHandle = (e: MouseEvent) => {
-      const target = e.target instanceof HTMLElement ? e.target : null;
-      if (target?.matches("#ai-handle") || menuRef.current?.contains(e.target instanceof Node ? e.target : null)) {
-        e.preventDefault();
-
-        if (!isPopupVisible) setAnchor(target);
-        return;
-      }
-
-      hidePopup();
-      return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onClose();
     };
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [onClose]);
 
-    document.addEventListener("click", handleClickAIHandle);
-    document.addEventListener("contextmenu", handleClickAIHandle);
-    document.addEventListener("keydown", hidePopup);
-
+  // An open dropbar tells the surrounding peek or modal to leave outside presses and Escape alone.
+  useEffect(() => {
+    editor.commands.addActiveDropbarExtension("ai-menu");
     return () => {
-      document.removeEventListener("click", handleClickAIHandle);
-      document.removeEventListener("contextmenu", handleClickAIHandle);
-      document.removeEventListener("keydown", hidePopup);
+      if (!editor.isDestroyed) editor.commands.removeActiveDropbarExtension("ai-menu");
     };
-  }, [hidePopup, isPopupVisible]);
+  }, [editor]);
+
+  useEffect(() => {
+    refs.setPositionReference({
+      // lets autoUpdate follow the scroll containers around the editor, such as a modal body
+      contextElement: editor.view.dom,
+      getBoundingClientRect: () => {
+        const current = editor.isDestroyed ? null : tracker.resolve();
+        return current ? posToDOMRect(editor.view, current.from, current.to) : new DOMRect();
+      },
+    });
+  }, [editor, refs, tracker]);
+
+  const apply = (write: (target: Range) => boolean) => {
+    const current = tracker.resolve();
+    if (current) write(current);
+    onClose();
+  };
 
   return (
-    <div
-      className={cn("pointer-events-none fixed inset-0 z-10 size-full opacity-0 transition-opacity", {
-        "pointer-events-auto opacity-100": isPopupVisible,
-      })}
-    >
-      <div ref={menuRef} tabIndex={-1} className="fixed z-10 w-max outline-none">
-        {menu?.({
-          isOpen: isPopupVisible,
-          onClose: hidePopup,
+    <FloatingPortal root={portalRoot ?? undefined}>
+      <div
+        ref={(node) => refs.setFloating(node)}
+        data-prevent-outside-click
+        style={{ ...floatingStyles, zIndex: 100 }}
+        {...getFloatingProps()}
+      >
+        {menu({
+          selection,
+          canReplace,
+          onReplace: (html) => apply((target) => canReplace && replaceRangeWithHTML(editor, target, html)),
+          onInsertBelow: (html) => apply((target) => insertHTMLBelowRange(editor, target, html)),
+          onClose,
         })}
       </div>
-    </div>
+    </FloatingPortal>
   );
 }

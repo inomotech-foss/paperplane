@@ -166,5 +166,29 @@
         "label": "Özel tema"
       }
     }
+  },
+  "instance_ai": {
+    "title": "AI sağlayıcısı",
+    "description": "Sayfalardaki ve iş öğelerindeki AI yazma asistanı metni bu sağlayıcıya gönderir.",
+    "sidebar_description": "Yazma asistanı için AI sağlayıcısını ayarlayın.",
+    "provider": {
+      "label": "Sağlayıcı",
+      "description": "Sağlayıcıyı değiştirmek modeli ve API anahtarını temizler, çünkü ikisi de başka bir sağlayıcıyla çalışmaz."
+    },
+    "model": {
+      "label": "Model",
+      "description": "Sağlayıcının varsayılan modelini kullanmak için boş bırakın. Sağlayıcınızın sunduğu her model çalışır.",
+      "placeholder": "Sağlayıcı varsayılanı"
+    },
+    "api_key": {
+      "label": "API anahtarı",
+      "description": "Sağlayıcınızın konsolunda bir anahtar oluşturun."
+    },
+    "save": "Değişiklikleri kaydet",
+    "saving": "Kaydediliyor",
+    "toast": {
+      "success_title": "Başarılı",
+      "success_message": "AI ayarları kaydedildi."
+    }
   }
 }

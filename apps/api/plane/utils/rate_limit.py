@@ -18,6 +18,7 @@ THROTTLE_RATE_KEYS = {
     "anon": "ANON_RATE_LIMIT",
     "asset_id": "ASSET_RATE_LIMIT",
     "authentication": "AUTHENTICATION_RATE_LIMIT",
+    "writing_assistant": "WRITING_ASSISTANT_RATE_LIMIT",
 }
 
 # Baked defaults, also used as the env fallback when a config value is missing
@@ -27,6 +28,7 @@ DEFAULT_THROTTLE_RATES = {
     "ANON_RATE_LIMIT": "30/minute",
     "ASSET_RATE_LIMIT": "5/minute",
     "AUTHENTICATION_RATE_LIMIT": "10/minute",
+    "WRITING_ASSISTANT_RATE_LIMIT": "20/minute",
 }
 
 # Cached for the whole process; invalidated on config save (invalidate_throttle_rates).

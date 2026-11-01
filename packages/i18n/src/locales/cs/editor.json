@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "Není v projektu"
+  },
+  "ai_writing": {
+    "label": "AI",
+    "actions": {
+      "rephrase": "Přeformulovat",
+      "simplify": "Zjednodušit",
+      "elaborate": "Rozvést",
+      "summarize": "Shrnout",
+      "fix_grammar": "Opravit pravopis a gramatiku"
+    },
+    "tone": {
+      "label": "Změnit tón",
+      "professional": "Profesionální",
+      "casual": "Neformální",
+      "friendly": "Přátelský",
+      "confident": "Sebevědomý"
+    },
+    "instruction_placeholder": "Zadejte pokyn pro AI...",
+    "send": "Odeslat",
+    "generating": "AI píše...",
+    "result": {
+      "replace": "Nahradit výběr",
+      "insert_below": "Vložit pod",
+      "try_again": "Zkusit znovu",
+      "discard": "Zahodit",
+      "replace_unavailable": "Výběr obsahuje zmínky, obrázky nebo vložený obsah, které by nahrazení odstranilo. Vložte výsledek raději pod něj."
+    },
+    "consent": "Váš text se odesílá externímu poskytovateli AI.",
+    "draft_description": "Navrhnout popis",
+    "drafting": "Vytváření návrhu...",
+    "errors": {
+      "not_configured": "Pro tuto instanci není nastaven žádný poskytovatel AI.",
+      "provider_auth": "Poskytovatel AI odmítl klíč API. Požádejte správce instance o jeho kontrolu.",
+      "provider_model": "Poskytovatel AI nenabízí nastavený model. Požádejte správce instance o kontrolu nastavení.",
+      "rate_limited": "Příliš mnoho požadavků. Chvíli počkejte a zkuste to znovu.",
+      "empty_response": "Poskytovatel AI nevrátil žádný text. Zkuste to znovu.",
+      "too_long": "Text je příliš dlouhý. Vyberte méně textu a zkuste to znovu.",
+      "generic": "Něco se pokazilo. Zkuste to znovu.",
+      "empty_text": "Výběr neobsahuje žádný text ke zpracování."
+    }
   }
 }

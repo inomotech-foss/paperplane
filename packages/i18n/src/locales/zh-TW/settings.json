@@ -166,5 +166,29 @@
         "label": "自訂主題"
       }
     }
+  },
+  "instance_ai": {
+    "title": "AI 供應商",
+    "description": "頁面與工作事項中的 AI 寫作助理會將文字傳送給此供應商。",
+    "sidebar_description": "為寫作助理設定 AI 供應商。",
+    "provider": {
+      "label": "供應商",
+      "description": "變更供應商會清除模型和 API 金鑰，因為兩者都無法用於其他供應商。"
+    },
+    "model": {
+      "label": "模型",
+      "description": "留空即使用供應商的預設模型。您的供應商提供的任何模型皆可使用。",
+      "placeholder": "供應商預設"
+    },
+    "api_key": {
+      "label": "API 金鑰",
+      "description": "請在供應商的主控台中建立金鑰。"
+    },
+    "save": "儲存變更",
+    "saving": "儲存中",
+    "toast": {
+      "success_title": "成功",
+      "success_message": "AI 設定已儲存。"
+    }
   }
 }

@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "Nicht im Projekt"
+  },
+  "ai_writing": {
+    "label": "KI",
+    "actions": {
+      "rephrase": "Umformulieren",
+      "simplify": "Vereinfachen",
+      "elaborate": "Ausführlicher formulieren",
+      "summarize": "Zusammenfassen",
+      "fix_grammar": "Rechtschreibung und Grammatik korrigieren"
+    },
+    "tone": {
+      "label": "Ton ändern",
+      "professional": "Professionell",
+      "casual": "Locker",
+      "friendly": "Freundlich",
+      "confident": "Selbstbewusst"
+    },
+    "instruction_placeholder": "Anweisung für die KI eingeben...",
+    "send": "Senden",
+    "generating": "KI schreibt...",
+    "result": {
+      "replace": "Auswahl ersetzen",
+      "insert_below": "Darunter einfügen",
+      "try_again": "Erneut versuchen",
+      "discard": "Verwerfen",
+      "replace_unavailable": "Die Auswahl enthält Erwähnungen, Bilder oder Einbettungen, die beim Ersetzen entfernt würden. Fügen Sie das Ergebnis stattdessen darunter ein."
+    },
+    "consent": "Ihr Text wird an einen externen KI-Anbieter gesendet.",
+    "draft_description": "Beschreibung entwerfen",
+    "drafting": "Wird entworfen...",
+    "errors": {
+      "not_configured": "Für diese Instanz ist kein KI-Anbieter eingerichtet.",
+      "provider_auth": "Der KI-Anbieter hat den API-Schlüssel abgelehnt. Bitten Sie Ihren Instanzadministrator, ihn zu prüfen.",
+      "provider_model": "Der KI-Anbieter bietet das konfigurierte Modell nicht an. Bitten Sie Ihren Instanzadministrator, die Einstellung zu prüfen.",
+      "rate_limited": "Zu viele Anfragen. Warten Sie einen Moment und versuchen Sie es erneut.",
+      "empty_response": "Der KI-Anbieter hat keinen Text zurückgegeben. Versuchen Sie es erneut.",
+      "too_long": "Der Text ist zu lang. Wählen Sie weniger Text aus und versuchen Sie es erneut.",
+      "generic": "Etwas ist schiefgelaufen. Versuchen Sie es erneut.",
+      "empty_text": "Die Auswahl enthält keinen Text, der bearbeitet werden kann."
+    }
   }
 }

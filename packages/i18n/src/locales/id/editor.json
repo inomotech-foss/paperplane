@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "Tidak ada di proyek"
+  },
+  "ai_writing": {
+    "label": "AI",
+    "actions": {
+      "rephrase": "Parafrasekan",
+      "simplify": "Sederhanakan",
+      "elaborate": "Kembangkan",
+      "summarize": "Ringkas",
+      "fix_grammar": "Perbaiki ejaan dan tata bahasa"
+    },
+    "tone": {
+      "label": "Ubah nada",
+      "professional": "Profesional",
+      "casual": "Santai",
+      "friendly": "Ramah",
+      "confident": "Percaya diri"
+    },
+    "instruction_placeholder": "Beri tahu AI apa yang harus dilakukan...",
+    "send": "Kirim",
+    "generating": "AI sedang menulis...",
+    "result": {
+      "replace": "Ganti pilihan",
+      "insert_below": "Sisipkan di bawah",
+      "try_again": "Coba lagi",
+      "discard": "Buang",
+      "replace_unavailable": "Pilihan berisi sebutan, gambar, atau sematan yang akan terhapus jika diganti. Sisipkan hasilnya di bawah."
+    },
+    "consent": "Teks Anda dikirim ke penyedia AI pihak ketiga.",
+    "draft_description": "Buat draf deskripsi",
+    "drafting": "Membuat draf...",
+    "errors": {
+      "not_configured": "Belum ada penyedia AI yang disiapkan untuk instansi ini.",
+      "provider_auth": "Penyedia AI menolak kunci API. Minta admin instansi Anda untuk memeriksanya.",
+      "provider_model": "Penyedia AI tidak menyediakan model yang dikonfigurasi. Minta admin instansi Anda untuk memeriksanya.",
+      "rate_limited": "Terlalu banyak permintaan. Tunggu sebentar lalu coba lagi.",
+      "empty_response": "Penyedia AI tidak mengembalikan teks. Coba lagi.",
+      "too_long": "Teks terlalu panjang. Pilih lebih sedikit teks lalu coba lagi.",
+      "generic": "Terjadi kesalahan. Coba lagi.",
+      "empty_text": "Pilihan tidak berisi teks untuk diproses."
+    }
   }
 }

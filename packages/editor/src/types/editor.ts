@@ -154,10 +154,10 @@ export type CoreEditorRefApi = {
   getHeadings: () => IMarking[];
   getMarkDown: () => string;
   copyMarkdownToClipboard: () => void;
-  getSelectedText: () => string | null;
-  insertText: (contentHTML: string, insertOnNextLine?: boolean) => void;
   isAnyDropbarOpen: () => boolean;
   isEditorReadyToDiscard: () => boolean;
+  /** Whether the editor exists, is editable and is not destroyed. */
+  isWritable: () => boolean;
   isMenuItemActive: <T extends TEditorCommands>(props: TCommandWithPropsWithItemKey<T>) => boolean;
   isToolbarItemActive: <T extends TEditorCommands>(item: TToolbarItemCommand<T>) => boolean;
   isProviderDocumentEmpty: () => boolean;
@@ -182,6 +182,7 @@ export type EditorTitleRefApi = EditorRefApi;
 
 // editor props
 export type IEditorProps = {
+  aiHandler?: TAIHandler;
   autofocus?: boolean;
   bubbleMenuEnabled?: boolean;
   childPagesHandler?: TChildPagesHandler;
@@ -226,7 +227,6 @@ export type IRichTextEditorProps = IEditorProps & {
 };
 
 export type ICollaborativeDocumentEditorProps = Omit<IEditorProps, "initialValue" | "onEnterKeyPress" | "value"> & {
-  aiHandler?: TAIHandler;
   documentLoaderClassName?: string;
   dragDropEnabled?: boolean;
   editable: boolean;
@@ -247,7 +247,6 @@ export type ICollaborativeDocumentEditorProps = Omit<IEditorProps, "initialValue
 };
 
 export type IDocumentEditorProps = Omit<IEditorProps, "initialValue" | "onEnterKeyPress" | "value"> & {
-  aiHandler?: TAIHandler;
   user?: TUserDetails;
   value: Content;
 };

@@ -64,5 +64,45 @@
   },
   "mention_suggestions": {
     "not_in_project": "Nu este în proiect"
+  },
+  "ai_writing": {
+    "label": "AI",
+    "actions": {
+      "rephrase": "Reformulează",
+      "simplify": "Simplifică",
+      "elaborate": "Dezvoltă",
+      "summarize": "Rezumă",
+      "fix_grammar": "Corectează ortografia și gramatica"
+    },
+    "tone": {
+      "label": "Schimbă tonul",
+      "professional": "Profesional",
+      "casual": "Relaxat",
+      "friendly": "Prietenos",
+      "confident": "Încrezător"
+    },
+    "instruction_placeholder": "Introduceți o instrucțiune pentru AI...",
+    "send": "Trimite",
+    "generating": "AI scrie...",
+    "result": {
+      "replace": "Înlocuiește selecția",
+      "insert_below": "Inserează dedesubt",
+      "try_again": "Încearcă din nou",
+      "discard": "Renunță",
+      "replace_unavailable": "Selecția conține mențiuni, imagini sau conținut încorporat pe care înlocuirea le-ar elimina. Inserați rezultatul dedesubt."
+    },
+    "consent": "Textul dumneavoastră este trimis unui furnizor AI terț.",
+    "draft_description": "Creează o ciornă de descriere",
+    "drafting": "Se creează ciorna...",
+    "errors": {
+      "not_configured": "Nu este configurat niciun furnizor AI pentru această instanță.",
+      "provider_auth": "Furnizorul AI a respins cheia API. Cereți administratorului instanței să o verifice.",
+      "provider_model": "Furnizorul AI nu oferă modelul configurat. Cereți administratorului instanței să verifice setarea.",
+      "rate_limited": "Prea multe solicitări. Așteptați puțin și încercați din nou.",
+      "empty_response": "Furnizorul AI nu a returnat niciun text. Încercați din nou.",
+      "too_long": "Textul este prea lung. Selectați mai puțin text și încercați din nou.",
+      "generic": "A apărut o eroare. Încercați din nou.",
+      "empty_text": "Selecția nu conține text de prelucrat."
+    }
   }
 }
