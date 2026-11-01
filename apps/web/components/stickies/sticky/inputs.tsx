@@ -57,6 +57,15 @@ export function StickyInput(props: TProps) {
     },
     [handleUpdate]
   );
+  // Drop the focus request if the editor never takes focus or this sticky goes away
+  useEffect(() => {
+    if (!stickyId || stickyId !== focusStickyId) return;
+    const timer = window.setTimeout(() => clearStickyFocus(stickyId), 1000);
+    return () => {
+      window.clearTimeout(timer);
+      clearStickyFocus(stickyId);
+    };
+  }, [stickyId, focusStickyId, clearStickyFocus]);
   // reset form values
   useEffect(() => {
     if (!stickyId) return;
