@@ -75,6 +75,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
     setIsSaving(true);
     try {
       await updateAction(workspaceSlug, automation.id, action.id, { config }, projectId);
+      return true;
     } catch (error) {
       setToast({
         type: "error",
@@ -82,6 +83,7 @@ const ActionCard = observer(function ActionCard(props: ActionCardProps) {
         message:
           getFirstStringField(getApiErrorBody(error), "config") ?? t("automations.toasts.action.update.error.message"),
       });
+      return false;
     } finally {
       setIsSaving(false);
     }

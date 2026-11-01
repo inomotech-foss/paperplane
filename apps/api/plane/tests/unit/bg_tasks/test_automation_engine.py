@@ -465,6 +465,37 @@ class TestAddComment:
 
         assert "{{work_item.colour}}" in IssueComment.objects.get(issue=work_item).comment_html
 
+    def test_a_template_stored_unsanitized_is_sanitized_when_rendered(self, project, create_user, work_item):
+        automation = make_automation(project, create_user)
+        add_action(
+            automation,
+            ActionType.ADD_COMMENT,
+            {"comment_html": '<p onclick="steal()">{{work_item.state}}</p><script>alert(1)</script>'},
+        )
+
+        engine.execute(automation, context_for(work_item, project, automation))
+
+        assert IssueComment.objects.get(issue=work_item).comment_html == "<p>Todo</p>"
+
+    def test_an_inserted_value_cannot_become_a_script_url(self, project, create_user, work_item):
+        work_item.name = "javascript:alert(1)"
+        work_item.save(update_fields=["name"])
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": '<a href="{{work_item.name}}">open</a>'})
+
+        engine.execute(automation, context_for(work_item, project, automation))
+
+        assert "javascript:" not in IssueComment.objects.get(issue=work_item).comment_html
+
+    def test_a_body_that_sanitizes_to_nothing_fails(self, project, create_user, work_item):
+        automation = make_automation(project, create_user)
+        add_action(automation, ActionType.ADD_COMMENT, {"comment_html": "<script>alert(1)</script>"})
+
+        run = engine.execute(automation, context_for(work_item, project, automation))
+
+        assert run.status == AutomationRunStatus.FAILED
+        assert not IssueComment.objects.filter(issue=work_item).exists()
+
     def test_empty_body_fails(self, project, create_user, work_item):
         automation = make_automation(project, create_user)
         add_action(automation, ActionType.ADD_COMMENT, {"comment_html": "   "})
@@ -570,6 +601,23 @@ class TestCreateWorkItem:
         assert created.priority == "high"
         assert created.state_id == states["todo"].id
         assert run.status == AutomationRunStatus.SUCCESS
+
+    def test_description_is_sanitized_when_rendered(self, project, create_user, work_item):
+        automation = make_automation(project, create_user)
+        add_action(
+            automation,
+            ActionType.CREATE_WORK_ITEM,
+            {
+                "name": "Follow up",
+                "type_id": str(work_item.type_id),
+                "description_html": "<p>{{work_item.identifier}}</p><script>alert(1)</script>",
+            },
+        )
+
+        engine.execute(automation, context_for(work_item, project, automation))
+
+        created = Issue.objects.get(name="Follow up")
+        assert created.description_html == f"<p>AUTO-{work_item.sequence_id}</p>"
 
     def test_links_to_the_triggering_work_item(self, project, create_user, work_item):
         automation = make_automation(project, create_user)

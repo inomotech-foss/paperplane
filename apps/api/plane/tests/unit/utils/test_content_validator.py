@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+from pathlib import Path
+
 import pytest
 
 from plane.utils.content_validator import _compute_html_sanitization_diff, validate_html_content
@@ -79,6 +81,55 @@ class TestEditorHTMLRoundTrip:
 
         assert 'href="/workspace/projects/1/pages/2/"' in clean
         assert 'href="#heading-id"' in clean
+
+
+# Exact output of the document editor's generateHTML for every node and mark, with realistic attributes.
+GENERATED_EDITOR_DOCUMENT = (Path(__file__).parent / "fixtures" / "editor_document.html").read_text()
+
+
+@pytest.mark.unit
+class TestGeneratedEditorHTML:
+    def test_survives_unchanged(self):
+        is_valid, error, clean = validate_html_content(GENERATED_EDITOR_DOCUMENT)
+
+        assert is_valid, error
+        assert clean == GENERATED_EDITOR_DOCUMENT
+
+    @pytest.mark.parametrize(
+        "html",
+        [
+            GENERATED_EDITOR_DOCUMENT,
+            '<p onclick="x()">a</p><script>b</script>',
+            '<a href="https://e.com" rel="opener">x</a>',
+            '<pre><code class="language-python">\n\nx = 1\n</code></pre>',
+        ],
+    )
+    def test_a_second_pass_changes_nothing(self, html):
+        _, _, once = validate_html_content(html)
+        _, _, twice = validate_html_content(once)
+
+        assert twice == once
+
+    @pytest.mark.parametrize(
+        "html",
+        [
+            '<pre><code class="language-python">\n\nx = 1\n</code></pre>',
+            '<image-component src="c9b2b1e0" alt="<pre>\n" title="<pre>\nx"></image-component>',
+            '<math-block-component latex="<pre>\n\\frac{a}{b}"></math-block-component>',
+        ],
+    )
+    def test_newlines_inside_code_and_attributes_survive(self, html):
+        _, _, clean = validate_html_content(html)
+
+        assert clean == html
+
+    def test_links_get_the_editor_rel(self):
+        _, _, clean = validate_html_content('<a rel="opener" href="https://e.com">x</a><a href="/p">y</a>')
+
+        assert clean == (
+            '<a rel="noopener noreferrer nofollow" href="https://e.com">x</a>'
+            '<a href="/p" rel="noopener noreferrer nofollow">y</a>'
+        )
 
 
 @pytest.mark.unit

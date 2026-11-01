@@ -19,7 +19,6 @@ import type {
   TAutomationRun,
 } from "@plane/types";
 // store
-import type { CoreRootStore } from "@/store/root.store";
 
 export type TAutomationScopeKey = string;
 
@@ -83,12 +82,12 @@ export class AutomationStore implements IAutomationStore {
   automationMap: Record<string, TAutomation> = {};
   runsMap: Record<string, TAutomationRun[]> = {};
   fetchedScopes: Record<TAutomationScopeKey, boolean> = {};
-  // root store
-  rootStore: CoreRootStore;
   // services
   automationService: AutomationService;
+  // latest updateAction request per action, so an older response cannot overwrite a newer edit
+  private actionRequests: Record<string, number> = {};
 
-  constructor(_rootStore: CoreRootStore) {
+  constructor() {
     makeObservable(this, {
       // observables
       loader: observable.ref,
@@ -112,7 +111,6 @@ export class AutomationStore implements IAutomationStore {
       deleteAction: action,
     });
 
-    this.rootStore = _rootStore;
     this.automationService = new AutomationService();
   }
 
@@ -246,18 +244,30 @@ export class AutomationStore implements IAutomationStore {
     data: TAutomationActionPayload,
     projectId?: string
   ) => {
-    const updated = await this.automationService.updateAction(workspaceSlug, automationId, actionId, data, projectId);
-    runInAction(() => {
-      const automation = this.automationMap[automationId];
-      if (automation) {
-        set(
-          this.automationMap,
-          [automationId, "actions"],
-          automation.actions.map((action) => (action.id === actionId ? updated : action))
-        );
-      }
-    });
-    return updated;
+    const request = (this.actionRequests[actionId] ?? 0) + 1;
+    this.actionRequests[actionId] = request;
+    const previous = this.automationMap[automationId]?.actions.find((item) => item.id === actionId);
+    // Applied before the request, so an edit to another field of the same action builds on it.
+    if (previous && data.config !== undefined) this.replaceAction(automationId, { ...previous, config: data.config });
+    const isLatest = () => this.actionRequests[actionId] === request;
+    try {
+      const updated = await this.automationService.updateAction(workspaceSlug, automationId, actionId, data, projectId);
+      if (isLatest()) runInAction(() => this.replaceAction(automationId, updated));
+      return updated;
+    } catch (error) {
+      if (isLatest() && previous) runInAction(() => this.replaceAction(automationId, previous));
+      throw error;
+    }
+  };
+
+  private replaceAction = (automationId: string, next: TAutomationAction) => {
+    const automation = this.automationMap[automationId];
+    if (!automation) return;
+    set(
+      this.automationMap,
+      [automationId, "actions"],
+      automation.actions.map((item) => (item.id === next.id ? next : item))
+    );
   };
 
   deleteAction = async (workspaceSlug: string, automationId: string, actionId: string, projectId?: string) => {

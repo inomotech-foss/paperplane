@@ -40,6 +40,7 @@ import {
 } from "../helpers/action-config";
 import { AutomationOptionSelect } from "../helpers/option-select";
 import { changeTypeLabelKey, findMutableProperty, usableMutableProperties } from "../helpers/metadata";
+import { TemplateTextarea } from "./template-textarea";
 import { AutomationValueInput } from "./value-input";
 
 type ConfigProps = {
@@ -49,7 +50,8 @@ type ConfigProps = {
   metadata: TAutomationMetadata | undefined;
   actionType: TAutomationActionType;
   config: TAutomationActionConfig;
-  onChange: (config: TAutomationActionConfig) => void;
+  /** Resolves to whether the save succeeded. */
+  onChange: (config: TAutomationActionConfig) => Promise<boolean>;
   disabled?: boolean;
 };
 
@@ -288,13 +290,12 @@ const AddCommentConfig = observer(function AddCommentConfig(props: ConfigProps) 
 
   return (
     <div className="flex flex-col gap-2">
-      <textarea
+      <TemplateTextarea
         value={getCommentHtml(config)}
-        onChange={(event) => onChange({ comment_html: event.target.value })}
+        onCommit={(value) => onChange({ comment_html: value })}
         disabled={disabled}
         rows={4}
         placeholder={t("automations.action.configuration.add_comment.placeholder")}
-        className="placeholder-tertiary w-full rounded-md border-[0.5px] border-subtle-1 bg-layer-2 px-3 py-2 text-13 focus:outline-none"
       />
       <TemplateVariableHint metadata={metadata} />
     </div>
@@ -389,7 +390,7 @@ const SendNotificationConfig = observer(function SendNotificationConfig(props: C
 
 type TCreateFieldProps = {
   typed: TCreateWorkItemConfig;
-  onChange: (config: TAutomationActionConfig) => void;
+  onChange: (config: TAutomationActionConfig) => Promise<boolean>;
   disabled?: boolean;
 };
 
@@ -446,13 +447,12 @@ function CreateWorkItemTextFields(props: TCreateFieldProps) {
 
       <div className="max-w-md">
         <FieldLabel>{t("automations.action.configuration.create_work_item.description_label")}</FieldLabel>
-        <textarea
+        <TemplateTextarea
           value={typed.description_html ?? ""}
-          onChange={(event) => onChange({ ...typed, description_html: event.target.value })}
+          onCommit={(value) => onChange({ ...typed, description_html: value })}
           disabled={disabled}
           rows={3}
           placeholder={t("automations.action.configuration.create_work_item.description_placeholder")}
-          className="placeholder-tertiary w-full rounded-md border-[0.5px] border-subtle-1 bg-layer-2 px-3 py-2 text-13 focus:outline-none"
         />
       </div>
     </>

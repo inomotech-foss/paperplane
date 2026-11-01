@@ -146,7 +146,7 @@ export class CoreRootStore {
     this.workItemFilters = new WorkItemFilterStore();
     this.powerK = new PowerKStore();
     this.timelineStore = new TimeLineStore(this);
-    this.automation = new AutomationStore(this);
+    this.automation = new AutomationStore();
   }
 
   resetOnSignOut() {
@@ -182,7 +182,7 @@ export class CoreRootStore {
     this.workItemFilters = new WorkItemFilterStore();
     this.powerK = new PowerKStore();
     this.timelineStore = new TimeLineStore(this);
-    this.automation = new AutomationStore(this);
+    this.automation = new AutomationStore();
   }
 }
 
