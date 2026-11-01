@@ -15,7 +15,7 @@ const POSITIONED = /^(?:[^\s:]+:)*(?:relative|absolute|fixed|sticky)$/;
 const toSelector = (classNames: string) =>
   classNames
     .split(" ")
-    .map((name) => `.${name.replace(/[[\]:]/g, "\\$&")}`)
+    .map((name) => `.${name.replace(/[^\w-]/g, "\\$&")}`)
     .join("");
 
 const RAISED_SELECTOR = toSelector(clickableCardRaisedClassName);
