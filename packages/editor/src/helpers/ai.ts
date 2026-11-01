@@ -24,11 +24,8 @@ import type { IEditorProps } from "@/types";
 // Atoms that survive the Markdown round trip. Any other atom (mention, image, embed) would be lost on replace.
 const MARKDOWN_SAFE_ATOMS = new Set(["hardBreak", "horizontalRule"]);
 
-const parseHTML = (html: string): HTMLElement => {
-  const element = document.createElement("div");
-  element.innerHTML = html;
-  return element;
-};
+// An inert document: nothing in it loads or runs while it is parsed.
+const parseHTML = (html: string): HTMLElement => new DOMParser().parseFromString(html, "text/html").body;
 
 const isWritable = (editor: Editor) => editor.isEditable && !editor.isDestroyed;
 
@@ -77,18 +74,23 @@ export type TRangeTracker = {
 export const createRangeTracker = (editor: Editor, range: Range): TRangeTracker => {
   const binding = getYSyncBinding(editor);
   if (binding) {
-    const toRelative = (pos: number): Y.RelativePosition | null => {
+    const toRelative = (pos: number, assoc: number): Y.RelativePosition | null => {
       const relative: unknown = absolutePositionToRelativePosition(pos, binding.type, binding.mapping);
-      return relative instanceof Y.RelativePosition ? relative : null;
+      if (!(relative instanceof Y.RelativePosition)) return null;
+      // y-tiptap anchors to the left (assoc -1). The start anchors to the right instead, so text inserted
+      // exactly at the start stays outside the range, like the step mapping does.
+      const absolute = Y.createAbsolutePositionFromRelativePosition(relative, binding.doc);
+      return absolute ? Y.createRelativePositionFromTypeIndex(absolute.type, absolute.index, assoc) : null;
     };
-    const relativeFrom = toRelative(range.from);
-    const relativeTo = toRelative(range.to);
+    const relativeFrom = toRelative(range.from, 0);
+    const relativeTo = toRelative(range.to, -1);
     return {
       start: () => () => {},
       resolve: () => {
-        if (!relativeFrom || !relativeTo) return null;
-        const from = relativePositionToAbsolutePosition(binding.doc, binding.type, relativeFrom, binding.mapping);
-        const to = relativePositionToAbsolutePosition(binding.doc, binding.type, relativeTo, binding.mapping);
+        const current = getYSyncBinding(editor);
+        if (!current || !relativeFrom || !relativeTo) return null;
+        const from = relativePositionToAbsolutePosition(current.doc, current.type, relativeFrom, current.mapping);
+        const to = relativePositionToAbsolutePosition(current.doc, current.type, relativeTo, current.mapping);
         return from === null || to === null || to <= from ? null : { from, to };
       },
     };

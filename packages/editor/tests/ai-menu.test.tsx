@@ -100,8 +100,12 @@ describe("AIFeaturesMenu", () => {
     act(() => {
       inside.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     });
-
     expect(onClose).toHaveBeenCalledOnce();
+    // focus can be anywhere once a result or a spinner replaced the focused control
+    act(() => {
+      document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    });
+    expect(onClose).toHaveBeenCalledTimes(2);
     expect(documentListener).not.toHaveBeenCalled();
     document.removeEventListener("keydown", documentListener);
     teardown();

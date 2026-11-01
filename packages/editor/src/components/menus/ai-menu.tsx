@@ -56,6 +56,19 @@ export function AIFeaturesMenu(props: Props) {
 
   useEffect(() => tracker.start(), [tracker]);
 
+  // Escape closes only the menu, in every state, wherever focus is. A window capture listener runs before
+  // the document listeners of the peek and the modal, and stops them.
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [onClose]);
+
   // An open dropbar tells the surrounding peek or modal to leave outside presses and Escape alone.
   useEffect(() => {
     editor.commands.addActiveDropbarExtension("ai-menu");
@@ -66,6 +79,8 @@ export function AIFeaturesMenu(props: Props) {
 
   useEffect(() => {
     refs.setPositionReference({
+      // lets autoUpdate follow the scroll containers around the editor, such as a modal body
+      contextElement: editor.view.dom,
       getBoundingClientRect: () => {
         const current = editor.isDestroyed ? null : tracker.resolve();
         return current ? posToDOMRect(editor.view, current.from, current.to) : new DOMRect();
@@ -85,14 +100,7 @@ export function AIFeaturesMenu(props: Props) {
         ref={(node) => refs.setFloating(node)}
         data-prevent-outside-click
         style={{ ...floatingStyles, zIndex: 100 }}
-        {...getFloatingProps({
-          onKeyDown: (event) => {
-            if (event.key !== "Escape") return;
-            event.preventDefault();
-            event.stopPropagation();
-            onClose();
-          },
-        })}
+        {...getFloatingProps()}
       >
         {menu({
           selection,

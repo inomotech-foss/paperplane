@@ -160,6 +160,7 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
       return editor.getAttributes(attribute);
     },
     isEditorReadyToDiscard: () => editor?.storage?.utility?.uploadInProgress === false,
+    isWritable: () => !!editor && editor.isEditable && !editor.isDestroyed,
     isMenuItemActive: (props) => {
       return isEditorMenuItemActive(getEditorMenuItems(editor), props.itemKey, props);
     },

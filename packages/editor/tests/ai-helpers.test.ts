@@ -178,6 +178,58 @@ describe("createRangeTracker", () => {
   });
 });
 
+describe("createRangeTracker on a collaborative document", () => {
+  const setupCollaborative = async () => {
+    const ydoc = new Y.Doc();
+    const instance = new Editor({
+      element: document.createElement("div"),
+      extensions: [
+        CustomStarterKitExtension({ enableHistory: false }),
+        Collaboration.configure({ document: ydoc, field: "default" }),
+      ],
+    });
+    editor = instance;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    instance.commands.setContent("<p>Hello world</p>");
+    const tracker = createRangeTracker(instance, rangeOf(instance, "world"));
+    const remote = new Y.Doc();
+    Y.applyUpdate(remote, Y.encodeStateAsUpdate(ydoc));
+    const paragraph = remote.getXmlFragment("default").get(0);
+    const text = paragraph instanceof Y.XmlElement ? paragraph.get(0) : undefined;
+    if (!(text instanceof Y.XmlText)) throw new Error("expected a text node");
+    const sync = () => Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(remote, Y.encodeStateVector(ydoc)));
+    return { instance, tracker, text, sync };
+  };
+
+  it("leaves text inserted exactly at the start outside the range", async () => {
+    const { instance, tracker, text, sync } = await setupCollaborative();
+    text.insert("Hello ".length, "big ");
+    sync();
+    expect(instance.getText()).toBe("Hello big world");
+    const range = tracker.resolve();
+    if (!range) throw new Error("the range was lost");
+    replaceRangeWithHTML(instance, range, "<p>there</p>");
+    expect(instance.getText()).toBe("Hello big there");
+  });
+
+  it("leaves text inserted exactly at the end outside the range", async () => {
+    const { instance, tracker, text, sync } = await setupCollaborative();
+    text.insert("Hello world".length, "!");
+    sync();
+    const range = tracker.resolve();
+    if (!range) throw new Error("the range was lost");
+    expect(instance.state.doc.textBetween(range.from, range.to)).toBe("world");
+  });
+
+  it("resolves to null when a collaborator deletes the text", async () => {
+    const { instance, tracker, text, sync } = await setupCollaborative();
+    text.delete("Hello ".length, "world".length);
+    sync();
+    expect(instance.getText()).toBe("Hello ");
+    expect(tracker.resolve()).toBeNull();
+  });
+});
+
 describe("write guards", () => {
   it("does not write to a read-only editor", () => {
     const instance = createEditor("<p>Hello world</p>");

@@ -156,6 +156,8 @@ export type CoreEditorRefApi = {
   copyMarkdownToClipboard: () => void;
   isAnyDropbarOpen: () => boolean;
   isEditorReadyToDiscard: () => boolean;
+  /** Whether the editor exists, is editable and is not destroyed. */
+  isWritable: () => boolean;
   isMenuItemActive: <T extends TEditorCommands>(props: TCommandWithPropsWithItemKey<T>) => boolean;
   isToolbarItemActive: <T extends TEditorCommands>(item: TToolbarItemCommand<T>) => boolean;
   isProviderDocumentEmpty: () => boolean;
