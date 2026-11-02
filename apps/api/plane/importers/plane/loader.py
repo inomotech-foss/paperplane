@@ -50,7 +50,13 @@ class PlaneImporter:
     def run(self, dry_run=False):
         report = ImportReport(dry_run=dry_run)
         selected = self._preflight()
-        ctx = Context(ids=IdMap(), report=report, web_url=self.web_url, workspaces=self.workspaces)
+        ctx = Context(
+            ids=IdMap(),
+            report=report,
+            web_url=self.web_url,
+            workspaces=self.workspaces,
+            allow_existing=self.allow_existing,
+        )
         table = None
         try:
             with transaction.atomic():

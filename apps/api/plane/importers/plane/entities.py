@@ -17,9 +17,12 @@ from itertools import islice
 
 from django.db import models
 
+from plane.db.models import Workspace
+
 BATCH_SIZE = 500
 
 MISSING_PARENT = "missing parent"
+ID_TAKEN = "id already used in the target"
 OUTSIDE_SELECTION = "outside selection"
 
 _TEXT_FIELDS = (models.TextField, models.CharField, models.JSONField)
@@ -31,6 +34,7 @@ class Context:
     report: object
     web_url: str = ""
     workspaces: object = None
+    allow_existing: bool = False
     state: dict = field(default_factory=dict)
     # (model, field) -> [(pk, source id)] for FKs set once their target is loaded
     pending: defaultdict = field(default_factory=lambda: defaultdict(list))
@@ -65,6 +69,7 @@ def load(entity, source, ctx):
     rows = source.rows(entity.table)
     while batch := list(islice(rows, BATCH_SIZE)):
         objs = [obj for obj in (_build(entity, row, ctx, rewrite) for row in batch) if obj is not None]
+        objs = _unclaimed(entity, objs, ctx)
         _write(model, objs, entity.skip)
         for obj in objs:
             ctx.ids.add(model, obj.pk)
@@ -135,6 +140,37 @@ def _build(entity, row, ctx, rewrite):
     for f, value in deferred:
         ctx.pending[(model, f)].append((obj.pk, value))
     return obj
+
+
+def _unclaimed(entity, objs, ctx):
+    """The rows whose id is free in the target, or already belongs to this import.
+
+    The upsert keys on id, so a source row must never land on a target row it
+    does not own: another user's account, or a row of another workspace. An
+    existing row is only updated on a re-run (``allow_existing``) and only when
+    it sits in the same workspace; anything else is left out and counted.
+    """
+    model = entity.model
+    scoped = "workspace_id" in {f.attname for f in model._meta.concrete_fields}
+    owner = "pk" if model is Workspace else "workspace_id" if scoped else None
+    if owner is None:
+        taken = set(model._base_manager.filter(pk__in=[obj.pk for obj in objs]).values_list("pk", flat=True))
+        existing = dict.fromkeys(taken)
+    else:
+        existing = dict(model._base_manager.filter(pk__in=[obj.pk for obj in objs]).values_list("pk", owner))
+
+    free = []
+    for obj in objs:
+        if obj.pk not in existing:
+            free.append(obj)
+            continue
+        current = existing[obj.pk]
+        ours = owner == "pk" or (owner is not None and current is not None and current == obj.workspace_id)
+        if ctx.allow_existing and ours:
+            free.append(obj)
+        else:
+            ctx.report.dropped[entity.table][ID_TAKEN] += 1
+    return free
 
 
 def _drop(ctx, model, table, row, reason):

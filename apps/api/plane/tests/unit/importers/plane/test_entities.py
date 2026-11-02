@@ -145,6 +145,7 @@ def test_soft_deleted_parent_still_links(ctx, base):
 def test_rerun_updates_in_place(ctx, base):
     row = issue_row(base)
     load_issues(ctx, row)
+    ctx.allow_existing = True
     load_issues(ctx, {**row, "name": "Renamed"})
     issue = Issue.all_objects.get(pk=row["id"])
     assert (Issue.all_objects.filter(pk=row["id"]).count(), issue.name, issue.created_at) == (1, "Renamed", THEN)
@@ -217,6 +218,30 @@ def test_rerun_keeps_skipped_fields_of_the_target(ctx):
     user = stamped(email="s@example.test", username="s", password="x", is_superuser=True)
     entity = Entity(User, skip=("is_superuser",))
     load(entity, FakeSource({"users": [user]}), ctx)
+    ctx.allow_existing = True
     User.objects.filter(pk=user["id"]).update(is_superuser=True)
     load(entity, FakeSource({"users": [{**user, "is_superuser": False}]}), ctx)
     assert User.objects.get(pk=user["id"]).is_superuser is True
+
+
+@pytest.mark.django_db
+def test_existing_id_of_another_user_is_not_overwritten(ctx):
+    victim = User.objects.create(email="victim@example.test", username="victim", password="keep")
+    forged = stamped(id=victim.id, email="attacker@example.test", username="attacker", password="stolen")
+    assert load(Entity(User), FakeSource({"users": [forged]}), ctx) == 0
+    victim.refresh_from_db()
+    assert (victim.email, victim.password) == ("victim@example.test", "keep")
+    assert ctx.report.dropped["users"]["id already used in the target"] == 1
+
+
+@pytest.mark.django_db
+def test_rerun_cannot_overwrite_rows_of_another_workspace(ctx, base, create_user):
+    other_ws = Workspace.objects.create(name="Other", slug="other", owner=create_user)
+    other_project = Project.objects.create(name="O", identifier="OTH", workspace=other_ws)
+    other_type = IssueType.objects.create(name="Task", workspace=other_ws)
+    theirs = Issue.objects.create(name="Theirs", project=other_project, type=other_type)
+    ctx.allow_existing = True
+    load_issues(ctx, issue_row(base, id=theirs.id, name="Hijacked"))
+    theirs.refresh_from_db()
+    assert (theirs.name, theirs.workspace_id) == ("Theirs", other_ws.id)
+    assert ctx.report.dropped["issues"]["id already used in the target"] == 1
