@@ -64,6 +64,18 @@ const event = <T extends keyof EventToPayloadMap>(action: T, pageId: string, dat
   );
 const saved = (pageId: string, at: string) =>
   event("property_updated", pageId, { updated_by: "other", updated_at: at });
+const childRenamed = (pageId: string, parentId: string, name: string) =>
+  JSON.stringify(
+    createRealtimeEvent({
+      action: "property_updated",
+      page_id: pageId,
+      parent_id: parentId,
+      descendants_ids: [],
+      data: { name },
+      workspace_slug: "w",
+      user_id: "x",
+    })
+  );
 const saveFailed = (pageId: string) =>
   event("error", pageId, { error_message: "<b>forged</b>", error_type: "store", error_code: "content_too_large" });
 
@@ -103,6 +115,14 @@ describe("useRealtimeServerEvents", () => {
     expect(page.updated_by).toBe("other");
     expect(page.updated_at).toBe("2026-11-02T10:00:00Z");
     expect(other.updated_by).toBe("old");
+  });
+
+  it("renames a child page of the open page only", () => {
+    const { other, first } = setup();
+    first.emit(childRenamed("page-2", "page-3", "Elsewhere"));
+    expect(other.name).toBe("page-2");
+    first.emit(childRenamed("page-2", "page-1", "Renamed child"));
+    expect(other.name).toBe("Renamed child");
   });
 
   it("toasts a failing save once until a save succeeds, without the server's text", () => {

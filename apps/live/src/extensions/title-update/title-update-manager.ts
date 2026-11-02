@@ -6,6 +6,7 @@
 
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
+import type { TPageDetails } from "@/services/page/core.service";
 import { getPageService } from "@/services/page/handler";
 import type { HocusPocusServerContext } from "@/types";
 import { DebounceManager } from "./debounce";
@@ -19,13 +20,17 @@ export class TitleUpdateManager {
   private context: HocusPocusServerContext;
   private debounceManager: DebounceManager<[title: string]>;
   private lastTitle: string | null = null;
+  private onSaved?: (page: TPageDetails) => void;
 
-  /**
-   * Create a new TitleUpdateManager instance
-   */
-  constructor(documentName: string, context: HocusPocusServerContext, wait: number = 5000) {
+  constructor(
+    documentName: string,
+    context: HocusPocusServerContext,
+    options: { wait?: number; onSaved?: (page: TPageDetails) => void } = {}
+  ) {
+    const { wait = 5000, onSaved } = options;
     this.documentName = documentName;
     this.context = context;
+    this.onSaved = onSaved;
 
     // Set up debounce manager with logging
     this.debounceManager = new DebounceManager({
@@ -56,10 +61,11 @@ export class TitleUpdateManager {
     }
 
     try {
-      await service.updatePageProperties(this.documentName, {
+      const page = await service.updatePageProperties(this.documentName, {
         data: { name: title },
         abortSignal: signal,
       });
+      this.onSaved?.(page);
 
       // Clear last title only if it matches what we just updated
       if (this.lastTitle === title) {

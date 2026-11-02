@@ -37,23 +37,25 @@ export class TitleSyncExtension implements Extension {
   private titleObserverData: Map<
     string,
     {
-      parentId?: string | null;
       userId: string;
       workspaceSlug: string | null;
+      projectId: string | null;
       instance: Hocuspocus;
     }
   > = new Map();
+  // The page's parent, refreshed on every title save so a moved page reports to its new parent
+  private parentIds: Map<string, string | null> = new Map();
 
   /**
-   * Handle document loading - migrate old titles if needed
+   * Remember the parent page and migrate old titles if needed
    */
   async onLoadDocument({ context, document, documentName }: OnLoadDocumentPayloadWithContext) {
     try {
-      // initially for on demand migration of old titles to a new title field
-      // in the yjs binary
+      const service = getPageService(context.documentType, context);
+      const pageDetails = await service.fetchDetails(documentName);
+      this.parentIds.set(documentName, pageDetails.parent ?? null);
+      // on demand migration of old titles to the title field in the yjs binary
       if (document.isEmpty("title")) {
-        const service = getPageService(context.documentType, context);
-        const pageDetails = await service.fetchDetails(documentName);
         const title = pageDetails.name;
         if (title == null) return;
         const titleJson = generateTitleProsemirrorJson(title);
@@ -82,7 +84,12 @@ export class TitleSyncExtension implements Extension {
     instance: Hocuspocus;
   }) {
     // Create a title update manager for this document
-    const updateManager = new TitleUpdateManager(documentName, context);
+    const updateManager = new TitleUpdateManager(documentName, context, {
+      onSaved: (page) => {
+        if (page.parent !== undefined && this.titleUpdateManagers.has(documentName))
+          this.parentIds.set(documentName, page.parent);
+      },
+    });
 
     // Store the manager
     this.titleUpdateManagers.set(documentName, updateManager);
@@ -91,6 +98,7 @@ export class TitleSyncExtension implements Extension {
     this.titleObserverData.set(documentName, {
       userId: context.userId,
       workspaceSlug: context.workspaceSlug,
+      projectId: context.projectId,
       instance: instance,
     });
 
@@ -116,22 +124,22 @@ export class TitleSyncExtension implements Extension {
     // Get the manager for this document
     const manager = this.titleUpdateManagers.get(documentName);
 
-    // Get the stored data for this document
     const data = this.titleObserverData.get(documentName);
+    const parentId = this.parentIds.get(documentName);
 
-    // Broadcast to parent page if it exists
-    if (data?.parentId && data.workspaceSlug && data.instance) {
+    // Clients with the parent page open show this page in their page tree
+    if (parentId && data?.workspaceSlug) {
       const event = createRealtimeEvent({
         user_id: data.userId,
         workspace_slug: data.workspaceSlug,
+        project_id: data.projectId ?? undefined,
         action: "property_updated",
         page_id: documentName,
+        parent_id: parentId,
         data: { name: title },
         descendants_ids: [],
       });
-
-      // Use the instance from stored data (guaranteed to be set)
-      broadcastMessageToPage(data.instance, data.parentId, event);
+      void broadcastMessageToPage(data.instance, parentId, event);
     }
 
     // Schedule the title update
@@ -173,6 +181,7 @@ export class TitleSyncExtension implements Extension {
 
     // Clean up the observer data map to prevent memory leak
     this.titleObserverData.delete(documentName);
+    this.parentIds.delete(documentName);
 
     // Ensure manager is cleaned up if beforeUnloadDocument somehow didn't run
     const manager = this.titleUpdateManagers.get(documentName);
