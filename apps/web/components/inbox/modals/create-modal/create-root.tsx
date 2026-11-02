@@ -6,7 +6,7 @@
  * See the LICENSE file for details.
  */
 
-import type { FormEvent } from "react";
+import type { FormEvent, Ref } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // plane imports
@@ -49,6 +49,7 @@ type TInboxIssueCreateRoot = {
   handleModalClose: () => void;
   isDuplicateModalOpen: boolean;
   handleDuplicateIssueModal: (value: boolean) => void;
+  titleRef?: Ref<HTMLInputElement>;
 };
 
 export const defaultIssueData: Partial<TIssue> = {
@@ -64,7 +65,7 @@ export const defaultIssueData: Partial<TIssue> = {
 };
 
 export const InboxIssueCreateRoot = observer(function InboxIssueCreateRoot(props: TInboxIssueCreateRoot) {
-  const { workspaceSlug, projectId, handleModalClose } = props;
+  const { workspaceSlug, projectId, handleModalClose, titleRef } = props;
   // states
   const [uploadedAssetIds, setUploadedAssetIds] = useState<string[]>([]);
   // router
@@ -205,6 +206,7 @@ export const InboxIssueCreateRoot = observer(function InboxIssueCreateRoot(props
             <DialogBody tabIndex={0}>
               <div className="space-y-3">
                 <InboxIssueTitle
+                  titleRef={titleRef}
                   data={formData}
                   handleData={handleFormData}
                   isTitleLengthMoreThan255Character={isTitleLengthMoreThan255Character}
