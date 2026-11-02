@@ -180,15 +180,6 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
   return (
     <div className="relative flex size-full overflow-hidden transition-all duration-300 ease-in-out">
       <div className="flex size-full flex-col overflow-hidden">
-        <PageVersionsOverlay
-          editorComponent={PagesVersionEditor}
-          fetchAllVersions={handlers.fetchAllVersions}
-          fetchVersionDetails={handlers.fetchVersionDetails}
-          handleRestore={handleRestoreVersion}
-          pageId={page.id ?? ""}
-          restoreEnabled={isContentEditable}
-          storeType={storeType}
-        />
         <PageEditorToolbarRoot
           handleOpenNavigationPane={handleOpenNavigationPane}
           isNavigationPaneOpen={isNavigationPaneOpen}
@@ -215,6 +206,16 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
           extendedEditorProps={extendedEditorProps}
           isFetchingFallbackBinary={isFetchingFallbackBinary}
           onCollaborationStateChange={setCollaborationState}
+        />
+        {/* Last, so it covers editor controls that share its z-index */}
+        <PageVersionsOverlay
+          editorComponent={PagesVersionEditor}
+          fetchAllVersions={handlers.fetchAllVersions}
+          fetchVersionDetails={handlers.fetchVersionDetails}
+          handleRestore={handleRestoreVersion}
+          pageId={page.id ?? ""}
+          restoreEnabled={isContentEditable}
+          storeType={storeType}
         />
       </div>
       <PageNavigationPaneRoot

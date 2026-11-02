@@ -17,6 +17,14 @@ describe("findOffScaleZIndexClasses", () => {
     ]);
   });
 
+  it("flags variable shorthands, arbitrary properties and cut-off arbitrary values", () => {
+    expect(findOffScaleZIndexClasses("z-(--layer) md:[z-index:99] !z-[")).toEqual([
+      "z-(--layer)",
+      "md:[z-index:99]",
+      "!z-[",
+    ]);
+  });
+
   it("flags bare values above the local range", () => {
     expect(findOffScaleZIndexClasses("z-11 group-hover:z-50 z-20!")).toEqual(["z-11", "group-hover:z-50", "z-20!"]);
   });
