@@ -152,7 +152,9 @@ def _unclaimed(entity, objs, ctx):
     """
     model = entity.model
     scoped = "workspace_id" in {f.attname for f in model._meta.concrete_fields}
-    owner = "pk" if model is Workspace else "workspace_id" if scoped else None
+    # A workspace is the same one only under the same slug, which the preflight
+    # checked; any other row belongs to the workspace it sits in.
+    owner = "slug" if model is Workspace else "workspace_id" if scoped else None
     if owner is None:
         taken = set(model._base_manager.filter(pk__in=[obj.pk for obj in objs]).values_list("pk", flat=True))
         existing = dict.fromkeys(taken)
@@ -165,7 +167,7 @@ def _unclaimed(entity, objs, ctx):
             free.append(obj)
             continue
         current = existing[obj.pk]
-        ours = owner == "pk" or (owner is not None and current is not None and current == obj.workspace_id)
+        ours = owner is not None and current is not None and current == getattr(obj, owner)
         if ctx.allow_existing and ours:
             free.append(obj)
         else:

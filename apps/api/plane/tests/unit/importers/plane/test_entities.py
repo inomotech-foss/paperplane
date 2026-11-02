@@ -245,3 +245,15 @@ def test_rerun_cannot_overwrite_rows_of_another_workspace(ctx, base, create_user
     theirs.refresh_from_db()
     assert (theirs.name, theirs.workspace_id) == ("Theirs", other_ws.id)
     assert ctx.report.dropped["issues"]["id already used in the target"] == 1
+
+
+@pytest.mark.django_db
+def test_rerun_cannot_take_over_another_workspace_by_id(ctx, create_user):
+    theirs = Workspace.objects.create(name="Theirs", slug="theirs", owner=create_user)
+    ctx.ids.add(User, create_user.id)
+    ctx.allow_existing = True
+    forged = stamped(id=theirs.id, name="Mine", slug="mine", owner_id=create_user.id)
+    load(Entity(Workspace), FakeSource({"workspaces": [forged]}), ctx)
+    theirs.refresh_from_db()
+    assert (theirs.name, theirs.slug) == ("Theirs", "theirs")
+    assert ctx.report.dropped["workspaces"]["id already used in the target"] == 1
