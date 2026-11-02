@@ -9,6 +9,7 @@ import { store } from "@/lib/store-context";
 import { richFiltersEqual } from "./codecs";
 import { getWorkItemPage } from "./pages";
 import type { TViewBinding } from "./route";
+import type { TPeekBinding } from "./use-peek-route";
 import type { TCalendarClock } from "./types";
 
 export const PROJECT_WORK_ITEMS_PAGE = getWorkItemPage(EIssuesStoreType.PROJECT);
@@ -54,5 +55,26 @@ export const getProjectWorkItemsBinding = (workspaceSlug: string, projectId: str
       const project = store.projectRoot.project.getPartialProjectById(projectId);
       return project && !isWorkItemsEnabled(project) ? getProjectUrl(workspaceSlug, projectId) : undefined;
     },
+  };
+};
+
+/** Client only: shows the peek of the project work items route from its URL. */
+export const getWorkItemPeekBinding = (workspaceSlug: string): TPeekBinding => {
+  const { issues, issueDetail } = store.issue;
+  return {
+    toRef: (peek) => {
+      if (peek.isArchived) return undefined;
+      const sequenceId = issues.getIssueById(peek.issueId)?.sequence_id;
+      const projectIdentifier = store.projectRoot.project.getProjectIdentifierById(peek.projectId);
+      return sequenceId && projectIdentifier ? { projectIdentifier, sequenceId } : undefined;
+    },
+    resolve: async ({ projectIdentifier, sequenceId }) => {
+      const issueId = issues.getIssueIdByIdentifier(`${projectIdentifier}-${sequenceId}`);
+      const issue = issueId
+        ? issues.getIssueById(issueId)
+        : await issueDetail.fetchIssueWithIdentifier(workspaceSlug, projectIdentifier, String(sequenceId));
+      return issue?.project_id ? { workspaceSlug, projectId: issue.project_id, issueId: issue.id } : undefined;
+    },
+    show: (peek) => issueDetail.showPeekIssue(peek),
   };
 };

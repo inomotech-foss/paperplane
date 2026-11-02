@@ -4,14 +4,20 @@
  * See the LICENSE file for details.
  */
 
+import { useMemo } from "react";
 import { Outlet } from "react-router";
 // components
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
 import { ProjectFeatureGuard } from "@/components/project/features/feature-guard";
-import { PROJECT_WORK_ITEMS_PAGE, getProjectWorkItemsBinding } from "@/lib/work-item-view-url/bindings";
+import {
+  PROJECT_WORK_ITEMS_PAGE,
+  getProjectWorkItemsBinding,
+  getWorkItemPeekBinding,
+} from "@/lib/work-item-view-url/bindings";
 import { PqlDraftProvider } from "@/lib/work-item-view-url/pql-draft";
 import { loadViewRoute, shouldRevalidateView } from "@/lib/work-item-view-url/route";
+import { usePeekRoute } from "@/lib/work-item-view-url/use-peek-route";
 import { useWorkItemViewRoute } from "@/lib/work-item-view-url/use-view-route";
 import { ProjectIssuesHeader } from "./header";
 import type { Route } from "./+types/layout";
@@ -24,6 +30,8 @@ export const shouldRevalidate = shouldRevalidateView;
 
 export default function ProjectIssuesLayout({ params, loaderData }: Route.ComponentProps) {
   useWorkItemViewRoute(loaderData, PROJECT_WORK_ITEMS_PAGE, params.projectId);
+  const peekBinding = useMemo(() => getWorkItemPeekBinding(params.workspaceSlug), [params.workspaceSlug]);
+  usePeekRoute(peekBinding);
   return (
     <ProjectFeatureGuard feature="work_items" workspaceSlug={params.workspaceSlug} projectId={params.projectId}>
       <PqlDraftProvider value={loaderData.draft}>
