@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
+import { isApiError } from "@plane/services";
 import type { TIssue, TIssuePriorities, TStateGroups } from "@plane/types";
+import { readField } from "@plane/types";
 
 /** A change asked for in the bulk operations bar. Assignees and labels are added, the rest is set. */
 export type TBulkChange =
@@ -44,34 +46,46 @@ export const getBulkUpdatePayload = (issue: TIssue, change: TBulkChange): TBulkU
 
 export type TBulkUpdateResult = { updated: number; failed: number; invalidDates: number };
 
-/** Updates each work item that the change applies to and counts the outcomes. */
+/** At most this many updates are in flight at once. */
+export const BULK_UPDATE_CONCURRENCY = 5;
+
+/** Updates each work item that the change applies to, a few at a time, and counts the outcomes. */
 export const applyBulkChange = async (
   issues: TIssue[],
   change: TBulkChange,
   update: (issue: TIssue, data: Partial<TIssue>) => Promise<void>
 ): Promise<TBulkUpdateResult> => {
   const result: TBulkUpdateResult = { updated: 0, failed: 0, invalidDates: 0 };
-  const requests: Promise<void>[] = [];
+  const queue: { issue: TIssue; data: Partial<TIssue> }[] = [];
   for (const issue of issues) {
     const payload = getBulkUpdatePayload(issue, change);
-    if ("data" in payload) {
-      requests.push(
-        update(issue, payload.data).then(
-          () => {
-            result.updated += 1;
-          },
-          (error: unknown) => {
-            console.error(error);
-            result.failed += 1;
-          }
-        )
-      );
-    } else if (payload.skip === "invalid_dates") {
-      result.invalidDates += 1;
-    }
+    if ("data" in payload) queue.push({ issue, data: payload.data });
+    else if (payload.skip === "invalid_dates") result.invalidDates += 1;
   }
-  await Promise.all(requests);
+  const worker = async () => {
+    for (let next = queue.shift(); next; next = queue.shift()) {
+      try {
+        await update(next.issue, next.data);
+        result.updated += 1;
+      } catch (error) {
+        console.error(error);
+        result.failed += 1;
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(BULK_UPDATE_CONCURRENCY, queue.length) }, worker));
   return result;
+};
+
+const INVALID_ARCHIVE_STATE_GROUP = 4091;
+
+export type TArchiveFailure = "state_group" | "permission" | "other";
+
+/** Why a bulk archive failed, from the API error. */
+export const getArchiveFailure = (error: unknown): TArchiveFailure => {
+  if (!isApiError(error)) return "other";
+  if (readField(error.data, "error_code") === INVALID_ARCHIVE_STATE_GROUP) return "state_group";
+  return error.status === 403 ? "permission" : "other";
 };
 
 const ARCHIVABLE_GROUPS: ReadonlySet<TStateGroups> = new Set<TStateGroups>(["completed", "cancelled"]);

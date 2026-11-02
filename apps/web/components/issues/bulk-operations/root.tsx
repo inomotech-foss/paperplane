@@ -32,8 +32,14 @@ import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 // local imports
-import { applyBulkChange, canArchiveAll } from "./bulk-update";
-import type { TBulkChange } from "./bulk-update";
+import { applyBulkChange, canArchiveAll, getArchiveFailure } from "./bulk-update";
+import type { TArchiveFailure, TBulkChange } from "./bulk-update";
+
+const ARCHIVE_FAILURE_MESSAGES: Record<TArchiveFailure, string> = {
+  state_group: "bulk_operations.error_details.invalid_archive_state_group.message",
+  permission: "workspace_projects.error.permission",
+  other: "common.error.message",
+};
 
 type Props = {
   className?: string;
@@ -130,7 +136,7 @@ const IssueBulkOperationsBar = observer(function IssueBulkOperationsBar(props: T
       setToast({
         type: "error",
         title: t("bulk_operations.error_details.invalid_archive_state_group.title"),
-        message: t("bulk_operations.error_details.invalid_archive_state_group.message"),
+        message: t(ARCHIVE_FAILURE_MESSAGES[getArchiveFailure(error)]),
       });
     } finally {
       setIsBusy(false);

@@ -2,8 +2,15 @@
 // See the LICENSE file for details.
 
 import { describe, expect, it, vi } from "vitest";
+import { ApiError } from "@plane/services";
 import type { TIssue } from "@plane/types";
-import { applyBulkChange, canArchiveAll, getBulkUpdatePayload } from "./bulk-update";
+import {
+  applyBulkChange,
+  BULK_UPDATE_CONCURRENCY,
+  canArchiveAll,
+  getArchiveFailure,
+  getBulkUpdatePayload,
+} from "./bulk-update";
 
 const makeIssue = (id: string, overrides: Partial<TIssue> = {}): TIssue => ({
   id,
@@ -83,6 +90,37 @@ describe("applyBulkChange", () => {
     expect(update).toHaveBeenCalledTimes(2);
     expect(update).toHaveBeenCalledWith(issues[0], { start_date: "2026-01-02" });
     expect(result).toEqual({ updated: 1, failed: 1, invalidDates: 1 });
+  });
+});
+
+describe("applyBulkChange concurrency", () => {
+  it("keeps at most a few updates in flight", async () => {
+    let inFlight = 0;
+    let peak = 0;
+    const update = vi.fn(async () => {
+      inFlight += 1;
+      peak = Math.max(peak, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      inFlight -= 1;
+    });
+    const issues = Array.from({ length: 12 }, (_, i) => makeIssue(`i${i}`));
+
+    const result = await applyBulkChange(issues, { type: "priority", priority: "high" }, update);
+
+    expect(update).toHaveBeenCalledTimes(12);
+    expect(peak).toBe(BULK_UPDATE_CONCURRENCY);
+    expect(result.updated).toBe(12);
+  });
+});
+
+describe("getArchiveFailure", () => {
+  const apiError = (status: number, data: unknown) => new ApiError(new Response(null, { status }), data);
+
+  it("tells the state group refusal from other failures", () => {
+    expect(getArchiveFailure(apiError(400, { error_code: 4091 }))).toBe("state_group");
+    expect(getArchiveFailure(apiError(403, { error: "no" }))).toBe("permission");
+    expect(getArchiveFailure(apiError(500, undefined))).toBe("other");
+    expect(getArchiveFailure(new TypeError("Failed to fetch"))).toBe("other");
   });
 });
 
