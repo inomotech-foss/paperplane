@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "コンテンツの上限に達したため、リアルタイム同期がオフになっています。新しいページを作成するか、ネストされたページを使用して同期を続けてください。"
   },
+  "page_sync_timeout_banner": {
+    "message": "最新の変更はまだ保存されていません。サーバーに再接続しています。このページを開いたままにしてください。"
+  },
   "page_list_tree": {
     "expand_button": "サブページを展開",
     "collapse_button": "サブページを折りたたむ",

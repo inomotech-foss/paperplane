@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Limita de conținut a fost atinsă, iar sincronizarea live este dezactivată. Creează o pagină nouă sau folosește pagini imbricate pentru a continua sincronizarea."
   },
+  "page_sync_timeout_banner": {
+    "message": "Ultimele modificări nu au fost încă salvate. Reconectare la server în curs. Păstrați această pagină deschisă."
+  },
   "page_list_tree": {
     "expand_button": "Extinde subpaginile",
     "collapse_button": "Restrânge subpaginile",

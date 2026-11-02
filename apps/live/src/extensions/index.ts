@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import { env } from "@/env";
 import { Database } from "./database";
 import { ForceCloseHandler } from "./force-close-handler";
 import { Logger } from "./logger";
@@ -12,7 +13,7 @@ import { TitleSyncExtension } from "./title-sync";
 
 export const getExtensions = () => [
   new Logger(),
-  new Database(),
+  new Database({ loadTimeoutMs: env.DOCUMENT_LOAD_TIMEOUT_MS }),
   new Redis(),
   new TitleSyncExtension(),
   new ForceCloseHandler(), // Must be after Redis to receive broadcasts

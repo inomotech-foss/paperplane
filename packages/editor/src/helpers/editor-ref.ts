@@ -24,7 +24,7 @@ import { CORE_EDITOR_META } from "@/constants/meta";
 import type { EditorRefApi, IEditorProps } from "@/types";
 // local imports
 import { getParagraphCount } from "./common";
-import { isDocumentEditorYDocEmpty } from "./yjs-utils";
+import { STORED_PAGE_ORIGIN, isDocumentEditorYDocEmpty } from "./yjs-utils";
 import { insertContentAtSavedSelection } from "./insert-content-at-cursor-position";
 import { scrollSummary, scrollToNodeViaDOMCoordinates } from "./scroll-to-node";
 
@@ -246,7 +246,7 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
     setProviderDocument: (value) => {
       const document = provider?.document;
       if (!document) return;
-      Y.applyUpdate(document, value);
+      Y.applyUpdate(document, value, STORED_PAGE_ORIGIN);
     },
     undo: () => editor?.commands.undo(),
   };

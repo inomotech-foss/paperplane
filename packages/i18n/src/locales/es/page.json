@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Se alcanzó el límite de contenido y la sincronización en vivo está desactivada. Cree una página nueva o utilice páginas anidadas para continuar sincronizando."
   },
+  "page_sync_timeout_banner": {
+    "message": "Sus últimos cambios aún no se han guardado. Reconectando con el servidor. Mantenga esta página abierta."
+  },
   "page_list_tree": {
     "expand_button": "Expandir subpáginas",
     "collapse_button": "Contraer subpáginas",

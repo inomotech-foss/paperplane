@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Đã đạt giới hạn nội dung và đồng bộ trực tiếp đã tắt. Tạo trang mới hoặc dùng trang lồng nhau để tiếp tục đồng bộ."
   },
+  "page_sync_timeout_banner": {
+    "message": "Các thay đổi gần đây của bạn chưa được lưu. Đang kết nối lại với máy chủ. Vui lòng giữ trang này mở."
+  },
   "page_list_tree": {
     "expand_button": "Mở rộng trang con",
     "collapse_button": "Thu gọn trang con",

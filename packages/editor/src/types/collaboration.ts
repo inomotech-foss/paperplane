@@ -8,7 +8,8 @@ export type CollaborationError =
   | { type: "auth-failed"; message: string }
   | { type: "network-error"; message: string }
   | { type: "forced-close"; code: number; message: string }
-  | { type: "max-retries"; message: string };
+  | { type: "max-retries"; message: string }
+  | { type: "sync-timeout"; message: string };
 
 /**
  * Single-stage state machine for collaboration lifecycle.
@@ -18,7 +19,8 @@ export type CollaborationError =
  * - "awaiting-sync" only occurs when connection is successful and sync is pending
  * - "synced" occurs only after connection success and onSynced callback
  * - "reconnecting" with attempt > 0 when retrying after a connection drop
- * - "disconnected" is terminal (connection failed or forced close)
+ * - "disconnected" is terminal (connection failed or forced close), except for a
+ *   "sync-timeout", which keeps reconnecting and moves to "synced" once a sync succeeds
  */
 export type CollabStage =
   | { kind: "initial" }
@@ -36,6 +38,8 @@ export type CollaborationState = {
   stage: CollabStage;
   isServerSynced: boolean;
   isServerDisconnected: boolean;
+  /** Local edits the server has not confirmed yet, tracked while the page is not synced */
+  hasUnsyncedChanges: boolean;
 };
 
 export type TServerHandler = {

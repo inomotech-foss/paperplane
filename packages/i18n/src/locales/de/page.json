@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Inhaltslimit erreicht, Live-Synchronisierung ist deaktiviert. Neue Seite erstellen oder verschachtelte Seiten verwenden, um die Synchronisierung fortzusetzen."
   },
+  "page_sync_timeout_banner": {
+    "message": "Ihre letzten Änderungen sind noch nicht gespeichert. Die Verbindung zum Server wird wiederhergestellt. Lassen Sie diese Seite geöffnet."
+  },
   "page_list_tree": {
     "expand_button": "Unterseiten ausklappen",
     "collapse_button": "Unterseiten einklappen",

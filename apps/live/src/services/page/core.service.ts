@@ -30,9 +30,9 @@ export type TPageDetails = z.infer<typeof pageDetailsSchema>;
 export abstract class PageCoreService extends APIService {
   protected abstract basePath: string;
 
-  async fetchDetails(pageId: string): Promise<TPageDetails> {
+  async fetchDetails(pageId: string, signal?: AbortSignal): Promise<TPageDetails> {
     try {
-      return pageDetailsSchema.parse(await this.requestJson("GET", `${this.basePath}/pages/${pageId}/`));
+      return pageDetailsSchema.parse(await this.requestJson("GET", `${this.basePath}/pages/${pageId}/`, { signal }));
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "fetchDetails", pageId },
@@ -42,10 +42,11 @@ export abstract class PageCoreService extends APIService {
     }
   }
 
-  async fetchDescriptionBinary(pageId: string): Promise<Buffer> {
+  async fetchDescriptionBinary(pageId: string, signal?: AbortSignal): Promise<Buffer> {
     try {
       const body = await this.requestBinary("GET", `${this.basePath}/pages/${pageId}/description/`, {
         headers: { "Content-Type": "application/octet-stream" },
+        signal,
       });
       return Buffer.from(body);
     } catch (error) {
@@ -79,9 +80,9 @@ export abstract class PageCoreService extends APIService {
     }
   }
 
-  async updateDescriptionBinary(pageId: string, data: TDocumentPayload): Promise<void> {
+  async updateDescriptionBinary(pageId: string, data: TDocumentPayload, signal?: AbortSignal): Promise<void> {
     try {
-      await this.request("PATCH", `${this.basePath}/pages/${pageId}/description/`, { body: data });
+      await this.request("PATCH", `${this.basePath}/pages/${pageId}/description/`, { body: data, signal });
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "updateDescriptionBinary", pageId },

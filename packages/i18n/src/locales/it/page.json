@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Limite di contenuto raggiunto e la sincronizzazione in tempo reale è disattivata. Crea una nuova pagina o usa pagine annidate per continuare la sincronizzazione."
   },
+  "page_sync_timeout_banner": {
+    "message": "Le ultime modifiche non sono ancora state salvate. Riconnessione al server in corso. Tenga aperta questa pagina."
+  },
   "page_list_tree": {
     "expand_button": "Espandi sottopagine",
     "collapse_button": "Comprimi sottopagine",

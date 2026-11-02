@@ -8,13 +8,21 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as Y from "yjs";
 
+import { STORED_PAGE_ORIGIN } from "@/helpers/yjs-utils";
 import { useYjsSetup } from "@/hooks/use-yjs-setup";
 import type { CollaborationState } from "@/types/collaboration";
 
 type TCloseHandler = (event: { event?: { code?: number } }) => void;
-type TConfig = { onStateless?: (data: { payload: string }) => void };
+type TUnsyncedHandler = (data: { number: number }) => void;
+type TConfig = {
+  onAuthenticationFailed?: (data: { reason: string }) => void;
+  onAuthenticated?: () => void;
+  onConnect?: () => void;
+  onStateless?: (data: { payload: string }) => void;
+  onSynced?: () => void;
+};
 
-const socket = { readyState: WebSocket.OPEN, close: vi.fn() };
+const socket: { readyState: number; close: () => void } = { readyState: WebSocket.OPEN, close: vi.fn() };
 const websocketProvider = {
   shouldConnect: true,
   webSocket: socket,
@@ -25,6 +33,8 @@ const websocketProvider = {
 };
 let config: TConfig = {};
 let closeHandler: TCloseHandler | null = null;
+let unsyncedHandler: TUnsyncedHandler | null = null;
+const providerState = { document: new Y.Doc(), hasUnsyncedChanges: false };
 
 vi.mock("@hocuspocus/provider", () => ({
   HocuspocusProvider: class {
@@ -32,9 +42,14 @@ vi.mock("@hocuspocus/provider", () => ({
     configuration = { websocketProvider };
     constructor(options: TConfig) {
       config = options;
+      providerState.document = this.document;
     }
-    on(_event: string, handler: TCloseHandler) {
-      closeHandler = handler;
+    get hasUnsyncedChanges() {
+      return providerState.hasUnsyncedChanges;
+    }
+    on(event: string, handler: TCloseHandler & TUnsyncedHandler) {
+      if (event === "close") closeHandler = handler;
+      if (event === "unsyncedChanges") unsyncedHandler = handler;
     }
     off() {}
     destroy() {}
@@ -51,12 +66,19 @@ vi.mock("y-indexeddb", () => ({
 
 let states: CollaborationState[] = [];
 
-const Harness = () => {
-  useYjsSetup({ docId: "doc", serverUrl: "ws://live", authToken: "t", onStateChange: (state) => states.push(state) });
+const Harness = ({ docId = "doc" }: { docId?: string }) => {
+  useYjsSetup({ docId, serverUrl: "ws://live", authToken: "t", onStateChange: (state) => states.push(state) });
   return null;
 };
 
 const lastStage = () => states[states.length - 1]?.stage;
+const lastState = () => states[states.length - 1];
+const typeLocally = () => providerState.document.getText("t").insert(0, "x");
+
+const dropSocket = () => {
+  socket.readyState = WebSocket.CLOSED;
+  closeHandler?.({ event: { code: 1006 } });
+};
 
 describe("useYjsSetup server close", () => {
   let root: ReturnType<typeof createRoot>;
@@ -65,6 +87,7 @@ describe("useYjsSetup server close", () => {
     Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
     states = [];
     websocketProvider.shouldConnect = true;
+    socket.readyState = WebSocket.OPEN;
     vi.clearAllMocks();
     root = createRoot(document.createElement("div"));
     await act(async () => root.render(createElement(Harness)));
@@ -110,5 +133,209 @@ describe("useYjsSetup server close", () => {
 
     expect(socket.close).toHaveBeenCalled();
     expect(lastStage()?.kind).not.toBe("disconnected");
+  });
+});
+
+describe("useYjsSetup sync watchdog", () => {
+  let root: ReturnType<typeof createRoot>;
+
+  beforeEach(async () => {
+    vi.useFakeTimers();
+    Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+    states = [];
+    websocketProvider.shouldConnect = true;
+    socket.readyState = WebSocket.OPEN;
+    vi.clearAllMocks();
+    root = createRoot(document.createElement("div"));
+    await act(async () => root.render(createElement(Harness)));
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    vi.useRealTimers();
+  });
+
+  it("reports a sync timeout and keeps reconnecting until a sync succeeds", () => {
+    act(() => config.onConnect?.());
+    expect(lastStage()).toEqual({ kind: "awaiting-sync" });
+
+    // a slow authentication restarts the clock for the load
+    act(() => vi.advanceTimersByTime(29_000));
+    act(() => config.onAuthenticated?.());
+    act(() => vi.advanceTimersByTime(44_999));
+    expect(lastStage()).toEqual({ kind: "awaiting-sync" });
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "sync-timeout", message: "Not synced within 45000 ms" },
+    });
+    expect(socket.close).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      for (let i = 0; i < 5; i++) {
+        dropSocket();
+        config.onConnect?.();
+      }
+    });
+    expect(lastStage()?.kind).toBe("disconnected");
+    expect(websocketProvider.disconnect).not.toHaveBeenCalled();
+
+    act(() => config.onSynced?.());
+    expect(lastStage()).toEqual({ kind: "synced" });
+
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(lastStage()).toEqual({ kind: "synced" });
+  });
+
+  it("bounds an authentication that never answers", () => {
+    act(() => config.onConnect?.());
+    act(() => vi.advanceTimersByTime(29_999));
+    expect(lastStage()).toEqual({ kind: "awaiting-sync" });
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "sync-timeout", message: "Not authenticated within 30000 ms" },
+    });
+    expect(socket.close).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps reconnecting when the server gives up loading the document", () => {
+    act(() => {
+      config.onConnect?.();
+      config.onAuthenticationFailed?.({ reason: "document-load-timeout" });
+    });
+
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "sync-timeout", message: "The server could not load the document" },
+    });
+    expect(socket.close).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      dropSocket();
+      config.onConnect?.();
+      config.onSynced?.();
+    });
+    expect(lastStage()).toEqual({ kind: "synced" });
+  });
+
+  it("stops on a real authentication failure", () => {
+    act(() => {
+      config.onConnect?.();
+      config.onAuthenticationFailed?.({ reason: "permission-denied" });
+    });
+    act(() => vi.advanceTimersByTime(60_000));
+
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "auth-failed", message: "Authentication failed" },
+    });
+    expect(socket.close).not.toHaveBeenCalled();
+  });
+
+  it("does not time out once synced", () => {
+    act(() => {
+      config.onConnect?.();
+      config.onSynced?.();
+    });
+    act(() => vi.advanceTimersByTime(60_000));
+
+    expect(lastStage()).toEqual({ kind: "synced" });
+    expect(socket.close).not.toHaveBeenCalled();
+  });
+
+  it("reports a socket dropped between authentication and sync as a sync timeout", () => {
+    act(() => {
+      for (let i = 0; i < 5; i++) {
+        config.onConnect?.();
+        config.onAuthenticated?.();
+        dropSocket();
+      }
+    });
+
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "sync-timeout", message: "Closed before the server synced the page" },
+    });
+    expect(websocketProvider.disconnect).not.toHaveBeenCalled();
+  });
+
+  it("gives up after repeated connections that never sync", () => {
+    act(() => {
+      for (let i = 0; i < 3; i++) {
+        config.onConnect?.();
+        dropSocket();
+      }
+    });
+
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "max-retries", message: "Failed to connect after 3 attempts" },
+    });
+    expect(websocketProvider.disconnect).toHaveBeenCalled();
+  });
+});
+
+describe("useYjsSetup unsynced changes", () => {
+  let root: ReturnType<typeof createRoot>;
+
+  beforeEach(async () => {
+    Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+    states = [];
+    providerState.hasUnsyncedChanges = false;
+    websocketProvider.shouldConnect = true;
+    socket.readyState = WebSocket.OPEN;
+    root = createRoot(document.createElement("div"));
+    await act(async () => root.render(createElement(Harness)));
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+  });
+
+  it("tracks edits made while not synced until the server confirms them", () => {
+    act(() => config.onConnect?.());
+    act(() => typeLocally());
+    expect(lastState()?.hasUnsyncedChanges).toBe(true);
+
+    act(() => {
+      config.onSynced?.();
+      unsyncedHandler?.({ number: 0 });
+    });
+    expect(lastState()?.hasUnsyncedChanges).toBe(false);
+  });
+
+  it("ignores edits while synced unless the connection drops before they are confirmed", () => {
+    act(() => {
+      config.onConnect?.();
+      config.onSynced?.();
+    });
+    act(() => typeLocally());
+    expect(lastState()?.hasUnsyncedChanges).toBe(false);
+
+    providerState.hasUnsyncedChanges = true;
+    act(() => dropSocket());
+    expect(lastState()?.hasUnsyncedChanges).toBe(true);
+  });
+
+  it("does not count the stored page as a local edit", () => {
+    act(() => config.onConnect?.());
+    const stored = new Y.Doc();
+    stored.getText("t").insert(0, "stored");
+    act(() => Y.applyUpdate(providerState.document, Y.encodeStateAsUpdate(stored), STORED_PAGE_ORIGIN));
+
+    expect(lastState()?.hasUnsyncedChanges).toBe(false);
+  });
+
+  it("starts the next page without the previous page's unsynced edits", async () => {
+    act(() => config.onConnect?.());
+    act(() => typeLocally());
+    expect(lastState()?.hasUnsyncedChanges).toBe(true);
+
+    await act(async () => root.render(createElement(Harness, { docId: "other" })));
+    act(() => config.onConnect?.());
+    expect(lastState()?.hasUnsyncedChanges).toBe(false);
   });
 });

@@ -25,6 +25,8 @@ const envSchema = z.object({
   // Request body limit. A document conversion posts a whole page of HTML, which
   // express's 100kb default rejects outright.
   BODY_SIZE_LIMIT: z.string().default("10mb"),
+  // A page fetch that takes longer fails the load, so its clients can retry
+  DOCUMENT_LOAD_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
   // secret
   LIVE_SERVER_SECRET_KEY: z.string(),
   // Redis configuration

@@ -15,6 +15,7 @@ import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryPara
 // hooks
 import { usePageEditorRef } from "@/hooks/use-page-editor-ref";
 import { usePageFallback } from "@/hooks/use-page-fallback";
+import { useUnsyncedChangesPrompt } from "@/hooks/use-unsynced-changes-prompt";
 import type { PageUpdateHandler, TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
 import { usePagesPaneExtensions, useExtendedEditorProps } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
@@ -31,6 +32,7 @@ import { PageVersionsOverlay } from "../version";
 import { PagesVersionEditor } from "../version/editor";
 import { getCommentEventThreadId } from "./comment-event";
 import { PageEditorBody } from "./editor-body";
+import { PageSyncTimeoutBanner } from "./sync-timeout-banner";
 import type { TEditorBodyConfig, TEditorBodyHandlers } from "./editor-body";
 import { PageEditorToolbarRoot } from "./toolbar/root";
 
@@ -89,6 +91,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     collaborationState,
     updatePageDescription: handlers.updateDescription,
   });
+  useUnsyncedChangesPrompt(collaborationState);
 
   const handleEditorReady = useCallback(
     (status: boolean) => {
@@ -194,6 +197,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
         {showContentTooLargeBanner && (
           <Banner placement="page" variant="warning" title={t("page_content_limit_banner.message")} />
         )}
+        <PageSyncTimeoutBanner collaborationState={collaborationState} />
         <PageEditorBody
           config={config}
           customRealtimeEventHandlers={mergedCustomEventHandlers}
