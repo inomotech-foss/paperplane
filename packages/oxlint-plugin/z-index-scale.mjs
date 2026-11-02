@@ -3,6 +3,21 @@
 
 export const MAX_LOCAL_Z_INDEX = 10;
 
+// The `--z-index-*` layers in packages/tailwind-config/index.css
+export const Z_INDEX_LAYERS = new Set([
+  "subheader",
+  "header",
+  "sidebar",
+  "peek",
+  "rail",
+  "nav",
+  "modal",
+  "popover",
+  "toast",
+  "submenu",
+  "floating",
+]);
+
 // Arbitrary values may be cut off by a template expression, as in `z-[${value}]`
 const Z_CLASS = /^-?z-(\[[^\]]*\]?|\([^)]*\)?|\d+)$/;
 const Z_PROPERTY = /^!?\[z-index:/;
@@ -24,7 +39,9 @@ export const isOffScaleZIndexValue = (value) => {
   if (typeof value === "number") return value > MAX_LOCAL_Z_INDEX;
   if (typeof value !== "string") return false;
   const text = value.trim();
-  if (CSS_KEYWORDS.has(text) || text.includes("var(--z-index-")) return false;
+  if (CSS_KEYWORDS.has(text)) return false;
+  const layers = [...text.matchAll(/var\(--z-index-([\w-]+)\)/g)].map((match) => match[1]);
+  if (layers.length > 0) return !layers.every((layer) => Z_INDEX_LAYERS.has(layer));
   return !/^-?\d+$/.test(text) || Number(text) > MAX_LOCAL_Z_INDEX;
 };
 

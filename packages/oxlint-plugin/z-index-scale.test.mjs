@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
+import { readFileSync } from "node:fs";
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, expect, it } from "vitest";
-import { findOffScaleZIndexClasses, isOffScaleZIndexValue, zIndexScale } from "./z-index-scale.mjs";
+import { findOffScaleZIndexClasses, isOffScaleZIndexValue, Z_INDEX_LAYERS, zIndexScale } from "./z-index-scale.mjs";
 
 describe("findOffScaleZIndexClasses", () => {
   it("allows local values and named layers", () => {
@@ -42,8 +43,14 @@ describe("isOffScaleZIndexValue", () => {
   });
 
   it("flags values above the local range and other strings", () => {
-    for (const value of [11, 100, "50", "9999", "var(--layer)", "calc(100 - 1)"])
+    for (const value of [11, 100, "50", "9999", "var(--layer)", "calc(100 - 1)", "var(--z-index-floatng)"])
       expect(isOffScaleZIndexValue(value)).toBe(true);
+  });
+
+  it("knows exactly the layers the theme defines", () => {
+    const css = readFileSync(new URL("../tailwind-config/index.css", import.meta.url), "utf8");
+    const defined = [...css.matchAll(/--z-index-([\w-]+):/g)].map((match) => match[1]);
+    expect(new Set(defined)).toEqual(Z_INDEX_LAYERS);
   });
 
   it("ignores values it cannot read", () => {
