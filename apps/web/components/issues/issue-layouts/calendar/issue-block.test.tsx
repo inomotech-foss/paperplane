@@ -3,7 +3,7 @@
 
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { TIssue } from "@plane/types";
 import { findNestedInteractive } from "@/lib/testing/nested-interactive";
 import { findLinkOffsetParents, findStackingTraps } from "@/lib/testing/stacking";
@@ -73,5 +73,25 @@ describe("CalendarIssueBlock", () => {
       expect(findStackingTraps(card)).toEqual([]);
       expect(findLinkOffsetParents(card)).toEqual([]);
     }
+  });
+
+  it("lets Escape reach the peek view while the preview is open", async () => {
+    const onEscape = vi.fn();
+    document.addEventListener("keydown", onEscape);
+    const { container } = render(
+      <MemoryRouter>
+        <CalendarIssueBlock issue={issue} quickActions={() => <button type="button">More</button>} />
+      </MemoryRouter>
+    );
+    const link = container.querySelector("a#issue-issue-1");
+    expect(link).not.toBeNull();
+    if (!link) return;
+    await act(async () => {
+      fireEvent.click(link);
+    });
+    expect(await screen.findByRole("dialog")).toBeTruthy();
+    fireEvent.keyDown(link, { key: "Escape" });
+    document.removeEventListener("keydown", onEscape);
+    expect(onEscape).toHaveBeenCalled();
   });
 });
