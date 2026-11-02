@@ -4,6 +4,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TIssue, TIssuesResponse } from "@plane/types";
 import { store } from "@/lib/store-context";
+import { ProjectService } from "@/services/project";
 import { ProjectIssues } from "./issue.store";
 
 const issues = new ProjectIssues(store.issue, store.issue.projectIssuesFilter);
@@ -92,7 +93,7 @@ const created: TIssue = {
 
 describe("ProjectIssues parent stats", () => {
   it("does not refetch the project when the list loads", async () => {
-    const getProject = vi.spyOn(store.projectRoot.project.projectService, "getProject");
+    const getProject = vi.spyOn(ProjectService.prototype, "getProject");
     vi.spyOn(issues.issueService, "getIssues").mockResolvedValue(emptyResponse);
 
     await issues.fetchIssues("ws", "project-1", "init-loader", options);
@@ -101,7 +102,7 @@ describe("ProjectIssues parent stats", () => {
   });
 
   it("moves the next sequence of the project past a created work item", async () => {
-    const getProject = vi.spyOn(store.projectRoot.project.projectService, "getProject");
+    const getProject = vi.spyOn(ProjectService.prototype, "getProject");
     vi.spyOn(issues.issueService, "createIssue").mockResolvedValue(created);
     vi.spyOn(store.issueType, "rememberIssueType").mockResolvedValue(undefined);
 

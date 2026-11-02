@@ -36,18 +36,14 @@ export const useIssueEmailThread = (
       projectId
     );
 
-  const { data, error, isLoading, mutate } = useSWR<TIssueEmailThread | null>(
+  const { data, isLoading, mutate } = useSWR<TIssueEmailThread | null>(
     shouldFetch ? `ISSUE_EMAIL_THREAD_${workspaceSlug}_${projectId}_${issueId}` : null,
     shouldFetch ? () => serviceDeskService.getEmailThread(workspaceSlug, projectId, issueId) : null,
-    {
-      revalidateOnFocus: false,
-      shouldRetryOnError: false,
-    }
+    { revalidateOnFocus: false }
   );
 
   return {
     emailThread: data ?? null,
-    error,
     isLoading,
     mutate,
   };

@@ -37,21 +37,12 @@ describe("useIssueEmailThread", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(getEmailThread).toHaveBeenCalledWith("ws", "p1", "i1");
     expect(result.current.emailThread).toBeNull();
-    expect(result.current.error).toBeUndefined();
   });
 
   it("does not fetch for guests", () => {
     allowPermissions.mockReturnValue(false);
     const { result } = renderHook(() => useIssueEmailThread("ws", "p1", "i1"), { wrapper });
     expect(getEmailThread).not.toHaveBeenCalled();
-    expect(result.current.emailThread).toBeNull();
-  });
-
-  it("exposes request failures", async () => {
-    const failure = new Error("boom");
-    getEmailThread.mockRejectedValue(failure);
-    const { result } = renderHook(() => useIssueEmailThread("ws", "p1", "i1"), { wrapper });
-    await waitFor(() => expect(result.current.error).toBe(failure));
     expect(result.current.emailThread).toBeNull();
   });
 });
