@@ -135,7 +135,7 @@ class TestSanitizeStoredHtml:
 
         out, _ = _run("--apply", "--model", "page", "--batch-size", "1", "--max-rows", "2")
 
-        assert f"resume with --start-after {pages[1].pk}" in out
+        assert f"resume with --model page --start-after {pages[1].pk}" in out
         assert Page.all_objects.get(pk=pages[2].pk).description_html == UNSAFE
 
         out, _ = _run("--apply", "--model", "page", "--start-after", str(pages[1].pk))
@@ -143,13 +143,32 @@ class TestSanitizeStoredHtml:
         assert "page: scanned 1, changed 1" in out
         assert Page.all_objects.get(pk=pages[2].pk).description_html == SAFE
 
+    def test_no_resume_hint_when_max_rows_reaches_the_end(self, workspace, create_user):
+        _page(workspace, create_user, UNSAFE)
+
+        out, _ = _run("--model", "page", "--max-rows", "1")
+
+        assert "resume" not in out
+
+    def test_progress_line_names_the_last_id(self, workspace, create_user):
+        with mock.patch.object(command, "_rows") as rows:
+            rows.return_value = iter([mock.Mock(pk=i, description_html="") for i in range(500)])
+            out, _ = _run("--model", "page")
+
+        assert "page: scanned 500, would change 0, skipped (changed during run) 0, failed 0, last id 499" in out
+
     def test_start_after_needs_a_single_model(self):
-        with pytest.raises(CommandError, match="start-after"):
+        with pytest.raises(CommandError, match="exactly one --model"):
             _run("--start-after", "00000000-0000-0000-0000-000000000000")
+
+    @pytest.mark.parametrize("value", ["", "not-a-uuid"])
+    def test_start_after_must_be_a_uuid(self, value):
+        with pytest.raises(CommandError, match="must be a UUID"):
+            _run("--model", "page", "--start-after", value)
 
     @pytest.mark.parametrize("mode", [(), ("--apply",)])
     def test_memory_does_not_grow_with_the_number_of_rows(self, workspace, create_user, mode):
-        html = UNSAFE + "".join(f"<p>{i} {'x' * 2000}</p>" for i in range(100))
+        html = UNSAFE + "".join(f"<p>{i} {'x' * 2000}</p>" for i in range(50))
 
         def peak_for(rows):
             Page.all_objects.all().delete()
@@ -158,12 +177,12 @@ class TestSanitizeStoredHtml:
             gc.collect()
             tracemalloc.start()
             try:
-                _run(*mode, "--model", "page", "--batch-size", "2")
+                _run(*mode, "--model", "page")
                 return tracemalloc.get_traced_memory()[1]
             finally:
                 tracemalloc.stop()
 
-        small, large = peak_for(4), peak_for(16)
+        small, large = peak_for(12), peak_for(48)
 
         assert large < small * 1.25
         assert large < 40 * len(html)

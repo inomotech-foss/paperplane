@@ -7,6 +7,7 @@ Each row is written with a queryset update filtered on its old value, so updated
 activity and webhooks are not touched, and a row edited during the run is skipped, not overwritten.
 """
 
+import uuid
 from dataclasses import dataclass
 
 from django.core.management.base import BaseCommand, CommandError
@@ -142,8 +143,13 @@ class Command(BaseCommand):
             raise CommandError("--max-rows must be at least 1")
         names = options["model"] or list(TARGETS)
         start_after = options["start_after"]
-        if start_after and len(names) != 1:
-            raise CommandError("--start-after needs exactly one --model")
+        if start_after is not None:
+            try:
+                start_after = uuid.UUID(start_after)
+            except ValueError:
+                raise CommandError(f"--start-after must be a UUID, got {start_after!r}") from None
+            if len(names) != 1:
+                raise CommandError("--start-after needs exactly one --model")
 
         apply = options["apply"]
         totals = Counts()
@@ -161,9 +167,12 @@ class Command(BaseCommand):
             self._sanitize_row(name, target, row, apply, counts)
             del row
             if counts.scanned % 500 == 0:
-                self.stdout.write(counts.summary(name, apply))
+                self.stdout.write(f"{counts.summary(name, apply)}, last id {last_id}")
             if counts.scanned == max_rows:
-                self.stdout.write(f"{name}: stopped at --max-rows, resume with --start-after {last_id}")
+                if target.rows().filter(id__gt=last_id).exists():
+                    self.stdout.write(
+                        f"{name}: stopped at --max-rows, resume with --model {name} --start-after {last_id}"
+                    )
                 break
 
         self.stdout.write(counts.summary(name, apply))
@@ -198,7 +207,7 @@ def _rows(queryset, batch_size, start_after):
     """Yields rows by keyset pagination on id, holding at most one batch and dropping each row once yielded."""
     last_id = start_after
     while True:
-        batch = list((queryset.filter(id__gt=last_id) if last_id else queryset)[:batch_size])
+        batch = list((queryset if last_id is None else queryset.filter(id__gt=last_id))[:batch_size])
         if not batch:
             return
         last_id = batch[-1].pk
