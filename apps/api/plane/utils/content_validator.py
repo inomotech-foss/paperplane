@@ -6,8 +6,8 @@
 import base64
 import nh3
 from plane.utils.exception_logger import log_exception
-from bs4 import BeautifulSoup
 from collections import defaultdict
+from html.parser import HTMLParser
 import logging
 
 logger = logging.getLogger("plane.api")
@@ -208,6 +208,26 @@ SAFE_PROTOCOLS = {"http", "https", "mailto", "tel"}
 LINK_REL = "noopener noreferrer nofollow"
 
 
+class _TagCollector(HTMLParser):
+    """Counts tags and their attribute names without building a tree."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.tag_counts = defaultdict(int)
+        self.attrs_by_tag = defaultdict(set)
+
+    def handle_starttag(self, tag, attrs):
+        self.tag_counts[tag] += 1
+        self.attrs_by_tag[tag].update(name for name, _value in attrs if name)
+
+
+def _collect_tags(html):
+    collector = _TagCollector()
+    collector.feed(html or "")
+    collector.close()
+    return collector.tag_counts, collector.attrs_by_tag
+
+
 def _compute_html_sanitization_diff(before_html: str, after_html: str):
     """
     Compute a coarse diff between original and sanitized HTML.
@@ -217,25 +237,8 @@ def _compute_html_sanitization_diff(before_html: str, after_html: str):
     - removed_attributes: mapping[tag] -> sorted list of attribute names removed
     """
     try:
-
-        def collect(soup):
-            tag_counts = defaultdict(int)
-            attrs_by_tag = defaultdict(set)
-            for el in soup.find_all(True):
-                tag_name = (el.name or "").lower()
-                if not tag_name:
-                    continue
-                tag_counts[tag_name] += 1
-                for attr_name in list(el.attrs.keys()):
-                    if isinstance(attr_name, str) and attr_name:
-                        attrs_by_tag[tag_name].add(attr_name.lower())
-            return tag_counts, attrs_by_tag
-
-        soup_before = BeautifulSoup(before_html or "", "html.parser")
-        soup_after = BeautifulSoup(after_html or "", "html.parser")
-
-        counts_before, attrs_before = collect(soup_before)
-        counts_after, attrs_after = collect(soup_after)
+        counts_before, attrs_before = _collect_tags(before_html)
+        counts_after, attrs_after = _collect_tags(after_html)
 
         removed_tags = {}
         for tag, cnt_before in counts_before.items():
