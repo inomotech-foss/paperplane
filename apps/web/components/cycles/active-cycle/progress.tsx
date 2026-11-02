@@ -19,6 +19,7 @@ import darkProgressAsset from "@/app/assets/empty-state/active-cycle/progress-da
 import lightProgressAsset from "@/app/assets/empty-state/active-cycle/progress-light.webp?url";
 // components
 import { SimpleEmptyState } from "@/components/empty-state/simple-empty-state-root";
+import { getCycleCompletion } from "@/lib/cycle-progress";
 
 export type ActiveCycleProgressProps = {
   cycle: ICycle | null;
@@ -36,9 +37,7 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
   // derived values
   const totalIssues = cycle?.total_issues ?? 0;
   const cancelledIssues = cycle?.cancelled_issues ?? 0;
-  const closedIssues = (cycle?.completed_issues ?? 0) + cancelledIssues;
-  const closableIssues = totalIssues - cancelledIssues;
-  const progressValue = closableIssues > 0 ? (closedIssues / closableIssues) * 100 : 0;
+  const completion = getCycleCompletion(cycle);
   const groupedIssues: Record<string, number> = cycle
     ? {
         completed: cycle.completed_issues ?? 0,
@@ -56,13 +55,13 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
           <h3 className="text-14 font-semibold text-tertiary">{t("project_cycles.active_cycle.progress")}</h3>
           {totalIssues > 0 && (
             <span className="flex gap-1 rounded-xs px-3 py-1 text-13 font-medium whitespace-nowrap text-placeholder">
-              {`${closedIssues}/${closableIssues} ${closedIssues > 1 ? "Work items" : "Work item"} closed`}
+              {`${completion.completed}/${completion.total} ${completion.total === 1 ? "Work item" : "Work items"} completed`}
             </span>
           )}
         </div>
         {totalIssues > 0 && (
           <LinearProgress
-            value={progressValue}
+            value={completion.percentage}
             size="md"
             variant="brand"
             showValue={false}

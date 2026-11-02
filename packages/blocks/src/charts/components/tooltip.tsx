@@ -8,7 +8,7 @@ import React from "react";
 import type { NameType, Payload, ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { cn } from "@plane/utils";
 import { Card } from "../../card/card";
-import { toChartText } from "../payload";
+import { formatChartValue, toChartText } from "../payload";
 
 type Props = {
   active: boolean | undefined;
@@ -23,7 +23,9 @@ type Props = {
 export const CustomTooltip = React.memo(function CustomTooltip(props: Props) {
   const { active, activeKey, label, payload, itemKeys, itemLabels, itemDotColors } = props;
   // derived values
-  const filteredPayload = payload?.filter((item) => item.dataKey && itemKeys.includes(`${item.dataKey}`));
+  const filteredPayload = payload?.filter(
+    (item) => item.dataKey && item.value !== null && item.value !== undefined && itemKeys.includes(`${item.dataKey}`)
+  );
 
   if (!active || !filteredPayload || !filteredPayload.length) return null;
 
@@ -56,7 +58,7 @@ export const CustomTooltip = React.memo(function CustomTooltip(props: Props) {
               )}
               <span className="truncate text-tertiary">{itemLabels[item?.dataKey]}:</span>
             </div>
-            <span className="flex-shrink-0 font-medium text-secondary">{item?.value}</span>
+            <span className="flex-shrink-0 font-medium text-secondary">{formatChartValue(item.value)}</span>
           </div>
         );
       })}
