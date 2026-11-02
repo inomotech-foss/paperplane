@@ -70,12 +70,17 @@ def test_publishes_only_after_commit(django_capture_on_commit_callbacks, publish
     assert published() == [{"page": str(page.id)}]
 
 
+def _save_then_fail(page):
+    with transaction.atomic():
+        page.access = Page.PRIVATE_ACCESS
+        page.save()
+        raise RuntimeError
+
+
 def test_rolled_back_change_publishes_nothing(django_capture_on_commit_callbacks, published, page):
     with django_capture_on_commit_callbacks(execute=True):
-        with pytest.raises(RuntimeError), transaction.atomic():
-            page.access = Page.PRIVATE_ACCESS
-            page.save()
-            raise RuntimeError
+        with pytest.raises(RuntimeError):
+            _save_then_fail(page)
 
     assert published() == []
 
