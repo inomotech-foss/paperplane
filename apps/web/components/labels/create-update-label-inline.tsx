@@ -155,7 +155,7 @@ export const CreateUpdateLabelInline = observer(
     }, [labelToUpdate, setValue]);
 
     return (
-      <>
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div
           ref={ref}
           className={`flex w-full scroll-m-8 items-center gap-2 bg-surface-1 ${labelForm ? "" : "hidden"}`}
@@ -223,19 +223,16 @@ export const CreateUpdateLabelInline = observer(
           </div>
           <Button variant="secondary" size="sm" stretch="auto" onClick={() => handleClose()} label={t("cancel")} />
           <Button
+            type="submit"
             variant="primary"
             size="sm"
             stretch="auto"
-            onClick={(e) => {
-              e.preventDefault();
-              handleSubmit(handleFormSubmit)();
-            }}
             loading={isSubmitting}
             label={isUpdating ? (isSubmitting ? t("updating") : t("update")) : isSubmitting ? t("adding") : t("add")}
           />
         </div>
         {errors.name?.message && <p className="p-0.5 pl-8 text-13 text-danger-primary">{errors.name?.message}</p>}
-      </>
+      </form>
     );
   })
 );

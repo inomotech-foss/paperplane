@@ -20,6 +20,7 @@ import { getPageService } from "@/services/page/handler";
 import type { FetchPayloadWithContext, StorePayloadWithContext } from "@/types";
 import { ForceCloseReason, CloseCode } from "@/types/admin-commands";
 import { broadcastError } from "@/utils/broadcast-error";
+import { broadcastSaved } from "@/utils/broadcast-saved";
 // force close utility
 import { forceCloseDocumentAcrossServers } from "./force-close-handler";
 
@@ -85,6 +86,7 @@ const storeDocument = async (data: StorePayloadWithContext) => {
       description_json: contentJSON,
     };
     await service.updateDescriptionBinary(pageId, payload);
+    if (context.userId) void broadcastSaved(instance, pageId, context);
   } catch (error) {
     const appError = new AppError(error, { context: { pageId } });
     logger.error("Error in updating document:", appError);

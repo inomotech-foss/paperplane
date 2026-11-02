@@ -40,6 +40,7 @@ import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 // plane web imports
 import type { TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
 import { useRealtimePageEvents } from "@/hooks/use-realtime-page-events";
+import { useRealtimeServerEvents } from "@/hooks/use-realtime-server-events";
 import type { TExtendedEditorExtensionsConfig } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
@@ -68,7 +69,7 @@ export type TEditorBodyHandlers = {
 type Props = {
   config: TEditorBodyConfig;
   editorReady: boolean;
-  editorForwardRef: React.RefObject<EditorRefApi | null>;
+  editorForwardRef: React.Ref<EditorRefApi>;
   handleEditorReady: (status: boolean) => void;
   handleOpenNavigationPane: () => void;
   handlers: TEditorBodyHandlers;
@@ -131,6 +132,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     extendedEditorProps,
     isFetchingFallbackBinary,
     onCollaborationStateChange,
+    customRealtimeEventHandlers,
   } = props;
   // refs
   const titleEditorRef = useRef<EditorTitleRefApi>(null);
@@ -246,7 +248,9 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     page,
     getUserDetails,
     handlers,
+    customRealtimeEventHandlers,
   });
+  useRealtimeServerEvents(editorRef, page.id, updatePageProperties);
 
   // Set syncing status when page changes and reset collaboration state
   useEffect(() => {

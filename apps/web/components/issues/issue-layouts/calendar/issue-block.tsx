@@ -96,7 +96,12 @@ export const CalendarIssueBlock = observer(
     });
 
     return (
-      <Popover>
+      <Popover
+        onOpenChange={(_open, details) => {
+          // Escape also has to reach the peek view, which listens on the document.
+          if (details.reason === "escape-key") details.allowPropagation();
+        }}
+      >
         <ClickableCard
           id={`calendar-issue-${issue.id}`}
           data-issue-row={issue.id}

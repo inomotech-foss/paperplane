@@ -227,7 +227,7 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
       runInAction(() => {
         if (oldIssue.parent_id) pull(this.subIssues[oldIssue.parent_id], issueId);
         if (issueData.parent_id)
-          set(this.subIssues, [issueData.parent_id], concat(this.subIssues[issueData.parent_id], issueId));
+          set(this.subIssues, [issueData.parent_id], concat(this.subIssues[issueData.parent_id] ?? [], issueId));
       });
     }
 

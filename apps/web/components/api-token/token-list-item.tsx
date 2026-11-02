@@ -8,6 +8,7 @@ import { useState } from "react";
 import { CloseCircleOutline } from "@makeplane/propel/icons";
 // plane imports
 import { Tooltip } from "@makeplane/propel/components/tooltip";
+import { useTranslation } from "@plane/i18n";
 import type { IApiToken } from "@plane/types";
 import { renderFormattedDate, calculateTimeAgo, renderFormattedTime } from "@plane/utils";
 // components
@@ -25,15 +26,18 @@ export function ApiTokenListItem(props: Props) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   // hooks
   const { isMobile } = usePlatformOS();
+  const { t } = useTranslation();
 
   return (
     <>
       <DeleteApiTokenModal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} tokenId={token.id} />
       <div className="group relative flex flex-col justify-center border-b border-subtle py-3">
-        <Tooltip label="Delete token" disabled={isMobile}>
+        <Tooltip label={t("workspace_settings.settings.api_tokens.delete.title")} disabled={isMobile}>
           <button
+            type="button"
+            aria-label={t("workspace_settings.settings.api_tokens.delete.title")}
             onClick={() => setDeleteModalOpen(true)}
-            className="absolute right-4 hidden place-items-center group-hover:grid"
+            className="absolute right-4 grid place-items-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100"
           >
             <CloseCircleOutline className="h-4 w-4 text-danger-primary" />
           </button>

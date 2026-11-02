@@ -22,7 +22,7 @@ export type TChartMargin = {
   left?: number;
 };
 
-export type TChartValue = string | number;
+export type TChartValue = string | number | null;
 
 export type TChartData<K extends string, T extends string> = {
   // required key

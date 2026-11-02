@@ -139,7 +139,7 @@ export const useWorkItemCommentOperations = (
           });
           return res;
         } catch (error) {
-          console.log("Error in uploading comment asset:", error);
+          setToast({ type: "error", title: t("common.error.label"), message: t("issue.comments.upload.error") });
           throw new Error(t("issue.comments.upload.error"), { cause: error });
         }
       },

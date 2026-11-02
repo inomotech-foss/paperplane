@@ -18,13 +18,12 @@ import {
   WebhookSecretKey,
   WebhookToggle,
 } from "@/components/web-hooks";
+import { getApiFieldError } from "@/helpers/error.helper";
 import { useWebhook } from "@/hooks/store/use-webhook";
-// components
-// ui
-// types
 
 type Props = {
   data?: Partial<IWebhook>;
+  /** Rejects with the API error when the URL is refused, so it shows on the field. */
   onSubmit: (data: IWebhook, webhookEventType: TWebhookEventTypes) => Promise<void>;
   handleClose?: () => void;
 };
@@ -49,13 +48,19 @@ export const WebhookForm = observer(function WebhookForm(props: Props) {
   const {
     handleSubmit,
     control,
+    setError,
     formState: { isSubmitting, errors },
   } = useForm<IWebhook>({
     defaultValues: { ...initialWebhookPayload, ...data },
   });
 
   const handleFormSubmit = async (formData: IWebhook) => {
-    await onSubmit(formData, webhookEventType);
+    try {
+      await onSubmit(formData, webhookEventType);
+    } catch (error) {
+      const message = getApiFieldError(error, "url");
+      if (message) setError("url", { message });
+    }
   };
 
   useEffect(() => {

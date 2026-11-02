@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+import type { Ref } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { Input, InputGroup } from "@makeplane/propel/components/input";
@@ -20,10 +21,11 @@ type TInboxIssueTitle = {
   data: Partial<TIssue>;
   handleData: (issueKey: keyof Partial<TIssue>, issueValue: Partial<TIssue>[keyof Partial<TIssue>]) => void;
   isTitleLengthMoreThan255Character?: boolean;
+  titleRef?: Ref<HTMLInputElement>;
 };
 
 export const InboxIssueTitle = observer(function InboxIssueTitle(props: TInboxIssueTitle) {
-  const { data, handleData, isTitleLengthMoreThan255Character } = props;
+  const { data, handleData, isTitleLengthMoreThan255Character, titleRef } = props;
   // hooks
   const { isMobile } = usePlatformOS();
 
@@ -40,6 +42,7 @@ export const InboxIssueTitle = observer(function InboxIssueTitle(props: TInboxIs
           value={data?.name}
           onChange={(e) => handleData("name", e.target.value)}
           placeholder={t("title")}
+          ref={titleRef}
           tabIndex={getIndex("name")}
           required
         />
