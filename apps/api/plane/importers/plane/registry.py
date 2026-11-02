@@ -115,11 +115,17 @@ def _count_file_objects(ctx):
 
 ARCHIVED = {"archived_at": archived_date}
 
+# A social login is found by provider and account id; the tokens are fetched
+# again on the next sign-in.
+NO_PROVIDER_TOKENS = {"access_token": constant(""), "refresh_token": constant(None), "id_token": constant("")}
+
 ENTITIES = (
     # Who
-    Entity(m.User, keep=_keep_user, convert={"username": _username}, skip=("is_superuser", "is_staff")),
+    # Password hashes come along so people sign in as before; session and
+    # provider tokens do not, and admin rights are granted again by hand.
+    Entity(m.User, keep=_keep_user, convert={"username": _username}, skip=("is_superuser", "is_staff", "token")),
     Entity(m.Profile, keep=_unless_matched),
-    Entity(m.Account, keep=_keep_account),
+    Entity(m.Account, keep=_keep_account, convert=NO_PROVIDER_TOKENS),
     Entity(m.UserNotificationPreference, keep=_unless_matched),
     # Workspaces
     Entity(m.Workspace, keep=_keep_workspace, convert={"pql_dialect": constant("plane")}),

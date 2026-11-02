@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import pytest
 
 from plane.db.models import (
+    Account,
     Issue,
     IssueComment,
     IssueLink,
@@ -205,3 +206,26 @@ def test_natural_key_clash_raises_import_conflict():
     tables["labels"] = [row(**label)]
     with pytest.raises(ImportConflict, match="labels"):
         run(tables, allow_existing=True)
+
+
+@pytest.mark.django_db
+def test_login_tokens_are_not_copied():
+    tables, _ = plane()
+    ada = tables["users"][0]
+    ada.update(password="pbkdf2_sha256$hash", token="old-session-token")
+    tables["accounts"] = [
+        row(
+            user_id=ada["id"],
+            provider="google",
+            provider_account_id="g-1",
+            access_token="secret-access",
+            refresh_token="secret-refresh",
+            id_token="secret-id",
+        )
+    ]
+    run(tables)
+    account = Account.objects.get(provider_account_id="g-1")
+    assert (account.access_token, account.refresh_token, account.id_token) == ("", None, "")
+    user = User.objects.get(pk=ada["id"])
+    assert user.password == "pbkdf2_sha256$hash"
+    assert user.token != "old-session-token"
