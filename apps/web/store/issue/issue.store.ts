@@ -103,6 +103,7 @@ export class IssueStore implements IIssueStore {
       set(this.issuesIdentifierMap, `${projectIdentifier}-${issue.sequence_id}`, issue.id);
       set(this.issuesMap, issue.id, merged);
     });
+    rootStore.projectRoot.project.advanceNextSequence(merged.project_id, merged.sequence_id);
     return merged;
   };
 
@@ -113,6 +114,7 @@ export class IssueStore implements IIssueStore {
         if (issue.project_id && issue.sequence_id !== undefined) {
           const projectIdentifier = rootStore.projectRoot.project.getProjectIdentifierById(issue.project_id);
           set(this.issuesIdentifierMap, `${projectIdentifier}-${issue.sequence_id}`, issue.id);
+          rootStore.projectRoot.project.advanceNextSequence(issue.project_id, issue.sequence_id);
         }
         const known = this.issuesMap[issue.id];
         set(this.issuesMap, issue.id, { ...(known ?? emptyIssue(issue.id)), ...issue });

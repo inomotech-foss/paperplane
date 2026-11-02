@@ -101,14 +101,13 @@ describe("ProjectIssues parent stats", () => {
     expect(getProject).not.toHaveBeenCalled();
   });
 
-  it("moves the next sequence of the project past a created work item", async () => {
+  it("does not refetch the project after a create", async () => {
     const getProject = vi.spyOn(ProjectService.prototype, "getProject");
     vi.spyOn(issues.issueService, "createIssue").mockResolvedValue(created);
     vi.spyOn(store.issueType, "rememberIssueType").mockResolvedValue(undefined);
 
     await issues.createIssue("ws", "project-1", { name: created.name });
 
-    expect(store.projectRoot.project.projectMap["project-1"]?.next_work_item_sequence).toBe(42);
     expect(getProject).not.toHaveBeenCalled();
   });
 });

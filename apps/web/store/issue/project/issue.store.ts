@@ -183,10 +183,6 @@ export class ProjectIssues extends BaseIssuesStore implements IProjectIssues {
    */
   override createIssue = async (workspaceSlug: string, projectId: string, data: Partial<TIssue>) => {
     const response = await super.createIssue(workspaceSlug, projectId, data, "", projectId === this.router.projectId);
-    const { project } = this.rootIssueStore.rootStore.projectRoot;
-    const next = response.sequence_id + 1;
-    if (next > (project.getProjectById(projectId)?.next_work_item_sequence ?? 0))
-      project.setProjectNextSequence(projectId, next);
     return response;
   };
 

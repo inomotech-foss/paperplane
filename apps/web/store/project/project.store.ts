@@ -55,6 +55,7 @@ export interface IProjectStore {
   // helper actions
   processProjectAfterCreation: (workspaceSlug: string, data: TProject) => void;
   setProjectNextSequence: (projectId: string, nextSequence: number) => void;
+  advanceNextSequence: (projectId: string | null | undefined, sequenceId: number) => void;
 
   // fetch actions
   fetchPartialProjects: (workspaceSlug: string) => Promise<TPartialProject[]>;
@@ -120,6 +121,7 @@ export class ProjectStore implements IProjectStore {
       // helper actions
       processProjectAfterCreation: action,
       setProjectNextSequence: action,
+      advanceNextSequence: action,
       // fetch actions
       fetchPartialProjects: action,
       fetchProjects: action,
@@ -305,8 +307,19 @@ export class ProjectStore implements IProjectStore {
   };
 
   setProjectNextSequence = (projectId: string, nextSequence: number) => {
+    const project = this.projectMap[projectId];
+    if (!project) return;
     runInAction(() => {
-      set(this.projectMap, [projectId, "next_work_item_sequence"], nextSequence);
+      project.next_work_item_sequence = nextSequence;
+    });
+  };
+
+  /** Keeps the next sequence of a loaded project past every work item seen in it. */
+  advanceNextSequence = (projectId: string | null | undefined, sequenceId: number) => {
+    const project = projectId ? this.projectMap[projectId] : undefined;
+    if (!project || sequenceId < (project.next_work_item_sequence ?? 1)) return;
+    runInAction(() => {
+      project.next_work_item_sequence = sequenceId + 1;
     });
   };
 
