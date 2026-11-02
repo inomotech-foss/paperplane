@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-import useSWR from "swr";
 import type { TPageNavigationTabs } from "@plane/types";
 // hooks
+import { useStoreQuery } from "@/hooks/queries/use-store-query";
 import type { EPageStoreType } from "@/hooks/store";
 import { usePageStore } from "@/hooks/store";
 // local imports
@@ -26,10 +26,13 @@ export const PagesListView = observer(function PagesListView(props: TPageView) {
   const { children, pageType, projectId, storeType, workspaceSlug } = props;
   // store hooks
   const { isAnyPageAvailable, fetchPagesList } = usePageStore(storeType);
-  // fetching pages list
-  useSWR(
+  const pagesQuery = useStoreQuery(
     workspaceSlug && projectId && pageType ? `PROJECT_PAGES_${projectId}` : null,
-    workspaceSlug && projectId && pageType ? () => fetchPagesList(workspaceSlug, projectId, pageType) : null
+    workspaceSlug && projectId && pageType
+      ? async () => (await fetchPagesList(workspaceSlug, projectId, pageType)) ?? []
+      : null,
+    // pages are collaborative, so coming back shows the cached list and picks up other people's pages
+    { refreshOnMount: true }
   );
 
   // pages loader
@@ -44,7 +47,7 @@ export const PagesListView = observer(function PagesListView(props: TPageView) {
           workspaceSlug={workspaceSlug}
         />
       )}
-      <PagesListMainContent pageType={pageType} storeType={storeType}>
+      <PagesListMainContent pageType={pageType} storeType={storeType} query={pagesQuery}>
         {children}
       </PagesListMainContent>
     </div>

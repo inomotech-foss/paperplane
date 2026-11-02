@@ -16,20 +16,23 @@ import { IssueLabelService } from "@/services/issue";
 // store
 import type { CoreRootStore } from "./root.store";
 
+export type TLabelRootStore = {
+  router: Pick<CoreRootStore["router"], "projectId">;
+  workspaceRoot: Pick<CoreRootStore["workspaceRoot"], "currentWorkspace" | "getWorkspaceBySlug">;
+};
+
 export interface ILabelStore {
-  //Loaders
-  fetchedMap: Record<string, boolean>;
   //Observable
   labelMap: Record<string, IIssueLabel>;
   // computed
-  projectLabels: IIssueLabel[] | undefined;
-  projectLabelsTree: IIssueLabelTree[] | undefined;
-  workspaceLabels: IIssueLabel[] | undefined;
+  projectLabels: IIssueLabel[];
+  projectLabelsTree: IIssueLabelTree[];
+  workspaceLabels: IIssueLabel[];
   //computed actions
-  getWorkspaceLabels: (workspaceSlug: string) => IIssueLabel[] | undefined;
-  getWorkspaceLabelIds: (workspaceSlug: string) => string[] | undefined;
-  getProjectLabels: (projectId: string | undefined | null) => IIssueLabel[] | undefined;
-  getProjectLabelIds: (projectId: string | undefined | null) => string[] | undefined;
+  getWorkspaceLabels: (workspaceSlug: string) => IIssueLabel[];
+  getWorkspaceLabelIds: (workspaceSlug: string) => string[];
+  getProjectLabels: (projectId: string | undefined | null) => IIssueLabel[];
+  getProjectLabelIds: (projectId: string | undefined | null) => string[];
   getLabelById: (labelId: string) => IIssueLabel | null;
   // fetch actions
   fetchWorkspaceLabels: (workspaceSlug: string) => Promise<IIssueLabel[]>;
@@ -58,15 +61,12 @@ export class LabelStore implements ILabelStore {
   rootStore;
   // root store labelMap
   labelMap: Record<string, IIssueLabel> = {};
-  //loaders
-  fetchedMap: Record<string, boolean> = {};
   // services
   issueLabelService;
 
-  constructor(_rootStore: CoreRootStore) {
+  constructor(_rootStore: TLabelRootStore) {
     makeObservable(this, {
       labelMap: observable,
-      fetchedMap: observable,
       // computed
       projectLabels: computed,
       projectLabelsTree: computed,
@@ -89,64 +89,44 @@ export class LabelStore implements ILabelStore {
    */
   get workspaceLabels() {
     const currentWorkspaceDetails = this.rootStore.workspaceRoot.currentWorkspace;
-    if (!currentWorkspaceDetails) return;
-    return this.getWorkspaceLabels(currentWorkspaceDetails.slug);
+    return currentWorkspaceDetails ? this.getWorkspaceLabels(currentWorkspaceDetails.slug) : [];
   }
 
-  /**
-   * Returns the labelMap belonging to the current project
-   */
   get projectLabels() {
-    const projectId = this.rootStore.router.projectId;
-    const workspaceSlug = this.rootStore.router.workspaceSlug || "";
-    if (!projectId || !(this.fetchedMap[projectId] || this.fetchedMap[workspaceSlug])) return;
-    return sortBy(
-      Object.values(this.labelMap).filter((label) => label?.project_id === projectId),
-      "sort_order"
-    );
+    return this.getProjectLabels(this.rootStore.router.projectId);
   }
 
-  /**
-   * Returns the labelMap in a tree format
-   */
   get projectLabelsTree() {
-    if (!this.projectLabels) return;
-    return buildTree(this.projectLabels);
+    // buildTree writes `children` onto the items it gets, so it works on copies of the stored labels
+    return buildTree(this.projectLabels.map((label) => ({ ...label })));
   }
 
+  /** Labels of a workspace. Whether the list is complete is the query's concern, see `useWorkspaceLabels`. */
   getWorkspaceLabels = computedFn((workspaceSlug: string) => {
     const workspaceDetails = this.rootStore.workspaceRoot.getWorkspaceBySlug(workspaceSlug);
-    if (!workspaceDetails || !this.fetchedMap[workspaceSlug]) return;
+    if (!workspaceDetails) return [];
     return sortBy(
       Object.values(this.labelMap).filter((label) => label.workspace_id === workspaceDetails.id),
       "sort_order"
     );
   });
 
-  getWorkspaceLabelIds = computedFn(
-    (workspaceSlug: string) => this.getWorkspaceLabels(workspaceSlug)?.map((label) => label.id) ?? undefined
+  getWorkspaceLabelIds = computedFn((workspaceSlug: string) =>
+    this.getWorkspaceLabels(workspaceSlug).map((label) => label.id)
   );
 
+  /** Labels of a project. Whether the list is complete is the query's concern, see `useProjectLabels`. */
   getProjectLabels = computedFn((projectId: string | undefined | null) => {
-    const workspaceSlug = this.rootStore.router.workspaceSlug || "";
-    if (!projectId || !(this.fetchedMap[projectId] || this.fetchedMap[workspaceSlug])) return;
+    if (!projectId) return [];
     return sortBy(
-      Object.values(this.labelMap).filter((label) => label?.project_id === projectId),
+      Object.values(this.labelMap).filter((label) => label.project_id === projectId),
       "sort_order"
     );
   });
 
-  /**
-   * Returns the label ids for a specific project
-   * @param projectId
-   * @returns string[]
-   */
-  getProjectLabelIds = computedFn((projectId: string | undefined | null) => {
-    const workspaceSlug = this.rootStore.router.workspaceSlug;
-    if (!workspaceSlug || !projectId || !(this.fetchedMap[projectId] || this.fetchedMap[workspaceSlug]))
-      return undefined;
-    return this.getProjectLabels(projectId)?.map((label) => label.id) ?? [];
-  });
+  getProjectLabelIds = computedFn((projectId: string | undefined | null) =>
+    this.getProjectLabels(projectId).map((label) => label.id)
+  );
 
   /**
    * get label info from the map of labels in the store using label id
@@ -166,7 +146,6 @@ export class LabelStore implements ILabelStore {
         response.forEach((label) => {
           set(this.labelMap, [label.id], label);
         });
-        set(this.fetchedMap, projectId, true);
       });
       return response;
     });
@@ -183,7 +162,6 @@ export class LabelStore implements ILabelStore {
         response.forEach((label) => {
           set(this.labelMap, [label.id], label);
         });
-        set(this.fetchedMap, workspaceSlug, true);
       });
       return response;
     });
@@ -251,7 +229,7 @@ export class LabelStore implements ILabelStore {
     const labelTree = this.projectLabelsTree;
     let currentArray: IIssueLabel[];
 
-    if (!currLabel || !labelTree) return;
+    if (!currLabel) return;
 
     //If its is dropped in the same parent then, there is not specific label on which it is mentioned then keep it's original position
     if (currLabel.parent === droppedParentId && !droppedLabelId) return;

@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import { useState } from "react";
 import { observer } from "mobx-react";
 import { MoreHorizontalOutline } from "@makeplane/propel/icons";
 // types
@@ -23,6 +22,9 @@ import { copyUrlToClipboard } from "@plane/utils";
 import { useViewMenuItems } from "@/components/common/quick-actions-helper";
 // hooks
 import { useUser, useUserPermissions } from "@/hooks/store/user";
+import { useMountOnOpen } from "@/hooks/use-mount-on-open";
+import type { TRowDialog } from "@/hooks/use-row-dialog";
+import { useRowDialog } from "@/hooks/use-row-dialog";
 import { useViewPublish } from "@/components/views/publish";
 // local imports
 import { DeleteProjectViewModal } from "./delete-view-modal";
@@ -39,15 +41,51 @@ type Props = {
    * passed.
    */
   customClassName?: string;
+  /** Dialog state owned by the row. The row then renders `ViewQuickActionDialogs` itself. */
+  dialog?: TRowDialog<TViewDialog>;
 };
+
+export type TViewDialog = "edit" | "delete";
+
+type TDialogsProps = {
+  projectId: string;
+  view: IProjectView;
+  workspaceSlug: string;
+  dialog: TRowDialog<TViewDialog>;
+};
+
+/** The edit and delete dialogs of a view. Each mounts the first time it opens. */
+export function ViewQuickActionDialogs(props: TDialogsProps) {
+  const { projectId, view, workspaceSlug, dialog } = props;
+  const showUpdateModal = useMountOnOpen(dialog.open === "edit");
+  const showDeleteModal = useMountOnOpen(dialog.open === "delete");
+  const handleClose = () => dialog.setOpen(null);
+
+  return (
+    <>
+      {showUpdateModal && (
+        <CreateUpdateProjectViewModal
+          isOpen={dialog.open === "edit"}
+          onClose={handleClose}
+          workspaceSlug={workspaceSlug}
+          projectId={projectId}
+          data={view}
+        />
+      )}
+      {showDeleteModal && (
+        <DeleteProjectViewModal data={view} isOpen={dialog.open === "delete"} onClose={handleClose} />
+      )}
+    </>
+  );
+}
 
 export const ViewQuickActions = observer(function ViewQuickActions(props: Props) {
   const { parentRef, projectId, view, workspaceSlug } = props;
   // plane hooks
   const { t } = useTranslation();
   // states
-  const [createUpdateViewModal, setCreateUpdateViewModal] = useState(false);
-  const [deleteViewModal, setDeleteViewModal] = useState(false);
+  const ownDialog = useRowDialog<TViewDialog>();
+  const dialog = props.dialog ?? ownDialog;
   // store hooks
   const { data } = useUser();
   const { allowPermissions } = useUserPermissions();
@@ -75,8 +113,8 @@ export const ViewQuickActions = observer(function ViewQuickActions(props: Props)
     workspaceSlug,
     projectId,
     view,
-    handleEdit: () => setCreateUpdateViewModal(true),
-    handleDelete: () => setDeleteViewModal(true),
+    handleEdit: () => dialog.setOpen("edit"),
+    handleDelete: () => dialog.setOpen("delete"),
     handleCopyLink: handleCopyText,
     handleOpenInNewTab,
   });
@@ -98,14 +136,9 @@ export const ViewQuickActions = observer(function ViewQuickActions(props: Props)
 
   return (
     <>
-      <CreateUpdateProjectViewModal
-        isOpen={createUpdateViewModal}
-        onClose={() => setCreateUpdateViewModal(false)}
-        workspaceSlug={workspaceSlug}
-        projectId={projectId}
-        data={view}
-      />
-      <DeleteProjectViewModal data={view} isOpen={deleteViewModal} onClose={() => setDeleteViewModal(false)} />
+      {!props.dialog && (
+        <ViewQuickActionDialogs projectId={projectId} view={view} workspaceSlug={workspaceSlug} dialog={dialog} />
+      )}
       {additionalModals}
       <ContextMenu parentRef={parentRef} items={CONTEXT_MENU_ITEMS} />
       <Menu>

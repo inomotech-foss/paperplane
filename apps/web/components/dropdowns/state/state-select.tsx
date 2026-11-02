@@ -15,6 +15,7 @@ import type { SelectPaginationParams, SelectTooltip, SelectTooltipOverride, Sele
 import { useTranslation } from "@plane/i18n";
 import type { IState, TPaginatedResponse } from "@plane/types";
 // hooks
+import { useProjectStates } from "@/hooks/queries/use-state-queries";
 import { useProjectState } from "@/hooks/store/use-project-state";
 
 type StateSelectWebProps = {
@@ -72,7 +73,8 @@ export const StateSelect = observer(function StateSelect(props: StateSelectWebPr
   // router params
   const { workspaceSlug } = useParams();
   // store hooks
-  const { getProjectStateIds, getStateById, fetchProjectStates } = useProjectState();
+  const { getProjectStates, getStateById } = useProjectState();
+  const { ensureLoaded } = useProjectStates(workspaceSlug?.toString(), projectId, { lazy: true });
   // translation
   const { t } = useTranslation();
   const resolvedTooltip = useMemo<SelectTooltipOverride | undefined>(() => {
@@ -87,20 +89,14 @@ export const StateSelect = observer(function StateSelect(props: StateSelectWebPr
   const getValues = useCallback(
     async ({ search }: SelectPaginationParams): Promise<TPaginatedResponse<StateOption[]>> => {
       if (!workspaceSlug || !projectId) return { results: [] };
-      let stateIds = getProjectStateIds(projectId);
-      if (!stateIds) {
-        await fetchProjectStates(workspaceSlug.toString(), projectId);
-        stateIds = getProjectStateIds(projectId);
-      }
+      await ensureLoaded();
       const query = search?.trim().toLowerCase();
-      const results = (stateIds ?? [])
-        .map((stateId) => getStateById(stateId))
-        .filter((state): state is IState => !!state)
+      const results = getProjectStates(projectId)
         .filter((state) => !query || state.name.toLowerCase().includes(query))
         .map(toOption);
       return { results, next_page_results: false };
     },
-    [workspaceSlug, projectId, getProjectStateIds, fetchProjectStates, getStateById]
+    [workspaceSlug, projectId, getProjectStates, ensureLoaded]
   );
 
   // Resolved in the observer render (not in a memo) so MobX re-renders when the state loads.

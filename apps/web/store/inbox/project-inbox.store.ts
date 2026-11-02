@@ -26,13 +26,7 @@ import { InboxIssueStore } from "@/store/inbox/inbox-issue.store";
 import type { CoreRootStore } from "../root.store";
 import { countAppliedInboxFilters, getDefaultInboxStatus, hasUserInboxFilters, inboxIssueQuery } from "./inbox-query";
 
-type TLoader =
-  | "init-loading"
-  | "mutation-loading"
-  | "filter-loading"
-  | "pagination-loading"
-  | "issue-loading"
-  | undefined;
+type TLoader = "init-loading" | "mutation-loading" | "filter-loading" | "pagination-loading" | undefined;
 
 export interface IProjectInboxStore {
   currentTab: TInboxIssueCurrentTab;
@@ -270,6 +264,7 @@ export class ProjectInboxStore implements IProjectInboxStore {
     tab: TInboxIssueCurrentTab | undefined = undefined
   ) => {
     try {
+      this.error = undefined;
       if (loadingType === undefined && tab) this.initializeDefaultFilters(projectId, tab);
 
       if (this.currentInboxProjectId != projectId) {
@@ -365,16 +360,15 @@ export class ProjectInboxStore implements IProjectInboxStore {
     inboxIssueId: string
   ): Promise<TInboxIssue> => {
     try {
-      this.loader = "issue-loading";
       const inboxIssue = await this.inboxIssueService.retrieve(workspaceSlug, projectId, inboxIssueId);
       const issueId = inboxIssue?.issue?.id || undefined;
 
       if (inboxIssue && issueId) {
         runInAction(() => {
           this.createOrUpdateInboxIssue([inboxIssue], workspaceSlug, projectId);
-          set(this, "loader", undefined);
         });
-        await Promise.all([
+        // The work item shows once it is in. Its activity and comments fill in after.
+        void Promise.all([
           // fetching reactions
           this.store.issue.issueDetail.fetchReactions(workspaceSlug, projectId, issueId),
           // fetching activity
@@ -383,12 +377,11 @@ export class ProjectInboxStore implements IProjectInboxStore {
           this.store.issue.issueDetail.fetchComments(workspaceSlug, projectId, issueId),
           // fetching attachments
           this.store.issue.issueDetail.fetchAttachments(workspaceSlug, projectId, issueId),
-        ]);
+        ]).catch((error: unknown) => console.error("Error fetching the intake work item details", error));
       }
       return inboxIssue;
     } catch (error) {
       console.error("Error fetching the intake issue with intake issue id");
-      this.loader = undefined;
       throw error;
     }
   };

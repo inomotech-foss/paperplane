@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // store hooks
@@ -31,6 +30,7 @@ import { Tooltip } from "@makeplane/propel/components/tooltip";
 import type { IIssueActivity } from "@plane/types";
 import { renderFormattedDate, generateWorkItemLink, capitalizeFirstLetter } from "@plane/utils";
 // helpers
+import { useWorkspaceLabels } from "@/hooks/queries/use-label-queries";
 import { useLabel } from "@/hooks/store/use-label";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // types
@@ -94,17 +94,15 @@ function UserLink({ activity }: { activity: IIssueActivity }) {
 
 const LabelPill = observer(function LabelPill({ labelId, workspaceSlug }: { labelId: string; workspaceSlug: string }) {
   // store hooks
-  const { workspaceLabels, fetchWorkspaceLabels } = useLabel();
-
-  useEffect(() => {
-    if (!workspaceLabels) fetchWorkspaceLabels(workspaceSlug);
-  }, [fetchWorkspaceLabels, workspaceLabels, workspaceSlug]);
+  const { getLabelById } = useLabel();
+  const label = getLabelById(labelId);
+  useWorkspaceLabels(label ? undefined : workspaceSlug);
 
   return (
     <span
       className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
       style={{
-        backgroundColor: workspaceLabels?.find((l) => l.id === labelId)?.color ?? "#000000",
+        backgroundColor: label?.color ?? "#000000",
       }}
       aria-hidden="true"
     />

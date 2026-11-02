@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { CyclesOutline } from "@makeplane/propel/icons";
 import { cn } from "@plane/utils";
 // hooks
+import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
 import { useCycle } from "@/hooks/store/use-cycle";
 
 export type TReadonlyCycleProps = {
@@ -26,14 +26,9 @@ export const ReadonlyCycle = observer(function ReadonlyCycle(props: TReadonlyCyc
   const { className, hideIcon = false, value, placeholder, projectId, workspaceSlug } = props;
 
   const { t } = useTranslation();
-  const { getCycleNameById, fetchAllCycles } = useCycle();
+  const { getCycleNameById } = useCycle();
   const cycleName = value ? getCycleNameById(value) : null;
-
-  useEffect(() => {
-    if (projectId) {
-      fetchAllCycles(workspaceSlug, projectId);
-    }
-  }, [projectId, workspaceSlug]);
+  useProjectCycles(workspaceSlug, value && !cycleName ? projectId : undefined);
 
   return (
     <div className={cn("flex items-center gap-1 text-13", className)}>

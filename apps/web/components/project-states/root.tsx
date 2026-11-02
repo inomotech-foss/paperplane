@@ -6,13 +6,14 @@
 
 import { useMemo } from "react";
 import { observer } from "mobx-react";
-import useSWR from "swr";
 // components
 import { EUserPermissionsLevel } from "@plane/constants";
 import type { IState, TStateCreatePayload, TStateOperationsCallbacks } from "@plane/types";
 import { EUserProjectRoles } from "@plane/types";
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { ProjectStateLoader, GroupList } from "@/components/project-states";
 // hooks
+import { useProjectStates } from "@/hooks/queries/use-state-queries";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useUserPermissions } from "@/hooks/store/user";
 
@@ -24,15 +25,8 @@ type TProjectState = {
 export const ProjectStateRoot = observer(function ProjectStateRoot(props: TProjectState) {
   const { workspaceSlug, projectId } = props;
   // hooks
-  const {
-    groupedProjectStates,
-    fetchProjectStates,
-    createState,
-    moveStatePosition,
-    updateState,
-    deleteState,
-    markStateAsDefault,
-  } = useProjectState();
+  const { groupedProjectStates, createState, moveStatePosition, updateState, deleteState, markStateAsDefault } =
+    useProjectState();
   const { allowPermissions } = useUserPermissions();
   // derived values
   const isEditable = allowPermissions(
@@ -42,12 +36,7 @@ export const ProjectStateRoot = observer(function ProjectStateRoot(props: TProje
     projectId
   );
 
-  // Fetching all project states
-  useSWR(
-    workspaceSlug && projectId ? `PROJECT_STATES_${workspaceSlug}_${projectId}` : null,
-    workspaceSlug && projectId ? () => fetchProjectStates(workspaceSlug.toString(), projectId.toString()) : null,
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
+  const { isLoading, error, retry } = useProjectStates(workspaceSlug, projectId);
 
   // State operations callbacks
   const stateOperationsCallbacks: TStateOperationsCallbacks = useMemo(
@@ -64,7 +53,8 @@ export const ProjectStateRoot = observer(function ProjectStateRoot(props: TProje
   );
 
   // Loader
-  if (!groupedProjectStates) return <ProjectStateLoader />;
+  if (isLoading) return <ProjectStateLoader />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   return (
     <GroupList

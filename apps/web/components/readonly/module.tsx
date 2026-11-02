@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { WorkItemsOutline } from "@makeplane/propel/icons";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { cn } from "@plane/utils";
 // hooks
+import { useProjectModules } from "@/hooks/queries/use-module-queries";
 import { useModule } from "@/hooks/store/use-module";
 
 export type TReadonlyModuleProps = {
@@ -37,16 +37,12 @@ export const ReadonlyModule = observer(function ReadonlyModule(props: TReadonlyM
   } = props;
 
   const { t } = useTranslation();
-  const { getModuleById, fetchModules } = useModule();
+  const { getModuleById } = useModule();
 
   const moduleIds = Array.isArray(value) ? value : value ? [value] : [];
   const modules = moduleIds.map((id) => getModuleById(id)).filter(Boolean);
 
-  useEffect(() => {
-    if (moduleIds.length > 0 && projectId) {
-      fetchModules(workspaceSlug, projectId);
-    }
-  }, [value, projectId, workspaceSlug]);
+  useProjectModules(workspaceSlug, modules.length < moduleIds.length ? projectId : undefined);
 
   if (modules.length === 0) {
     return (

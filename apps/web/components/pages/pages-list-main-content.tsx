@@ -15,7 +15,9 @@ import { setToast } from "@plane/blocks/toast";
 import type { TPage, TPageNavigationTabs } from "@plane/types";
 import { EUserProjectRoles, isRecord, readString } from "@plane/types";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { PageLoader } from "@/components/pages/loaders/page-loader";
+import type { TStoreQueryState } from "@/hooks/queries/use-store-query";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 // plane web hooks
@@ -25,15 +27,16 @@ type Props = {
   children: React.ReactNode;
   pageType: TPageNavigationTabs;
   storeType: EPageStoreType;
+  query: TStoreQueryState;
 };
 
 export const PagesListMainContent = observer(function PagesListMainContent(props: Props) {
-  const { children, pageType, storeType } = props;
+  const { children, pageType, storeType, query } = props;
   // plane hooks
   const { t } = useTranslation();
   // store hooks
   const { currentProjectDetails } = useProject();
-  const { isAnyPageAvailable, getCurrentProjectFilteredPageIdsByTab, getCurrentProjectPageIdsByTab, loader } =
+  const { isAnyPageAvailable, getCurrentProjectFilteredPageIdsByTab, getCurrentProjectPageIdsByTab } =
     usePageStore(storeType);
   const { allowPermissions } = useUserPermissions();
   const { createPage } = usePageStore(EPageStoreType.PROJECT);
@@ -74,73 +77,36 @@ export const PagesListMainContent = observer(function PagesListMainContent(props
       .finally(() => setIsCreatingPage(false));
   };
 
-  if (loader === "init-loader") return <PageLoader />;
-  // if no pages exist in the active page type
-  if (!isAnyPageAvailable || pageIds?.length === 0) {
-    if (!isAnyPageAvailable) {
-      return (
-        <EmptyStateDetailed
-          assetKey="page"
-          title={t("project_empty_state.pages.title")}
-          description={t("project_empty_state.pages.description")}
-          actions={[
-            {
-              label: t("project_empty_state.pages.cta_primary"),
-              onClick: () => {
-                handleCreatePage();
-              },
-              variant: "primary",
-              disabled: !canPerformEmptyStateActions || isCreatingPage,
+  if (query.isLoading) return <PageLoader />;
+  if (query.error) return <LoadErrorState onRetry={query.retry} />;
+  const isTabEmpty = pageIds?.length === 0;
+  // no pages at all, or none in the public or private tab
+  if (!isAnyPageAvailable || (isTabEmpty && pageType !== "archived"))
+    return (
+      <EmptyStateDetailed
+        assetKey="page"
+        title={t("project_empty_state.pages.title")}
+        description={t("project_empty_state.pages.description")}
+        actions={[
+          {
+            label: t("project_empty_state.pages.cta_primary"),
+            onClick: () => {
+              handleCreatePage();
             },
-          ]}
-        />
-      );
-    }
-    if (pageType === "public")
-      return (
-        <EmptyStateDetailed
-          assetKey="page"
-          title={t("project_empty_state.pages.title")}
-          description={t("project_empty_state.pages.description")}
-          actions={[
-            {
-              label: t("project_empty_state.pages.cta_primary"),
-              onClick: () => {
-                handleCreatePage();
-              },
-              variant: "primary",
-              disabled: !canPerformEmptyStateActions || isCreatingPage,
-            },
-          ]}
-        />
-      );
-    if (pageType === "private")
-      return (
-        <EmptyStateDetailed
-          assetKey="page"
-          title={t("project_empty_state.pages.title")}
-          description={t("project_empty_state.pages.description")}
-          actions={[
-            {
-              label: t("project_empty_state.pages.cta_primary"),
-              onClick: () => {
-                handleCreatePage();
-              },
-              variant: "primary",
-              disabled: !canPerformEmptyStateActions || isCreatingPage,
-            },
-          ]}
-        />
-      );
-    if (pageType === "archived")
-      return (
-        <EmptyStateDetailed
-          assetKey="page"
-          title={t("project_empty_state.archive_pages.title")}
-          description={t("project_empty_state.archive_pages.description")}
-        />
-      );
-  }
+            variant: "primary",
+            disabled: !canPerformEmptyStateActions || isCreatingPage,
+          },
+        ]}
+      />
+    );
+  if (isTabEmpty)
+    return (
+      <EmptyStateDetailed
+        assetKey="page"
+        title={t("project_empty_state.archive_pages.title")}
+        description={t("project_empty_state.archive_pages.description")}
+      />
+    );
   // if no pages match the filter criteria
   if (filteredPageIds?.length === 0)
     return (

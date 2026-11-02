@@ -7,17 +7,18 @@
 import React, { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { EmptyStateDetailed } from "@plane/blocks/empty-state";
 import type { TModuleFilters } from "@plane/types";
 // components
 import { calculateTotalFilters } from "@plane/utils";
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { ArchivedModulesView, ModuleAppliedFiltersList } from "@/components/modules";
 import { CycleModuleListLayoutLoader } from "@/components/ui/loader/cycle-module-list-loader";
 // helpers
 // hooks
+import { useArchivedModules } from "@/hooks/queries/use-module-queries";
 import { useModule } from "@/hooks/store/use-module";
 import { useModuleFilter } from "@/hooks/store/use-module-filter";
 
@@ -27,20 +28,11 @@ export const ArchivedModuleLayoutRoot = observer(function ArchivedModuleLayoutRo
   // plane hooks
   const { t } = useTranslation();
   // hooks
-  const { fetchArchivedModules, projectArchivedModuleIds, loader } = useModule();
+  const { projectArchivedModuleIds } = useModule();
+  const { isLoading, error, retry } = useArchivedModules(workspaceSlug?.toString(), projectId?.toString());
   const { clearAllFilters, currentProjectArchivedFilters, updateFilters } = useModuleFilter();
   // derived values
-  const totalArchivedModules = projectArchivedModuleIds?.length ?? 0;
-
-  useSWR(
-    workspaceSlug && projectId ? `ARCHIVED_MODULES_${workspaceSlug.toString()}_${projectId.toString()}` : null,
-    async () => {
-      if (workspaceSlug && projectId) {
-        await fetchArchivedModules(workspaceSlug.toString(), projectId.toString());
-      }
-    },
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
+  const totalArchivedModules = projectArchivedModuleIds.length;
 
   const handleRemoveFilter = useCallback(
     (key: keyof TModuleFilters, value: string | null) => {
@@ -57,9 +49,8 @@ export const ArchivedModuleLayoutRoot = observer(function ArchivedModuleLayoutRo
 
   if (!workspaceSlug || !projectId) return <></>;
 
-  if (loader || !projectArchivedModuleIds) {
-    return <CycleModuleListLayoutLoader />;
-  }
+  if (isLoading) return <CycleModuleListLayoutLoader />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   return (
     <>

@@ -18,9 +18,12 @@ import { ListItem } from "@/components/core/list";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { MD_UP, useMediaQuery } from "@/hooks/use-media-query";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { useRowDialog } from "@/hooks/use-row-dialog";
 // local imports
-import { CycleQuickActions } from "../quick-actions";
+import type { TCycleDialog } from "../quick-actions";
+import { CycleQuickActionDialogs, CycleQuickActions } from "../quick-actions";
 import { CycleListItemAction } from "./cycle-list-item-action";
 import { getCycleGroup } from "@/components/cycles/cycle-group";
 
@@ -45,6 +48,8 @@ export const CyclesListItem = observer(function CyclesListItem(props: TCyclesLis
   const pathname = usePathname();
   // hooks
   const { isMobile } = usePlatformOS();
+  const isMdUp = useMediaQuery(MD_UP);
+  const dialog = useRowDialog<TCycleDialog>();
   // store hooks
   const { getCycleById } = useCycle();
 
@@ -81,53 +86,59 @@ export const CyclesListItem = observer(function CyclesListItem(props: TCyclesLis
   const progress = calculateCycleProgress(cycleDetails);
 
   return (
-    <ListItem
-      title={cycleDetails?.name ?? ""}
-      itemLink={`/${workspaceSlug}/projects/${projectId}/cycles/${cycleDetails.id}`}
-      onItemClick={handleItemClick}
-      className={className}
-      prependTitleElement={
-        <div className="relative size-[30px]">
-          <div className="absolute inset-0 flex scale-150 items-center justify-center">
-            <CircularProgress
-              value={progress}
-              size="md"
-              variant={progress === 100 ? "success" : "brand"}
-              aria-label="Cycle progress"
-            />
+    <>
+      <CycleQuickActionDialogs cycleId={cycleId} projectId={projectId} workspaceSlug={workspaceSlug} dialog={dialog} />
+      <ListItem
+        title={cycleDetails?.name ?? ""}
+        itemLink={`/${workspaceSlug}/projects/${projectId}/cycles/${cycleDetails.id}`}
+        onItemClick={handleItemClick}
+        className={className}
+        prependTitleElement={
+          <div className="relative size-[30px]">
+            <div className="absolute inset-0 flex scale-150 items-center justify-center">
+              <CircularProgress
+                value={progress}
+                size="md"
+                variant={progress === 100 ? "success" : "brand"}
+                aria-label="Cycle progress"
+              />
+            </div>
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              {progress === 100 ? (
+                <TickOutline className="h-3 w-3" />
+              ) : (
+                <span className="text-9 text-primary">{`${progress}%`}</span>
+              )}
+            </div>
           </div>
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            {progress === 100 ? (
-              <TickOutline className="h-3 w-3" />
-            ) : (
-              <span className="text-9 text-primary">{`${progress}%`}</span>
-            )}
-          </div>
-        </div>
-      }
-      actionableItems={
-        <CycleListItemAction
-          workspaceSlug={workspaceSlug}
-          projectId={projectId}
-          cycleId={cycleId}
-          cycleDetails={cycleDetails}
-          parentRef={parentRef}
-          isActive={isActive}
-        />
-      }
-      quickActionElement={
-        <div className="block md:hidden">
-          <CycleQuickActions
-            parentRef={parentRef}
-            cycleId={cycleId}
-            projectId={projectId}
+        }
+        actionableItems={
+          <CycleListItemAction
             workspaceSlug={workspaceSlug}
+            projectId={projectId}
+            cycleId={cycleId}
+            cycleDetails={cycleDetails}
+            parentRef={parentRef}
+            isActive={isActive}
+            showQuickActions={isMdUp}
+            dialog={dialog}
           />
-        </div>
-      }
-      isMobile={isMobile}
-      parentRef={parentRef}
-      isSidebarOpen={searchParams.has("peekCycle")}
-    />
+        }
+        quickActionElement={
+          !isMdUp && (
+            <CycleQuickActions
+              parentRef={parentRef}
+              cycleId={cycleId}
+              projectId={projectId}
+              workspaceSlug={workspaceSlug}
+              dialog={dialog}
+            />
+          )
+        }
+        isMobile={isMobile}
+        parentRef={parentRef}
+        isSidebarOpen={searchParams.has("peekCycle")}
+      />
+    </>
   );
 });

@@ -12,7 +12,6 @@ import AllFiltersImage from "@/app/assets/empty-state/cycle/all-filters.svg?url"
 import NameFilterImage from "@/app/assets/empty-state/cycle/name-filter.svg?url";
 // components
 import { CyclesList } from "@/components/cycles/list";
-import { CycleModuleListLayoutLoader } from "@/components/ui/loader/cycle-module-list-loader";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useCycleFilter } from "@/hooks/store/use-cycle-filter";
@@ -25,19 +24,15 @@ export interface ICyclesView {
 export const CyclesView = observer(function CyclesView(props: ICyclesView) {
   const { workspaceSlug, projectId } = props;
   // store hooks
-  const { getFilteredCycleIds, getFilteredCompletedCycleIds, loader, currentProjectActiveCycleId } = useCycle();
+  const { getFilteredCycleIds, getFilteredCompletedCycleIds, currentProjectActiveCycleId } = useCycle();
   const { searchQuery } = useCycleFilter();
   const { t } = useTranslation();
   // derived values
   const filteredCycleIds = getFilteredCycleIds(projectId, false);
   const filteredCompletedCycleIds = getFilteredCompletedCycleIds(projectId);
-  const filteredUpcomingCycleIds = (filteredCycleIds ?? []).filter(
-    (cycleId) => cycleId !== currentProjectActiveCycleId
-  );
+  const filteredUpcomingCycleIds = filteredCycleIds.filter((cycleId) => cycleId !== currentProjectActiveCycleId);
 
-  if (loader || !filteredCycleIds) return <CycleModuleListLayoutLoader />;
-
-  if (filteredCycleIds.length === 0 && filteredCompletedCycleIds?.length === 0)
+  if (filteredCycleIds.length === 0 && filteredCompletedCycleIds.length === 0)
     return (
       <div className="grid h-full w-full place-items-center">
         <div className="text-center">
@@ -58,7 +53,7 @@ export const CyclesView = observer(function CyclesView(props: ICyclesView) {
 
   return (
     <CyclesList
-      completedCycleIds={filteredCompletedCycleIds ?? []}
+      completedCycleIds={filteredCompletedCycleIds}
       upcomingCycleIds={filteredUpcomingCycleIds}
       cycleIds={filteredCycleIds}
       workspaceSlug={workspaceSlug}

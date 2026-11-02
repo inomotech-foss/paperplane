@@ -26,19 +26,16 @@ import type {
 import type { CoreRootStore } from "./root.store";
 
 export interface IIssueCustomPropertyStore {
-  // loaders
-  fetchedMap: Record<string, boolean>;
-  valuesFetchedMap: Record<string, boolean>;
   // observables
   propertyMap: Record<string, TIssueCustomProperty>;
   issueValuesMap: Record<string, TIssueCustomPropertyValueMap>;
   // computed actions
-  getProjectProperties: (projectId: string | undefined | null) => TIssueCustomProperty[] | undefined;
-  getActiveProjectProperties: (projectId: string | undefined | null) => TIssueCustomProperty[] | undefined;
+  getProjectProperties: (projectId: string | undefined | null) => TIssueCustomProperty[];
+  getActiveProjectProperties: (projectId: string | undefined | null) => TIssueCustomProperty[];
   getActiveProjectPropertiesForType: (
     projectId: string | undefined | null,
     issueTypeId: string | undefined | null
-  ) => TIssueCustomProperty[] | undefined;
+  ) => TIssueCustomProperty[];
   getPropertyById: (propertyId: string) => TIssueCustomProperty | null;
   getIssueValues: (issueId: string) => TIssueCustomPropertyValueMap | undefined;
   getIssueValue: (issueId: string, propertyId: string) => TIssueCustomPropertyValue | undefined;
@@ -103,9 +100,6 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
   private requestedWorkItemIds = new Set<string>();
   private workItemQueue: Record<string, Set<string>> = {};
   private workItemTimers: Record<string, ReturnType<typeof setTimeout>> = {};
-  // loaders
-  fetchedMap: Record<string, boolean> = {};
-  valuesFetchedMap: Record<string, boolean> = {};
   // root store
   rootStore;
   // services
@@ -117,8 +111,6 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
       propertyMap: observable,
       issueValuesMap: observable,
       derivedSourcesMap: observable,
-      fetchedMap: observable,
-      valuesFetchedMap: observable,
       fetchProjectProperties: action,
       fetchBulkValues: action,
       fetchIssueValues: action,
@@ -137,10 +129,11 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
   }
 
   /**
-   * Returns all custom properties of a project ordered by sort order.
+   * Returns all custom properties of a project ordered by sort order. Whether the list is complete is the
+   * query's concern, see `useProjectCustomProperties`.
    */
   getProjectProperties = computedFn((projectId: string | undefined | null) => {
-    if (!projectId || !this.fetchedMap[projectId]) return;
+    if (!projectId) return [];
     return sortBy(
       Object.values(this.propertyMap).filter((property) => property.project === projectId),
       "sort_order"
@@ -151,7 +144,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
    * Returns the active (non-deactivated) custom properties of a project.
    */
   getActiveProjectProperties = computedFn((projectId: string | undefined | null) =>
-    this.getProjectProperties(projectId)?.filter((property) => property.is_active)
+    this.getProjectProperties(projectId).filter((property) => property.is_active)
   );
 
   /**
@@ -161,7 +154,7 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
    */
   getActiveProjectPropertiesForType = computedFn(
     (projectId: string | undefined | null, issueTypeId: string | undefined | null) =>
-      this.getActiveProjectProperties(projectId)?.filter(
+      this.getActiveProjectProperties(projectId).filter(
         (property) => property.issue_type == null || property.issue_type === issueTypeId
       )
   );
@@ -181,9 +174,8 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
     (issueId: string, propertyId: string) => this.derivedSourcesMap?.[issueId]?.[propertyId]
   );
 
-  hasDerivedProperties = computedFn(
-    (projectId: string | undefined | null) =>
-      !!this.getProjectProperties(projectId)?.some((property) => property.derivation !== "NONE")
+  hasDerivedProperties = computedFn((projectId: string | undefined | null) =>
+    this.getProjectProperties(projectId).some((property) => property.derivation !== "NONE")
   );
 
   refreshDerivedValues = (workspaceSlug: string, projectId: string) => {
@@ -230,7 +222,6 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
         response.forEach((property) => {
           set(this.propertyMap, [property.id], property);
         });
-        set(this.fetchedMap, projectId, true);
       });
       return response;
     });
@@ -245,7 +236,6 @@ export class IssueCustomPropertyStore implements IIssueCustomPropertyStore {
         Object.entries(response).forEach(([issueId, values]) => {
           set(this.issueValuesMap, [issueId], values);
         });
-        set(this.valuesFetchedMap, projectId, true);
       });
     });
 

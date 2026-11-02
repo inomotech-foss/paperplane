@@ -4,7 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import { useState } from "react";
 import { observer } from "mobx-react";
 import { MoreHorizontalOutline } from "@makeplane/propel/icons";
 // plane imports
@@ -24,6 +23,57 @@ import { ArchiveModuleModal, CreateUpdateModuleModal, DeleteModuleModal } from "
 import { useModule } from "@/hooks/store/use-module";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { useMountOnOpen } from "@/hooks/use-mount-on-open";
+import type { TRowDialog } from "@/hooks/use-row-dialog";
+import { useRowDialog } from "@/hooks/use-row-dialog";
+
+export type TModuleDialog = "edit" | "archive" | "delete";
+
+type TDialogsProps = {
+  moduleId: string;
+  projectId: string;
+  workspaceSlug: string;
+  dialog: TRowDialog<TModuleDialog>;
+};
+
+/** The edit, archive and delete dialogs of a module. Each mounts the first time it opens. */
+export const ModuleQuickActionDialogs = observer(function ModuleQuickActionDialogs(props: TDialogsProps) {
+  const { moduleId, projectId, workspaceSlug, dialog } = props;
+  const { getModuleById } = useModule();
+  const moduleDetails = getModuleById(moduleId);
+  const showEditModal = useMountOnOpen(dialog.open === "edit");
+  const showArchiveModal = useMountOnOpen(dialog.open === "archive");
+  const showDeleteModal = useMountOnOpen(dialog.open === "delete");
+  const handleClose = () => dialog.setOpen(null);
+
+  if (!moduleDetails) return null;
+
+  return (
+    <div className="fixed">
+      {showEditModal && (
+        <CreateUpdateModuleModal
+          isOpen={dialog.open === "edit"}
+          onClose={handleClose}
+          data={moduleDetails}
+          projectId={projectId}
+          workspaceSlug={workspaceSlug}
+        />
+      )}
+      {showArchiveModal && (
+        <ArchiveModuleModal
+          workspaceSlug={workspaceSlug}
+          projectId={projectId}
+          moduleId={moduleId}
+          isOpen={dialog.open === "archive"}
+          handleClose={handleClose}
+        />
+      )}
+      {showDeleteModal && (
+        <DeleteModuleModal data={moduleDetails} isOpen={dialog.open === "delete"} onClose={handleClose} />
+      )}
+    </div>
+  );
+});
 
 type Props = {
   parentRef: React.RefObject<HTMLDivElement | null>;
@@ -31,6 +81,8 @@ type Props = {
   projectId: string;
   workspaceSlug: string;
   customClassName?: string;
+  /** Dialog state owned by the row. The row then renders `ModuleQuickActionDialogs` itself. */
+  dialog?: TRowDialog<TModuleDialog>;
 };
 
 export const ModuleQuickActions = observer(function ModuleQuickActions(props: Props) {
@@ -40,9 +92,8 @@ export const ModuleQuickActions = observer(function ModuleQuickActions(props: Pr
   // plane hooks
   const { t } = useTranslation();
   // states
-  const [editModal, setEditModal] = useState(false);
-  const [archiveModuleModal, setArchiveModuleModal] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
+  const ownDialog = useRowDialog<TModuleDialog>();
+  const dialog = props.dialog ?? ownDialog;
   // store hooks
   const { allowPermissions } = useUserPermissions();
 
@@ -94,10 +145,10 @@ export const ModuleQuickActions = observer(function ModuleQuickActions(props: Pr
     projectId,
     moduleId,
     isEditingAllowed,
-    handleEdit: () => setEditModal(true),
-    handleArchive: () => setArchiveModuleModal(true),
+    handleEdit: () => dialog.setOpen("edit"),
+    handleArchive: () => dialog.setOpen("archive"),
     handleRestore: handleRestoreModule,
-    handleDelete: () => setDeleteModal(true),
+    handleDelete: () => dialog.setOpen("delete"),
     handleCopyLink: handleCopyText,
     handleOpenInNewTab,
   });
@@ -118,26 +169,15 @@ export const ModuleQuickActions = observer(function ModuleQuickActions(props: Pr
 
   return (
     <>
-      {moduleDetails && (
-        <div className="fixed">
-          <CreateUpdateModuleModal
-            isOpen={editModal}
-            onClose={() => setEditModal(false)}
-            data={moduleDetails}
-            projectId={projectId}
-            workspaceSlug={workspaceSlug}
-          />
-          <ArchiveModuleModal
-            workspaceSlug={workspaceSlug}
-            projectId={projectId}
-            moduleId={moduleId}
-            isOpen={archiveModuleModal}
-            handleClose={() => setArchiveModuleModal(false)}
-          />
-          <DeleteModuleModal data={moduleDetails} isOpen={deleteModal} onClose={() => setDeleteModal(false)} />
-          {additionalModals}
-        </div>
+      {!props.dialog && (
+        <ModuleQuickActionDialogs
+          moduleId={moduleId}
+          projectId={projectId}
+          workspaceSlug={workspaceSlug}
+          dialog={dialog}
+        />
       )}
+      {additionalModals}
       <ContextMenu parentRef={parentRef} items={CONTEXT_MENU_ITEMS} />
       {/* The legacy menu applied `customClassName` to the button around the trigger; a wrapper keeps
           that chrome off the Propel IconButton. */}

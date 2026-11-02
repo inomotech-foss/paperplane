@@ -6,9 +6,7 @@
 
 import { Component, Fragment } from "react";
 import type { ErrorInfo, ReactNode } from "react";
-import { WarningTriangleOutline } from "@makeplane/propel/icons";
-import { useTranslation } from "@plane/i18n";
-import { Button } from "@makeplane/propel/components/button";
+import { LoadErrorState } from "./load-error-state";
 
 type Props = {
   children: ReactNode;
@@ -18,18 +16,6 @@ type State = {
   hasError: boolean;
   retryKey: number;
 };
-
-function LayoutErrorFallback({ onRetry }: { onRetry: () => void }) {
-  const { t } = useTranslation();
-
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-center">
-      <WarningTriangleOutline className="size-8 text-tertiary" />
-      <p className="text-14 text-secondary">{t("something_went_wrong")}</p>
-      <Button variant="secondary" size="xs" stretch="auto" label={t("common.retry")} onClick={onRetry} />
-    </div>
-  );
-}
 
 // Catches render crashes from a single issue layout (list/kanban/spreadsheet/calendar/gantt)
 // so a bad group/column shape degrades to a local fallback instead of taking down the whole page.
@@ -51,7 +37,7 @@ export class LayoutErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return <LayoutErrorFallback onRetry={this.handleRetry} />;
+      return <LoadErrorState onRetry={this.handleRetry} />;
     }
     return <Fragment key={this.state.retryKey}>{this.props.children}</Fragment>;
   }

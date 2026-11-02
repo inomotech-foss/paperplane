@@ -15,6 +15,7 @@ import { useTranslation } from "@plane/i18n";
 import { EEstimateSystem } from "@plane/types";
 import { convertMinutesToHoursMinutesString } from "@plane/utils";
 // hooks
+import { useProjectEstimatesQuery } from "@/hooks/queries/use-estimate-queries";
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useEstimate } from "@/hooks/store/estimates/use-estimate";
 // store
@@ -67,8 +68,8 @@ export const EstimateSelect = observer(function EstimateSelect(props: Props) {
   // router
   const { workspaceSlug } = useParams();
   // store hooks
-  const { currentActiveEstimateIdByProjectId, areEstimateEnabledByProjectId, getProjectEstimates, getEstimateById } =
-    useProjectEstimates();
+  const { currentActiveEstimateIdByProjectId, areEstimateEnabledByProjectId, getEstimateById } = useProjectEstimates();
+  const { ensureLoaded } = useProjectEstimatesQuery(workspaceSlug?.toString(), projectId, { lazy: true });
 
   const currentActiveEstimateId = projectId ? currentActiveEstimateIdByProjectId(projectId) : undefined;
   const estimate = useEstimate(currentActiveEstimateId);
@@ -77,13 +78,10 @@ export const EstimateSelect = observer(function EstimateSelect(props: Props) {
   const resolveActiveEstimate = useCallback(async (): Promise<IEstimate | undefined> => {
     if (!projectId) return undefined;
 
-    let activeEstimateId = currentActiveEstimateIdByProjectId(projectId);
-    if (!activeEstimateId && workspaceSlug) {
-      await getProjectEstimates(workspaceSlug.toString(), projectId);
-      activeEstimateId = currentActiveEstimateIdByProjectId(projectId);
-    }
+    await ensureLoaded();
+    const activeEstimateId = currentActiveEstimateIdByProjectId(projectId);
     return activeEstimateId ? getEstimateById(activeEstimateId) : undefined;
-  }, [projectId, workspaceSlug, currentActiveEstimateIdByProjectId, getProjectEstimates, getEstimateById]);
+  }, [projectId, ensureLoaded, currentActiveEstimateIdByProjectId, getEstimateById]);
 
   // Fetches lazily, once per open (`Select`'s infinite mode) — not on mount. A row nobody clicks
   // never fires a request; a project with estimates disabled never fires one either.

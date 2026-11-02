@@ -24,8 +24,6 @@ import { flattenVisibleTree } from "./page-tree";
 import type { TProjectPage } from "./project-page";
 import { ProjectPage } from "./project-page";
 
-type TLoader = "init-loader" | "mutation-loader" | undefined;
-
 type TError = { title: string; description: string };
 
 /**
@@ -60,7 +58,6 @@ export const ROLE_PERMISSIONS_TO_CREATE_PAGE = [
 
 export interface IProjectPageStore {
   // observables
-  loader: TLoader;
   data: Record<string, TProjectPage>; // pageId => Page
   error: TError | undefined;
   filters: TPageFilters;
@@ -101,7 +98,6 @@ export interface IProjectPageStore {
 
 export class ProjectPageStore implements IProjectPageStore {
   // observables
-  loader: TLoader = "init-loader";
   data: Record<string, TProjectPage> = {}; // pageId => Page
   error: TError | undefined = undefined;
   filters: TPageFilters = {
@@ -117,7 +113,6 @@ export class ProjectPageStore implements IProjectPageStore {
   constructor(private store: CoreRootStore) {
     makeObservable(this, {
       // observables
-      loader: observable.ref,
       data: observable,
       error: observable,
       filters: observable,
@@ -155,7 +150,6 @@ export class ProjectPageStore implements IProjectPageStore {
    * @description check if any page is available
    */
   get isAnyPageAvailable() {
-    if (this.loader) return true;
     return Object.keys(this.data).length > 0;
   }
 
@@ -415,7 +409,6 @@ export class ProjectPageStore implements IProjectPageStore {
 
       const currentPageIds = pageType ? this.getCurrentProjectPageIdsByTab(pageType) : undefined;
       runInAction(() => {
-        this.loader = currentPageIds && currentPageIds.length > 0 ? `mutation-loader` : `init-loader`;
         this.error = undefined;
       });
 
@@ -435,13 +428,11 @@ export class ProjectPageStore implements IProjectPageStore {
             }
           }
         }
-        this.loader = undefined;
       });
 
       return pages;
     } catch (error) {
       runInAction(() => {
-        this.loader = undefined;
         this.error = {
           title: "Failed",
           description: "Failed to fetch the pages, Please try again later.",
@@ -463,7 +454,6 @@ export class ProjectPageStore implements IProjectPageStore {
 
       const currentPageId = this.getPageById(pageId);
       runInAction(() => {
-        this.loader = currentPageId ? `mutation-loader` : `init-loader`;
         this.error = undefined;
       });
 
@@ -478,13 +468,11 @@ export class ProjectPageStore implements IProjectPageStore {
             set(this.data, [page.id], new ProjectPage(this.store, page));
           }
         }
-        this.loader = undefined;
       });
 
       return page;
     } catch (error) {
       runInAction(() => {
-        this.loader = undefined;
         this.error = {
           title: "Failed",
           description: "Failed to fetch the page, Please try again later.",
@@ -504,20 +492,17 @@ export class ProjectPageStore implements IProjectPageStore {
       if (!workspaceSlug || !projectId) return undefined;
 
       runInAction(() => {
-        this.loader = "mutation-loader";
         this.error = undefined;
       });
 
       const page = await this.service.create(workspaceSlug, projectId, pageData);
       runInAction(() => {
         if (page?.id) set(this.data, [page.id], new ProjectPage(this.store, page));
-        this.loader = undefined;
       });
 
       return page;
     } catch (error) {
       runInAction(() => {
-        this.loader = undefined;
         this.error = {
           title: "Failed",
           description: "Failed to create a page, Please try again later.",
@@ -543,7 +528,6 @@ export class ProjectPageStore implements IProjectPageStore {
       });
     } catch (error) {
       runInAction(() => {
-        this.loader = undefined;
         this.error = {
           title: "Failed",
           description: "Failed to delete a page, Please try again later.",

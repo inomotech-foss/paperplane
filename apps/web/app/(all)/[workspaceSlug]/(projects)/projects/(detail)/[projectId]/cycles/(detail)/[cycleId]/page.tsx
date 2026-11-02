@@ -11,11 +11,13 @@ import { cn } from "@plane/utils";
 import emptyCycle from "@/app/assets/empty-state/cycle.svg?url";
 // components
 import { EmptyState } from "@/components/common/empty-state";
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { PageHead } from "@/components/core/page-title";
 import useCyclesDetails from "@/components/cycles/active-cycle/use-cycles-details";
 import { CycleDetailsSidebar } from "@/components/cycles/analytics-sidebar";
 import { CycleLayoutRoot } from "@/components/issues/issue-layouts/roots/cycle-layout-root";
 // hooks
+import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useProject } from "@/hooks/store/use-project";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -27,7 +29,8 @@ function CycleDetailPage({ params }: Route.ComponentProps) {
   const router = useAppRouter();
   const { workspaceSlug, projectId, cycleId } = params;
   // store hooks
-  const { getCycleById, loader } = useCycle();
+  const { getCycleById } = useCycle();
+  const { isLoading, error, retry } = useProjectCycles(workspaceSlug, projectId);
   const { getProjectById } = useProject();
   // const { issuesFilter } = useIssues(EIssuesStoreType.CYCLE);
   // hooks
@@ -53,7 +56,9 @@ function CycleDetailPage({ params }: Route.ComponentProps) {
   return (
     <>
       <PageHead title={pageTitle} />
-      {!cycle && !loader ? (
+      {!cycle && error ? (
+        <LoadErrorState onRetry={retry} />
+      ) : !cycle && !isLoading ? (
         <EmptyState
           image={emptyCycle}
           title="Cycle does not exist"

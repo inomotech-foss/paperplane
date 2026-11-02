@@ -11,6 +11,8 @@ import { useParams } from "next/navigation";
 import type { TIssue } from "@plane/types";
 import { Spinner } from "@plane/blocks/spinner";
 // hooks
+import { LoadErrorState } from "@/components/common/load-error-state";
+import { useProjectStates } from "@/hooks/queries/use-state-queries";
 import { useProjectState } from "@/hooks/store/use-project-state";
 // local imports
 import { PowerKProjectStatesMenuItems } from "./state-menu-item";
@@ -25,13 +27,13 @@ export const PowerKProjectStatesMenu = observer(function PowerKProjectStatesMenu
   // router
   const { workspaceSlug } = useParams();
   // store hooks
-  const { getProjectStateIds, getStateById } = useProjectState();
+  const { getProjectStates } = useProjectState();
+  const { isLoading, error, retry } = useProjectStates(workspaceSlug?.toString(), workItemDetails.project_id);
   // derived values
-  const projectStateIds = workItemDetails.project_id ? getProjectStateIds(workItemDetails.project_id) : undefined;
-  const projectStates = projectStateIds ? projectStateIds.map((stateId) => getStateById(stateId)) : undefined;
-  const filteredProjectStates = projectStates ? projectStates.filter((state) => !!state) : undefined;
+  const filteredProjectStates = getProjectStates(workItemDetails.project_id);
 
-  if (!filteredProjectStates) return <Spinner />;
+  if (isLoading) return <Spinner />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   return (
     <Command.Group>

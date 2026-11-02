@@ -79,7 +79,7 @@ describe("archived lists on a direct load", () => {
         getFiltersByProjectId: vi.fn(),
       },
     });
-    expect(store.currentProjectArchivedCycleIds).toBeNull();
+    expect(store.currentProjectArchivedCycleIds).toEqual([]);
 
     await store.fetchArchivedCycles("ws", "p1");
 
@@ -101,7 +101,7 @@ describe("archived lists on a direct load", () => {
         getFiltersByProjectId: vi.fn(),
       },
     });
-    expect(store.projectArchivedModuleIds).toBeNull();
+    expect(store.projectArchivedModuleIds).toEqual([]);
 
     await store.fetchArchivedModules("ws", "p1");
 

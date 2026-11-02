@@ -30,7 +30,6 @@ const lists = {
   fetchProjectIssueTypes: vi.fn(resolved),
   fetchProjectLabels: vi.fn(resolved),
   fetchProjectMembers: vi.fn(resolved),
-  fetchModulesSlim: vi.fn(resolved),
   fetchModules: vi.fn(resolved),
   fetchViews: vi.fn(resolved),
 };
@@ -44,6 +43,7 @@ vi.mock("@/hooks/store/user", () => ({
     fetchUserProjectInfo,
     allowPermissions: () => true,
     getProjectRoleByWorkspaceSlugAndProjectId: () => role.get(),
+    workspaceProjectsPermissions: {},
     joinProject: resolved,
   }),
 }));
@@ -74,7 +74,7 @@ vi.mock("@/hooks/store/use-member", () => ({
   }),
 }));
 vi.mock("@/hooks/store/use-module", () => ({
-  useModule: () => ({ fetchModulesSlim: lists.fetchModulesSlim, fetchModules: lists.fetchModules }),
+  useModule: () => ({ fetchModules: lists.fetchModules }),
 }));
 vi.mock("@/hooks/store/use-project-view", () => ({ useProjectView: () => ({ fetchViews: lists.fetchViews }) }));
 vi.mock("@/hooks/use-timeline-chart", () => ({ useTimeLineChart: () => ({ initGantt: () => {} }) }));

@@ -5,12 +5,15 @@
  */
 
 import { observer } from "mobx-react";
+import { useParams } from "next/navigation";
 // plane types
 import type { IModule, TIssue } from "@plane/types";
 import { Spinner } from "@plane/blocks/spinner";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { PowerKModulesMenu } from "@/components/power-k/menus/modules";
 // hooks
+import { useProjectModules } from "@/hooks/queries/use-module-queries";
 import { useModule } from "@/hooks/store/use-module";
 
 type Props = {
@@ -21,13 +24,18 @@ type Props = {
 export const PowerKWorkItemModulesMenu = observer(function PowerKWorkItemModulesMenu(props: Props) {
   const { handleSelect, workItemDetails } = props;
   // store hooks
+  const { workspaceSlug } = useParams();
   const { getProjectModuleIds, getModuleById } = useModule();
+  const { isLoading, error, retry } = useProjectModules(workspaceSlug?.toString(), workItemDetails.project_id);
   // derived values
-  const projectModuleIds = workItemDetails.project_id ? getProjectModuleIds(workItemDetails.project_id) : undefined;
-  const modulesList = projectModuleIds ? projectModuleIds.map((moduleId) => getModuleById(moduleId)) : undefined;
-  const filteredModulesList = modulesList ? modulesList.filter((module) => !!module) : undefined;
+  const filteredModulesList = workItemDetails.project_id
+    ? getProjectModuleIds(workItemDetails.project_id)
+        .map((moduleId) => getModuleById(moduleId))
+        .filter((module) => !!module)
+    : [];
 
-  if (!filteredModulesList) return <Spinner />;
+  if (isLoading) return <Spinner />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   return (
     <PowerKModulesMenu modules={filteredModulesList} onSelect={handleSelect} value={workItemDetails.module_ids ?? []} />

@@ -19,7 +19,9 @@ import { FavoriteStar } from "@plane/blocks/common";
 import { DateRangeSelect } from "@plane/blocks/property-select";
 import { renderFormattedPayloadDate, getDate } from "@plane/utils";
 // components
+import type { TModuleDialog } from "@/components/modules";
 import { ModuleQuickActions } from "@/components/modules";
+import type { TRowDialog } from "@/hooks/use-row-dialog";
 import { ModuleStatusDropdown } from "@/components/modules/module-status-dropdown";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
@@ -32,16 +34,35 @@ type Props = {
   moduleId: string;
   moduleDetails: IModule;
   parentRef: React.RefObject<HTMLDivElement | null>;
+  /** The row renders its quick actions here on wider screens and next to the title otherwise. */
+  showQuickActions: boolean;
+  dialog: TRowDialog<TModuleDialog>;
 };
 
+const ModuleLead = observer(function ModuleLead({ leadId }: { leadId: string | null }) {
+  const { getUserDetails } = useMember();
+  const lead = leadId ? getUserDetails(leadId) : undefined;
+
+  if (!lead)
+    return (
+      <Tooltip label="No lead">
+        <UserAltOutline className="h-4 w-4 text-tertiary" />
+      </Tooltip>
+    );
+  return (
+    <span className="cursor-default">
+      <ButtonAvatars showTooltip={false} userIds={lead.id} />
+    </span>
+  );
+});
+
 export const ModuleListItemAction = observer(function ModuleListItemAction(props: Props) {
-  const { moduleId, moduleDetails, parentRef } = props;
+  const { moduleId, moduleDetails, parentRef, showQuickActions, dialog } = props;
   // router
   const { workspaceSlug, projectId } = useParams();
   //   store hooks
   const { allowPermissions } = useUserPermissions();
   const { addModuleToFavorites, removeModuleFromFavorites, updateModuleDetails } = useModule();
-  const { getUserDetails } = useMember();
   const { data: userProfile } = useUserProfile();
 
   const { t } = useTranslation();
@@ -55,7 +76,7 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
     EUserPermissionsLevel.PROJECT
   );
-  const isDisabled = !isEditingAllowed || !!moduleDetails?.archived_at;
+  const isDisabled = !isEditingAllowed || !!moduleDetails.archived_at;
   const renderIcon = Boolean(moduleDetails.start_date) || Boolean(moduleDetails.target_date);
 
   // handlers
@@ -128,8 +149,6 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
       });
   };
 
-  const moduleLeadDetails = moduleDetails.lead_id ? getUserDetails(moduleDetails.lead_id) : undefined;
-
   return (
     <>
       <DateRangeSelect
@@ -162,15 +181,7 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
         />
       )}
 
-      {moduleLeadDetails ? (
-        <span className="cursor-default">
-          <ButtonAvatars showTooltip={false} userIds={moduleLeadDetails?.id} />
-        </span>
-      ) : (
-        <Tooltip label="No lead">
-          <UserAltOutline className="h-4 w-4 text-tertiary" />
-        </Tooltip>
-      )}
+      <ModuleLead leadId={moduleDetails.lead_id} />
 
       {isEditingAllowed && !moduleDetails.archived_at && (
         <FavoriteStar
@@ -181,15 +192,14 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
           selected={moduleDetails.is_favorite ?? false}
         />
       )}
-      {workspaceSlug && projectId && (
-        <div className="hidden md:block">
-          <ModuleQuickActions
-            parentRef={parentRef}
-            moduleId={moduleId}
-            projectId={projectId.toString()}
-            workspaceSlug={workspaceSlug.toString()}
-          />
-        </div>
+      {showQuickActions && workspaceSlug && projectId && (
+        <ModuleQuickActions
+          parentRef={parentRef}
+          moduleId={moduleId}
+          projectId={projectId.toString()}
+          workspaceSlug={workspaceSlug.toString()}
+          dialog={dialog}
+        />
       )}
     </>
   );
