@@ -8,6 +8,7 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as Y from "yjs";
 
+import { STORED_PAGE_ORIGIN } from "@/helpers/yjs-utils";
 import { useYjsSetup } from "@/hooks/use-yjs-setup";
 import type { CollaborationState } from "@/types/collaboration";
 
@@ -65,8 +66,8 @@ vi.mock("y-indexeddb", () => ({
 
 let states: CollaborationState[] = [];
 
-const Harness = () => {
-  useYjsSetup({ docId: "doc", serverUrl: "ws://live", authToken: "t", onStateChange: (state) => states.push(state) });
+const Harness = ({ docId = "doc" }: { docId?: string }) => {
+  useYjsSetup({ docId, serverUrl: "ws://live", authToken: "t", onStateChange: (state) => states.push(state) });
   return null;
 };
 
@@ -245,6 +246,22 @@ describe("useYjsSetup sync watchdog", () => {
     expect(socket.close).not.toHaveBeenCalled();
   });
 
+  it("reports a socket dropped between authentication and sync as a sync timeout", () => {
+    act(() => {
+      for (let i = 0; i < 5; i++) {
+        config.onConnect?.();
+        config.onAuthenticated?.();
+        dropSocket();
+      }
+    });
+
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "sync-timeout", message: "Closed before the server synced the page" },
+    });
+    expect(websocketProvider.disconnect).not.toHaveBeenCalled();
+  });
+
   it("gives up after repeated connections that never sync", () => {
     act(() => {
       for (let i = 0; i < 3; i++) {
@@ -301,5 +318,24 @@ describe("useYjsSetup unsynced changes", () => {
     providerState.hasUnsyncedChanges = true;
     act(() => dropSocket());
     expect(lastState()?.hasUnsyncedChanges).toBe(true);
+  });
+
+  it("does not count the stored page as a local edit", () => {
+    act(() => config.onConnect?.());
+    const stored = new Y.Doc();
+    stored.getText("t").insert(0, "stored");
+    act(() => Y.applyUpdate(providerState.document, Y.encodeStateAsUpdate(stored), STORED_PAGE_ORIGIN));
+
+    expect(lastState()?.hasUnsyncedChanges).toBe(false);
+  });
+
+  it("starts the next page without the previous page's unsynced edits", async () => {
+    act(() => config.onConnect?.());
+    act(() => typeLocally());
+    expect(lastState()?.hasUnsyncedChanges).toBe(true);
+
+    await act(async () => root.render(createElement(Harness, { docId: "other" })));
+    act(() => config.onConnect?.());
+    expect(lastState()?.hasUnsyncedChanges).toBe(false);
   });
 });

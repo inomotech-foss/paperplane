@@ -11,6 +11,8 @@ import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react"
 import { IndexeddbPersistence } from "y-indexeddb";
 // yjs
 import type * as Y from "yjs";
+// helpers
+import { STORED_PAGE_ORIGIN } from "@/helpers/yjs-utils";
 // types
 import type { CollaborationState, CollabStage, CollaborationError } from "@/types/collaboration";
 
@@ -36,6 +38,7 @@ type UseYjsSetupArgs = {
 const DEFAULT_MAX_RETRIES = 3;
 // Both stay above the live server's own bounds, so a slow server answers before the client gives up:
 // authentication calls the API with a 20 s timeout, and a load allows 30 s for the page fetch plus 10 s for Redis.
+// The provider also drops a socket that receives nothing for 30 s. handleClose reports that as a sync timeout too.
 const DEFAULT_AUTH_TIMEOUT_MS = 30_000;
 const DEFAULT_SYNC_TIMEOUT_MS = 45_000;
 
@@ -66,7 +69,6 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
   // Cache readiness state
   const [hasCachedContent, setHasCachedContent] = useState(false);
   const [isCacheReady, setIsCacheReady] = useState(false);
-  const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
 
   // Provider and Y.Doc in state (nullable until effect runs)
   const [yjsSession, setYjsSession] = useState<{ provider: HocuspocusProvider; ydoc: Y.Doc } | null>(null);
@@ -90,7 +92,9 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
     forcedCloseSignalRef.current = false;
     forcedCloseCodeRef.current = null;
     stageRef.current = { kind: "initial" };
+    hasUnsyncedChangesRef.current = false;
     let syncTimer: ReturnType<typeof setTimeout> | undefined;
+    let isAuthenticatedWithoutSync = false;
 
     const reportState = () => {
       const current = stageRef.current;
@@ -111,7 +115,6 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
     const setUnsyncedChanges = (value: boolean) => {
       if (hasUnsyncedChangesRef.current === value) return;
       hasUnsyncedChangesRef.current = value;
-      setHasUnsyncedChanges(value);
       reportState();
     };
 
@@ -140,6 +143,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
 
     // During a sync timeout the page stays disconnected until a sync succeeds.
     const awaitSync = () => {
+      isAuthenticatedWithoutSync = false;
       startSyncWatchdog(authTimeoutMs, `Not authenticated within ${authTimeoutMs} ms`);
       if (!isSyncTimeout(stageRef.current)) setStageTo({ kind: "awaiting-sync" });
     };
@@ -150,6 +154,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
       url: serverUrl,
       onAuthenticated: () => {
         if (isDisposedRef.current) return;
+        isAuthenticatedWithoutSync = true;
         startSyncWatchdog(syncTimeoutMs, `Not synced within ${syncTimeoutMs} ms`);
       },
       onAuthenticationFailed: ({ reason }) => {
@@ -193,6 +198,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
       onSynced: () => {
         if (isDisposedRef.current) return;
         stopSyncWatchdog();
+        isAuthenticatedWithoutSync = false;
         retryCountRef.current = 0;
         setStageTo({ kind: "synced" });
       },
@@ -259,8 +265,12 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
         // The server closed the document but not the socket (e.g. while draining).
         // Closing the socket lets the provider reconnect, likely to another server.
         wsProvider.webSocket.close();
+      } else if (isAuthenticatedWithoutSync) {
+        // The provider drops a socket that receives nothing for 30 s, which a slow load can outlast
+        isAuthenticatedWithoutSync = false;
+        reportSyncTimeout("Closed before the server synced the page");
       } else if (isSyncTimeout(stageRef.current)) {
-        // Keep reconnecting with the provider's backoff while the HTTP fallback saves
+        // Keep reconnecting with the provider's backoff until a sync succeeds
         stopSyncWatchdog();
       } else {
         // Transient connection loss: attempt reconnection
@@ -288,7 +298,13 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
     // Only tracked while not synced. While synced, edits reach the server within milliseconds, and tracking
     // every keystroke would re-render the page twice per key.
     const handleDocumentUpdate = (_update: Uint8Array, origin: unknown) => {
-      if (origin === provider || origin instanceof IndexeddbPersistence || stageRef.current.kind === "synced") return;
+      if (
+        origin === provider ||
+        origin === STORED_PAGE_ORIGIN ||
+        origin instanceof IndexeddbPersistence ||
+        stageRef.current.kind === "synced"
+      )
+        return;
       setUnsyncedChanges(true);
     };
     const handleUnsyncedChanges = ({ number }: { number: number }) => {
