@@ -3,6 +3,7 @@
 
 import pytest
 from crum import impersonate
+from django.contrib.auth.models import AnonymousUser
 
 from plane.db.models import User, Workspace
 
@@ -101,4 +102,44 @@ class TestBaseModelAuditFields:
 
         workspace.refresh_from_db()
         assert workspace.created_by_id == create_user.id
+        assert workspace.updated_by_id == create_user.id
+
+    def test_create_without_user_or_creator_leaves_both_null(self, create_user):
+        workspace = make_workspace(create_user)
+        workspace.save()
+
+        workspace.refresh_from_db()
+        assert workspace.created_by_id is None
+        assert workspace.updated_by_id is None
+
+    def test_anonymous_user_counts_as_no_user(self, create_user):
+        with impersonate(create_user):
+            workspace = make_workspace(create_user)
+            workspace.save()
+
+        with impersonate(AnonymousUser()):
+            workspace.name = "Renamed"
+            workspace.save()
+            other = make_workspace(create_user)
+            other.slug = "audit-anon"
+            other.save()
+
+        workspace.refresh_from_db()
+        other.refresh_from_db()
+        assert workspace.created_by_id == create_user.id
+        assert workspace.updated_by_id == create_user.id
+        assert other.created_by_id is None
+        assert other.updated_by_id is None
+
+    def test_update_fields_without_updated_by_keeps_the_stored_value(self, create_user, other_user):
+        with impersonate(create_user):
+            workspace = make_workspace(create_user)
+            workspace.save()
+
+        with impersonate(other_user):
+            workspace.name = "Renamed"
+            workspace.save(update_fields=["name"])
+
+        workspace.refresh_from_db()
+        assert workspace.name == "Renamed"
         assert workspace.updated_by_id == create_user.id
