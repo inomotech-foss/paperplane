@@ -142,7 +142,7 @@ def plane_db(transactional_db):
             state_id=ids["state"],
             type_id=None,
             priority="high",
-            description_html="<p>body</p>",
+            description_html="<p>body</p><script>alert(1)</script>",
             created_by_id=ids["ada"],
             archived_at=ARCHIVED,
             priority_rank=2,
@@ -212,6 +212,8 @@ def test_imports_a_drifted_plane_schema(plane_db):
     assert User.objects.get(pk=plane_db["ada"]).password == "x$hash"
 
     assert "sessions" in output and "shiny_new_feature" in output
+    assert "script" not in issue.description_html
+    assert "sanitized    issues: 1" in output
 
 
 def test_refuses_then_reruns_with_allow_existing(plane_db):

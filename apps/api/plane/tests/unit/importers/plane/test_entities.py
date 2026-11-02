@@ -268,3 +268,36 @@ def test_counts_only_rows_that_are_written(ctx, base):
     kept, orphan = issue_row(base), issue_row(base, sequence_id=2, project_id=ident())
     load(Entity(Issue, convert={"priority": noting}), FakeSource({"issues": [kept, orphan]}), ctx)
     assert ctx.report.typed == 1
+
+
+@pytest.mark.django_db
+def test_imported_html_is_sanitized(ctx, base):
+    dirty = '<p onclick="steal()">hi</p><script>alert(1)</script>'
+    row = issue_row(base, description_html=dirty, description_stripped="hi", description_binary=b"\x01")
+    load_issues(ctx, row)
+    issue = Issue.all_objects.get(pk=row["id"])
+    assert "script" not in issue.description_html and "onclick" not in issue.description_html
+    assert issue.description_binary is None
+    assert ctx.report.sanitized["issues"] == 1
+
+
+@pytest.mark.django_db
+def test_clean_html_and_its_binary_are_kept(ctx, base):
+    row = issue_row(base, description_html="<p>hi</p>", description_binary=b"\x01")
+    load_issues(ctx, row)
+    assert bytes(Issue.all_objects.get(pk=row["id"]).description_binary) == b"\x01"
+    assert "issues" not in ctx.report.sanitized
+
+
+@pytest.mark.django_db
+def test_comment_html_is_sanitized(ctx, base):
+    issue = issue_row(base)
+    load_issues(ctx, issue)
+    comment = stamped(
+        issue_id=issue["id"],
+        project_id=base["project"]["id"],
+        workspace_id=base["workspace"]["id"],
+        comment_html='<p>ok</p><img src="x" onerror="steal()">',
+    )
+    load(Entity(IssueComment), FakeSource({"issue_comments": [comment]}), ctx)
+    assert "onerror" not in IssueComment.all_objects.get(pk=comment["id"]).comment_html

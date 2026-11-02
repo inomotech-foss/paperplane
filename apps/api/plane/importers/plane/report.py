@@ -17,6 +17,8 @@ class ImportReport:
     written: dict = field(default_factory=dict)
     dropped: defaultdict = field(default_factory=lambda: defaultdict(Counter))
     nulled: Counter = field(default_factory=Counter)
+    sanitized: Counter = field(default_factory=Counter)
+    html_rejected: Counter = field(default_factory=Counter)
     matched_users: int = 0
     renamed_users: list = field(default_factory=list)
     typed: int = 0

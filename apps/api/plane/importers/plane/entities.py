@@ -17,7 +17,10 @@ from itertools import islice
 
 from django.db import models
 
+from plane.db.management.commands.sanitize_stored_html import TARGETS, HtmlField
 from plane.db.models import Workspace
+from plane.utils.content_validator import validate_html_content
+from plane.utils.html_processor import strip_tags
 
 BATCH_SIZE = 500
 
@@ -26,6 +29,9 @@ ID_TAKEN = "id already used in the target"
 OUTSIDE_SELECTION = "outside selection"
 
 _TEXT_FIELDS = (models.TextField, models.CharField, models.JSONField)
+
+# The user HTML that `sanitize_stored_html` cleans, by model.
+_HTML_FIELDS = {target.model: target for target in TARGETS.values() if isinstance(target, HtmlField)}
 
 
 @dataclass
@@ -75,6 +81,7 @@ def load(entity, source, ctx):
     while batch := list(islice(rows, BATCH_SIZE)):
         objs = [obj for obj in (_build(entity, row, ctx, rewrite) for row in batch) if obj is not None]
         objs = _unclaimed(entity, objs, ctx)
+        _sanitize(entity, objs, ctx)
         _write(model, objs, entity.skip)
         for obj in objs:
             ctx.ids.add(model, obj.pk)
@@ -146,6 +153,36 @@ def _build(entity, row, ctx, rewrite):
     for f, value in deferred:
         ctx.pending[(model, f)].append((obj.pk, value))
     return obj
+
+
+def _sanitize(entity, objs, ctx):
+    """Clean imported HTML the way PaperPlane cleans what users save.
+
+    Plane's sanitizer is not PaperPlane's, so a body it stored can still carry
+    markup PaperPlane would refuse. The editor's binary copy holds the same
+    content, so it is cleared whenever the HTML changes and the live server
+    rebuilds it from the clean HTML.
+    """
+    target = _HTML_FIELDS.get(entity.model)
+    if target is None:
+        return
+    has_binary = any(f.attname == "description_binary" for f in entity.model._meta.concrete_fields)
+    for obj in objs:
+        html = getattr(obj, target.html)
+        if not html:
+            continue
+        is_valid, _, clean = validate_html_content(html)
+        if not is_valid:
+            clean = "<p></p>"
+            ctx.report.html_rejected[entity.table] += 1
+        if clean == html:
+            continue
+        setattr(obj, target.html, clean)
+        setattr(obj, target.stripped, strip_tags(clean) if clean else target.empty_stripped)
+        if has_binary:
+            obj.description_binary = None
+        if is_valid:
+            ctx.report.sanitized[entity.table] += 1
 
 
 def _count_notes(ctx, written):

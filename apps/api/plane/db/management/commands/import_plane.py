@@ -52,7 +52,12 @@ class Command(BaseCommand):
                 f"files        {report.file_objects} rows point at stored objects; copy the bucket with keys kept"
             )
 
+        for table, rows in sorted(report.sanitized.items()):
+            self.stdout.write(f"sanitized    {table}: {rows} HTML bodies cleaned as PaperPlane cleans saved HTML")
+
         warn = self.style.WARNING
+        for table, rows in sorted(report.html_rejected.items()):
+            self.stdout.write(warn(f"emptied      {table}: {rows} HTML bodies the sanitizer refused"))
         for old, new in report.renamed_users:
             self.stdout.write(warn(f"renamed      username {old} was taken, imported as {new}"))
         if report.relations_downgraded:
