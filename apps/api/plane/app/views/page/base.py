@@ -33,7 +33,11 @@ from rest_framework.response import Response
 from drf_spectacular.types import OpenApiTypes
 
 # Module imports
-from plane.app.serializers.response.page import PageSummarySerializer, PageWithIssuesSerializer
+from plane.app.serializers.response.page import (
+    PageLiveAccessSerializer,
+    PageSummarySerializer,
+    PageWithIssuesSerializer,
+)
 from plane.app.serializers.response.issue import ArchivedAtSerializer
 from plane.utils.openapi.serializers import MessageResponseSerializer
 from plane.app.permissions import allow_permission, ROLE
@@ -653,6 +657,28 @@ class PagesDescriptionViewSet(BaseViewSet):
             return Response({"message": "Updated successfully"})
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PageLiveAccessEndpoint(BaseAPIView):
+    """What the live server lets this user do in the page's collaborative document."""
+
+    permission_classes = [ProjectPagePermission]
+
+    @extend_schema(responses={200: PageLiveAccessSerializer})
+    def get(self, request, slug, project_id, page_id):
+        page = Page.objects.get(
+            Q(owned_by=self.request.user) | Q(access=0),
+            pk=page_id,
+            workspace__slug=slug,
+            projects__id=project_id,
+            project_pages__deleted_at__isnull=True,
+        )
+        can_edit = (
+            not page.is_locked
+            and page.archived_at is None
+            and ProjectPagePermission().has_page_access(request, self, "PATCH")
+        )
+        return Response({"access": "edit" if can_edit else "read"})
 
 
 class PageDuplicateEndpoint(BaseAPIView):

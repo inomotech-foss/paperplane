@@ -14334,6 +14334,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/PageDetail'
           description: ''
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/live-access/:
+    get:
+      operationId: workspaces_projects_pages_live_access_retrieve
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageLiveAccess'
+          description: ''
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/lock/:
     post:
       operationId: workspaces_projects_pages_lock_create
@@ -28720,6 +28752,21 @@ components:
       - view_props
       - logo_props
       - description_html
+    PageLiveAccess:
+      type: object
+      properties:
+        access:
+          $ref: '#/components/schemas/PageLiveAccessAccessEnum'
+      required:
+      - access
+    PageLiveAccessAccessEnum:
+      enum:
+      - edit
+      - read
+      type: string
+      description: |-
+        * `edit` - edit
+        * `read` - read
     PageMentionUser:
       type: object
       properties:
