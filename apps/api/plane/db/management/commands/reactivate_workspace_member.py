@@ -62,7 +62,7 @@ class Command(BaseCommand):
 
         # update_fields keeps the write to the columns that change.
         workspace_member.is_active = True
-        workspace_member.save(update_fields=["is_active", "updated_at"], disable_auto_set_user=True)
+        workspace_member.save(update_fields=["is_active", "updated_at"])
 
         self.stdout.write(
             self.style.SUCCESS(
