@@ -354,9 +354,19 @@
         "message": "A mudança de estado não é permitida para alguns itens de trabalho. Certifique-se de que a mudança de estado seja permitida."
       }
     },
-    "upgrade_banner": {
-      "message": "Altere o estado, a prioridade e muito mais para vários itens de trabalho de uma vez. Economize em média três minutos por operação.",
-      "cta": "Upgrade para One"
+    "toolbar_label": "Ações em massa",
+    "selected": "Selecionados: {count}",
+    "clear_selection": "Limpar seleção",
+    "toast": {
+      "updated": "Itens de trabalho atualizados: {count}",
+      "update_failed_title": "Alguns itens de trabalho não foram atualizados",
+      "update_failed": "Itens de trabalho não atualizados: {count}. Tente novamente.",
+      "archived": "Itens de trabalho arquivados: {count}",
+      "deleted": "Itens de trabalho excluídos: {count}"
+    },
+    "delete": {
+      "title": "Excluir itens de trabalho",
+      "content": "Tem certeza de que deseja excluir os itens de trabalho selecionados ({count})? Você pode restaurá-los nos arquivos do projeto até que sejam removidos permanentemente."
     }
   },
   "recurring_work_items": {

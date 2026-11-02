@@ -354,9 +354,19 @@
         "message": "Zmiana stanu nie jest dozwolona dla niektórych elementów pracy. Upewnij się, że zmiana stanu jest dozwolona."
       }
     },
-    "upgrade_banner": {
-      "message": "Zmieniaj stan, priorytet i inne właściwości wielu elementów pracy jednocześnie. Zaoszczędź średnio trzy minuty na operację.",
-      "cta": "Uaktualnij do One"
+    "toolbar_label": "Działania zbiorcze",
+    "selected": "Zaznaczone: {count}",
+    "clear_selection": "Wyczyść zaznaczenie",
+    "toast": {
+      "updated": "Zaktualizowane elementy pracy: {count}",
+      "update_failed_title": "Niektóre elementy pracy nie zostały zaktualizowane",
+      "update_failed": "Niezaktualizowane elementy pracy: {count}. Spróbuj ponownie.",
+      "archived": "Zarchiwizowane elementy pracy: {count}",
+      "deleted": "Usunięte elementy pracy: {count}"
+    },
+    "delete": {
+      "title": "Usuń elementy pracy",
+      "content": "Czy na pewno usunąć zaznaczone elementy pracy ({count})? Można je przywrócić z archiwów projektu do czasu ich trwałego usunięcia."
     }
   },
   "recurring_work_items": {

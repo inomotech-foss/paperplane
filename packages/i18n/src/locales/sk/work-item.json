@@ -354,9 +354,19 @@
         "message": "Zmena stavu nie je povolená pre niektoré pracovné položky. Uistite sa, že zmena stavu je povolená."
       }
     },
-    "upgrade_banner": {
-      "message": "Menite stav, prioritu a ďalšie vlastnosti viacerých pracovných položiek naraz. V priemere ušetríte tri minúty na operáciu.",
-      "cta": "Upgradovať na One"
+    "toolbar_label": "Hromadné akcie",
+    "selected": "Vybrané: {count}",
+    "clear_selection": "Zrušiť výber",
+    "toast": {
+      "updated": "Aktualizované pracovné položky: {count}",
+      "update_failed_title": "Niektoré pracovné položky neboli aktualizované",
+      "update_failed": "Neaktualizované pracovné položky: {count}. Skúste to znova.",
+      "archived": "Archivované pracovné položky: {count}",
+      "deleted": "Odstránené pracovné položky: {count}"
+    },
+    "delete": {
+      "title": "Odstrániť pracovné položky",
+      "content": "Naozaj chcete odstrániť vybrané pracovné položky ({count})? Kým nebudú natrvalo vymazané, môžete ich obnoviť z archívov projektu."
     }
   },
   "recurring_work_items": {

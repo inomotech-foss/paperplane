@@ -354,9 +354,19 @@
         "message": "일부 작업 항목에 대해 상태 변경이 허용되지 않습니다. 상태 변경이 허용되는지 확인하세요."
       }
     },
-    "upgrade_banner": {
-      "message": "여러 작업 항목의 상태, 우선순위 등을 한 번에 변경할 수 있습니다. 작업당 평균 3분을 절약합니다.",
-      "cta": "One으로 업그레이드"
+    "toolbar_label": "일괄 작업",
+    "selected": "선택됨: {count}",
+    "clear_selection": "선택 해제",
+    "toast": {
+      "updated": "업데이트된 작업 항목: {count}",
+      "update_failed_title": "일부 작업 항목이 업데이트되지 않았습니다",
+      "update_failed": "업데이트되지 않은 작업 항목: {count}. 다시 시도하십시오.",
+      "archived": "아카이브된 작업 항목: {count}",
+      "deleted": "삭제된 작업 항목: {count}"
+    },
+    "delete": {
+      "title": "작업 항목 삭제",
+      "content": "선택한 작업 항목({count})을 삭제하시겠습니까? 영구 삭제되기 전까지 프로젝트 아카이브에서 복원할 수 있습니다."
     }
   },
   "recurring_work_items": {
