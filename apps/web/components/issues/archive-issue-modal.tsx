@@ -36,6 +36,9 @@ export function ArchiveIssueModal(props: Props) {
 
   const issue = data ? data : issueMap[dataId!];
   const projectDetails = getProjectById(issue.project_id);
+  const workItemKey = projectDetails?.identifier
+    ? `${projectDetails.identifier}-${issue.sequence_id}`
+    : `${issue.sequence_id}`;
 
   const onClose = () => {
     setIsArchiving(false);
@@ -72,7 +75,7 @@ export function ArchiveIssueModal(props: Props) {
       handleSubmit={handleArchiveIssue}
       isSubmitting={isArchiving}
       variant="primary"
-      title={`${t("issue.archive.label")} ${projectDetails?.identifier ?? ""} ${issue.sequence_id}`}
+      title={`${t("issue.archive.label")} ${workItemKey}`}
       content={t("issue.archive.confirm_message")}
       primaryButtonText={{ loading: t("common.archiving"), default: t("common.archive") }}
       secondaryButtonText={t("common.cancel")}
