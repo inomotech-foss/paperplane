@@ -2,8 +2,8 @@
 // See the LICENSE file for details.
 
 import { describe, expect, it, vi } from "vitest";
-import { EInboxIssueStatus } from "@plane/types";
-import { countAppliedInboxFilters, inboxIssueQuery } from "./inbox-query";
+import { EInboxIssueCurrentTab, EInboxIssueStatus } from "@plane/types";
+import { countAppliedInboxFilters, hasUserInboxFilters, inboxIssueQuery } from "./inbox-query";
 import { revertIssueFields } from "./inbox-issue.store";
 
 describe("inboxIssueQuery", () => {
@@ -46,6 +46,25 @@ describe("countAppliedInboxFilters", () => {
     expect(
       countAppliedInboxFilters({ status: [EInboxIssueStatus.PENDING], labels: ["a", "b"], state: undefined })
     ).toBe(3);
+  });
+});
+
+describe("hasUserInboxFilters", () => {
+  const { OPEN, CLOSED } = EInboxIssueCurrentTab;
+
+  it("ignores the status each tab starts with", () => {
+    expect(hasUserInboxFilters({ status: [EInboxIssueStatus.PENDING] }, OPEN)).toBe(false);
+    expect(
+      hasUserInboxFilters(
+        { status: [EInboxIssueStatus.DUPLICATE, EInboxIssueStatus.ACCEPTED, EInboxIssueStatus.DECLINED] },
+        CLOSED
+      )
+    ).toBe(false);
+  });
+
+  it("counts a changed status or any other filter", () => {
+    expect(hasUserInboxFilters({ status: [EInboxIssueStatus.SNOOZED] }, OPEN)).toBe(true);
+    expect(hasUserInboxFilters({ status: [EInboxIssueStatus.PENDING], labels: ["a"] }, OPEN)).toBe(true);
   });
 });
 
