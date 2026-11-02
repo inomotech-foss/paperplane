@@ -141,7 +141,8 @@ export const useRealtimePageEvents = ({
         },
 
         property_updated: ({ pageIds, data }: { pageIds: string[]; data: EventToPayloadMap["property_updated"] }) => {
-          pageIds.forEach((pageId) => getPageById(pageId)?.mutateProperties(data, false));
+          // the open page's name belongs to its title editor; other pages, such as renamed children, take it
+          pageIds.forEach((pageId) => getPageById(pageId)?.mutateProperties(data, pageId !== page.id));
           // a save went through, so the next failure is news again
           if (data.updated_at) saveErrorShownRef.current = false;
         },

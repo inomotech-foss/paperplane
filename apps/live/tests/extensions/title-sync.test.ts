@@ -109,7 +109,7 @@ describe("title sync", () => {
     const document = await open(extension, "child-1");
 
     rename(document, "First");
-    await vi.runAllTimersAsync();
+    await vi.advanceTimersByTimeAsync(5000);
     expect(api.saved).toEqual(["First"]);
     rename(document, "Second");
 
