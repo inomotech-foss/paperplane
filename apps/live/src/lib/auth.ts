@@ -6,10 +6,12 @@
 
 // plane imports
 import type { IncomingHttpHeaders } from "http";
+import type { ConnectionConfiguration } from "@hocuspocus/server";
 import { z } from "zod";
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
 // services
+import { PageAccessService, type TPageAccessTarget } from "@/services/page-access.service";
 import { UserService } from "@/services/user.service";
 // types
 import type { HocusPocusServerContext, TDocumentTypes } from "@/types";
@@ -33,11 +35,15 @@ export const onAuthenticate = async ({
   requestParameters,
   context,
   token,
+  documentName,
+  connectionConfig,
 }: {
   requestHeaders: IncomingHttpHeaders;
   context: HocusPocusServerContext;
   requestParameters: URLSearchParams;
   token: string;
+  documentName: string;
+  connectionConfig: ConnectionConfiguration;
 }) => {
   let cookie: string | undefined = undefined;
   let userId: string | undefined = undefined;
@@ -77,10 +83,33 @@ export const onAuthenticate = async ({
   context.userId = userId;
   context.workspaceSlug = requestParameters.get("workspaceSlug");
 
-  return await handleAuthentication({
+  const authentication = await handleAuthentication({
     cookie: context.cookie,
     userId: context.userId,
   });
+
+  // Hocuspocus shares a loaded document with every connection to the same name, so each one needs its own check.
+  const access = await checkPageAccess({
+    cookie: context.cookie,
+    workspaceSlug: context.workspaceSlug,
+    projectId: context.projectId,
+    pageId: documentName,
+  });
+  connectionConfig.readOnly = access === "read";
+
+  return authentication;
+};
+
+const checkPageAccess = async (target: TPageAccessTarget) => {
+  try {
+    return await new PageAccessService().fetchAccess(target);
+  } catch (error) {
+    const appError = new AppError(error, {
+      context: { operation: "checkPageAccess" },
+    });
+    logger.error("Page access check failed", appError);
+    throw new AppError("Page access denied", { code: appError.code, statusCode: appError.statusCode });
+  }
 };
 
 export const handleAuthentication = async ({ cookie, userId }: { cookie: string; userId: string }) => {
