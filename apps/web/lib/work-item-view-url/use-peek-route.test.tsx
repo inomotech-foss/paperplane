@@ -89,7 +89,7 @@ describe("usePeekRoute", () => {
     const router = renderRoute("/p1/issues?l=list&peek=WEB-5", binding);
     await waitFor(() => expect(router.state.location.search).toBe("?l=list"));
     expect(notFound).toHaveBeenCalledTimes(1);
-    expect(show).not.toHaveBeenCalledWith(expect.objectContaining({ issueId: expect.any(String) }));
+    expect(show.mock.calls.every(([peek]) => peek === undefined)).toBe(true);
   });
 
   it("writes an opened peek to the URL with replace and keeps its details", async () => {
