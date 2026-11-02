@@ -23,7 +23,7 @@
 # - Data dirs are tmpfs so every run begins from a clean state.
 # - Env vars come from apps/api/.env (the same file the local stack uses); tests
 #   use plane.settings.test, which inherits from common and reads DATABASE_URL,
-#   REDIS_URL, RABBITMQ_* etc. from the environment.
+#   REDIS_URL, AMQP_URL etc. from the environment.
 
 services:
   test-db:
