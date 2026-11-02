@@ -16,8 +16,10 @@ def load_file_env(environ=None):
     volume) and read directly, instead of being passed as literal environment
     values.
 
-    `<NAME>` and `<NAME>_FILE` are mutually exclusive: setting both is a
-    configuration error and raises, so it is never ambiguous which value wins.
+    `<NAME>` and `<NAME>_FILE` are mutually exclusive: setting both to different
+    values is a configuration error and raises, so it is never ambiguous which
+    value wins. A `<NAME>` that already holds the file's contents was expanded
+    by a parent process and is kept.
     """
     environ = os.environ if environ is None else environ
 
@@ -27,10 +29,11 @@ def load_file_env(environ=None):
         path = environ[key]
         if not path:
             continue
-        if environ.get(target):
-            raise RuntimeError(f"Both {target} and {key} are set; use one or the other.")
         try:
             with open(path, encoding="utf-8") as handle:
-                environ[target] = handle.read().strip()
+                value = handle.read().strip()
         except OSError as exc:
             raise RuntimeError(f"Could not read secret file for {target} from {path}: {exc}") from exc
+        if environ.get(target) and environ[target] != value:
+            raise RuntimeError(f"Both {target} and {key} are set; use one or the other.")
+        environ[target] = value

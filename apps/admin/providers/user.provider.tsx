@@ -20,7 +20,7 @@ export const UserProvider = observer(function UserProvider({ children }: React.P
     shouldRetryOnError: false,
   });
 
-  useSWR("INSTANCE_ADMINS", () => fetchInstanceAdmins());
+  useSWR(currentUser ? "INSTANCE_ADMINS" : null, () => fetchInstanceAdmins());
 
   useEffect(() => {
     const localValue = localStorage && localStorage.getItem("god_mode_sidebar_collapsed");
