@@ -16,6 +16,11 @@ import { IssueLabelService } from "@/services/issue";
 // store
 import type { CoreRootStore } from "./root.store";
 
+export type TLabelRootStore = {
+  router: Pick<CoreRootStore["router"], "projectId">;
+  workspaceRoot: Pick<CoreRootStore["workspaceRoot"], "currentWorkspace" | "getWorkspaceBySlug">;
+};
+
 export interface ILabelStore {
   //Observable
   labelMap: Record<string, IIssueLabel>;
@@ -59,7 +64,7 @@ export class LabelStore implements ILabelStore {
   // services
   issueLabelService;
 
-  constructor(_rootStore: CoreRootStore) {
+  constructor(_rootStore: TLabelRootStore) {
     makeObservable(this, {
       labelMap: observable,
       // computed
@@ -92,7 +97,8 @@ export class LabelStore implements ILabelStore {
   }
 
   get projectLabelsTree() {
-    return buildTree(this.projectLabels);
+    // buildTree writes `children` onto the items it gets, so it works on copies of the stored labels
+    return buildTree(this.projectLabels.map((label) => ({ ...label })));
   }
 
   /** Labels of a workspace. Whether the list is complete is the query's concern, see `useWorkspaceLabels`. */
