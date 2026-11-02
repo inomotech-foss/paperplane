@@ -61,7 +61,7 @@ describe("ProjectSettingsLabelList", () => {
     const warn = vi.spyOn(console, "warn");
     const store = new LabelStore({
       router: { projectId: "p1" },
-      workspaceRoot: { currentWorkspace: undefined, getWorkspaceBySlug: () => undefined },
+      workspaceRoot: { currentWorkspace: null, getWorkspaceBySlug: () => null },
     });
     store.labelMap = { bug: label("bug", null, 1), ui: label("ui", "bug", 2), api: label("api", "bug", 3) };
     labels.store = store;
