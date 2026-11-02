@@ -117,7 +117,7 @@ export const PageNavigationPaneRoot = observer(function PageNavigationPaneRoot(p
           <div className="flex h-full w-full">
             <Tabs variant="contained" value={activeTab} onValueChange={handleTabChange}>
               <div className="flex h-full w-full flex-col">
-                <PageNavigationPaneTabsList />
+                <PageNavigationPaneTabsList activeTab={activeTab} />
                 <PageNavigationPaneTabPanelsRoot page={page} storeType={storeType} versionHistory={versionHistory} />
               </div>
             </Tabs>
