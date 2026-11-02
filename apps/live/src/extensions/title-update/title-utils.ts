@@ -4,6 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import { stripHTML } from "@plane/utils";
+import type { Schema } from "@tiptap/pm/model";
+import { yXmlFragmentToProseMirrorRootNode } from "@tiptap/y-tiptap";
+import type * as Y from "yjs";
 
-export const extractTextFromHTML = (html: string): string => stripHTML(html);
+/** Reads the typed title text from the Yjs fragment, with no HTML round trip. */
+export const extractTitleText = (title: Y.XmlFragment, schema: Schema): string =>
+  yXmlFragmentToProseMirrorRootNode(title, schema).textContent.trim();
