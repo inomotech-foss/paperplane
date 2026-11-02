@@ -96,7 +96,8 @@ export const useEditor = (props: TEditorHookProps) => {
       onDestroy: () => handleEditorReady?.(false),
       onFocus: onEditorFocus,
     },
-    [editable]
+    // A new provider brings a new Y.Doc, which the Collaboration extension only binds at creation
+    [editable, provider]
   );
 
   // Effect for syncing SWR data
