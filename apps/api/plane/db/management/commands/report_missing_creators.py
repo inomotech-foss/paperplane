@@ -5,6 +5,7 @@
 
 from django.apps import apps
 from django.core.management.base import BaseCommand
+from django.db import connection, transaction
 from django.db.models import F, OuterRef, Subquery
 
 from plane.db.models import BaseModel, IssueActivity
@@ -56,10 +57,17 @@ def missing_creators():
 
 
 class Command(BaseCommand):
-    help = "Count rows with a null created_by per model and how many have an inferable creator. Changes nothing."
+    help = (
+        "Count rows with a null created_by per model and how many have an inferable creator. "
+        "Soft-deleted, archived and draft rows are included. "
+        "Owner fields such as owned_by are a best guess for the creator. Runs in a read-only transaction."
+    )
 
     def handle(self, *args, **options):
-        rows = missing_creators()
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute("SET TRANSACTION READ ONLY")
+            rows = missing_creators()
         if not rows:
             self.stdout.write("No rows with a null created_by.")
             return
