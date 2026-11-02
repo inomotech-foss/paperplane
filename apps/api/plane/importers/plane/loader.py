@@ -9,7 +9,7 @@ from django.db import IntegrityError, connection, transaction
 
 from .copier import MissingTableError, copy_table, target_columns
 from .fixups import assign_default_types, link_untyped_projects, link_work_item_pages, material_type_icons
-from .tables import SKIPPED, TABLES
+from .tables import TABLES, skip_reason
 
 
 class ImportRefused(Exception):
@@ -86,7 +86,7 @@ class PlaneImporter:
                 raise ImportConflict(str(error).strip()) from error
 
         present = self.source.tables_with_rows()
-        report.skipped = {name: reason for name, reason in SKIPPED.items() if name in present}
+        report.skipped = {name: skip_reason(name) for name in present if skip_reason(name)}
         return report
 
     def _load(self, cursor, report, dry_run):
@@ -117,8 +117,10 @@ class PlaneImporter:
         missing = [spec.name for spec in TABLES if not target_columns(cursor, spec.name)]
         if missing:
             raise MissingTableError(", ".join(missing))
-        handled = {spec.name for spec in TABLES} | SKIPPED.keys()
-        unhandled = sorted(set(self.source.tables_with_rows()) - handled)
+        copied = {spec.name for spec in TABLES}
+        unhandled = sorted(
+            name for name in self.source.tables_with_rows() if name not in copied and not skip_reason(name)
+        )
         if unhandled:
             raise UnhandledTablesError("source tables with rows the importer does not handle: " + ", ".join(unhandled))
         cursor.execute("SELECT EXISTS (SELECT 1 FROM workspaces)")

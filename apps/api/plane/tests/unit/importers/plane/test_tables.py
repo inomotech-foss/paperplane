@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-from plane.importers.plane.tables import SKIPPED, TABLES, TableSpec, plan_columns
+from plane.importers.plane.tables import SKIPPED, TABLES, TableSpec, plan_columns, skip_reason
 
 
 def test_plan_columns_intersects_and_applies_transforms():
@@ -37,3 +37,14 @@ def test_plan_columns_quotes_reserved_words():
 def test_imported_workspaces_default_to_plane_dialect():
     spec = next(s for s in TABLES if s.name == "workspaces")
     assert "'plane' AS \"pql_dialect\"" in plan_columns({"id": "uuid"}, {"id", "pql_dialect"}, spec)
+
+
+def test_monthly_audit_log_partitions_are_skipped_whatever_the_month():
+    assert skip_reason("audit_logs_2031_04") == skip_reason("audit_logs")
+    assert skip_reason("audit_logs") is not None
+    assert not any(name.startswith("audit_logs_2") for name in SKIPPED)
+
+
+def test_unlisted_tables_have_no_skip_reason():
+    assert skip_reason("issues") is None
+    assert skip_reason("audit_logs_extra") is None

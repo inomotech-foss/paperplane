@@ -8,6 +8,7 @@ column. A transform replaces a shared column's value; a default fills a column
 only the target has. Both are SQL expressions evaluated on the source row.
 """
 
+import re
 from dataclasses import dataclass, field
 
 
@@ -91,8 +92,6 @@ SKIPPED = {
     "outbox": _RUNTIME,
     "processed_automation_events": _RUNTIME,
     "audit_logs": _RUNTIME,
-    "audit_logs_2026_08": _RUNTIME,
-    "audit_logs_2026_10": _RUNTIME,
     "permission_audit_logs": _RUNTIME,
     "auth_permission": _RUNTIME,
     "django_content_type": _RUNTIME,
@@ -132,6 +131,18 @@ SKIPPED = {
     "work_item_relation_definitions": "folded into issue_relations.relation_type",
     "workitem_pages": "converted to work item links",
 }
+
+
+# Plane partitions audit_logs by month (audit_logs_YYYY_MM).
+_PARTITIONS = [(re.compile(r"audit_logs_\d{4}_\d{2}"), "audit_logs")]
+
+
+def skip_reason(table):
+    """Why `table` is not copied, or None if it is not on the skip list."""
+    for pattern, parent in _PARTITIONS:
+        if pattern.fullmatch(table):
+            return SKIPPED[parent]
+    return SKIPPED.get(table)
 
 
 def plan_columns(source_cols, target_cols, spec):
