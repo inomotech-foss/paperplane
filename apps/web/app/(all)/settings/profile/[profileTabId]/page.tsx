@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // plane imports
-import { PROFILE_SETTINGS_TABS } from "@plane/constants";
+import { PROFILE_SETTINGS, PROFILE_SETTINGS_TABS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
@@ -39,7 +39,7 @@ function ProfileSettingsPage(props: Route.ComponentProps) {
 
   return (
     <>
-      <PageHead title={`${t("profile.label")} - ${t("general_settings")}`} />
+      <PageHead title={`${t("profile.label")} - ${t(PROFILE_SETTINGS[activeTab].i18n_label)}`} />
       <div className="relative size-full">
         <div className="flex size-full">
           <ProfileSettingsSidebarRoot

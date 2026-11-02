@@ -203,6 +203,7 @@ from .page.base import (
     PageFavoriteViewSet,
     PagesDescriptionViewSet,
     PageDuplicateEndpoint,
+    PageLiveAccessEndpoint,
 )
 from .page.attachment import PageAttachmentContentEndpoint, PageAttachmentEndpoint
 from .page.query import PageQueryEndpoint

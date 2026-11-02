@@ -3812,6 +3812,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/live-access/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["workspaces_projects_pages_live_access_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/lock/": {
         parameters: {
             query?: never;
@@ -9431,6 +9447,15 @@ export interface components {
             readonly project_ids?: string[];
             description_html: string;
         };
+        PageLiveAccess: {
+            access: components["schemas"]["PageLiveAccessAccessEnum"];
+        };
+        /**
+         * @description * `edit` - edit
+         *     * `read` - read
+         * @enum {string}
+         */
+        PageLiveAccessAccessEnum: "edit" | "read";
         PageMentionUser: {
             /** Format: uuid */
             id: string;
@@ -24282,6 +24307,29 @@ export interface operations {
             };
         };
     };
+    workspaces_projects_pages_live_access_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageLiveAccess"];
+                };
+            };
+        };
+    };
     workspaces_projects_pages_lock_create: {
         parameters: {
             query?: never;
@@ -27528,6 +27576,7 @@ export const networkEnumValues: ReadonlyArray<FlattenedDeepRequired<components>[
 export const notificationViewModeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NotificationViewModeEnum"]> = ["full", "compact"];
 export const notifyModeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NotifyModeEnum"]> = ["NONE", "ADMINS", "MEMBERS", "CUSTOM"];
 export const pageAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageAccessEnum"]> = [0, 1];
+export const pageLiveAccessAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageLiveAccessAccessEnum"]> = ["edit", "read"];
 export const pqlDialectEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PqlDialectEnum"]> = ["jql", "plane"];
 export const priorityEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PriorityEnum"]> = ["urgent", "high", "medium", "low", "none"];
 export const projectStateGroupEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ProjectStateGroupEnum"]> = ["backlog", "unstarted", "started", "completed", "cancelled"];

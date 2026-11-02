@@ -4,15 +4,16 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useRouter } from "next/navigation";
 // plane imports
-import type { CollaborationState, EditorRefApi } from "@plane/editor";
+import type { CollaborationState } from "@plane/editor";
 import { COMMENT_MARK_DATA_ATTRIBUTE, EDITOR_COMMENT_CREATE_EVENT } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
 import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryParams } from "@plane/types";
 // hooks
+import { usePageEditorRef } from "@/hooks/use-page-editor-ref";
 import { usePageFallback } from "@/hooks/use-page-fallback";
 import { useUnsyncedChangesPrompt } from "@/hooks/use-unsynced-changes-prompt";
 import type { PageUpdateHandler, TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
@@ -73,8 +74,6 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
   const [showContentTooLargeBanner, setShowContentTooLargeBanner] = useState(false);
   // translation
   const { t } = useTranslation();
-  // refs
-  const editorRef = useRef<EditorRefApi>(null);
   // navigation
   const router = useRouter();
   const { updateQueryParams } = useQueryParams();
@@ -83,6 +82,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     isContentEditable,
     editor: { setEditorRef },
   } = page;
+  const { editorRef, editorRefCallback } = usePageEditorRef(setEditorRef);
   // page fallback
   const { isFetchingFallbackBinary } = usePageFallback({
     editorRef,
@@ -96,17 +96,15 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
   const handleEditorReady = useCallback(
     (status: boolean) => {
       setEditorReady(status);
-      if (editorRef.current && !page.editor.editorRef) {
-        setEditorRef(editorRef.current);
-      }
+      if (editorRef.current) setEditorRef(editorRef.current);
     },
-    [page.editor.editorRef, setEditorRef]
+    [editorRef, setEditorRef]
   );
 
   useEffect(() => {
     const timer = setTimeout(() => setEditorRef(editorRef.current), 0);
     return () => clearTimeout(timer);
-  }, [isContentEditable, setEditorRef]);
+  }, [editorRef, isContentEditable, setEditorRef]);
 
   // Get extensions and navigation logic from hook
   const {
@@ -120,23 +118,13 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     editorRef,
   });
 
-  // Type-safe error handler for content too large errors
-  const errorHandler: PageUpdateHandler<"error"> = (params) => {
-    const { data } = params;
-
-    // Check if it's content too large error
-    if (data.error_code === "content_too_large") {
-      setShowContentTooLargeBanner(true);
-    }
-
-    // Call original error handler if exists
-    customRealtimeEventHandlers?.error?.(params);
-  };
-
-  const mergedCustomEventHandlers: TCustomEventHandlers = {
-    ...customRealtimeEventHandlers,
-    error: errorHandler,
-  };
+  const mergedCustomEventHandlers: TCustomEventHandlers = useMemo(() => {
+    const errorHandler: PageUpdateHandler<"error"> = (params) => {
+      if (params.data.error_code === "content_too_large") setShowContentTooLargeBanner(true);
+      customRealtimeEventHandlers?.error?.(params);
+    };
+    return { ...customRealtimeEventHandlers, error: errorHandler };
+  }, [customRealtimeEventHandlers]);
 
   // Get extended editor extensions configuration
   const extendedEditorProps = useExtendedEditorProps({
@@ -214,7 +202,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
           config={config}
           customRealtimeEventHandlers={mergedCustomEventHandlers}
           editorReady={editorReady}
-          editorForwardRef={editorRef}
+          editorForwardRef={editorRefCallback}
           handleEditorReady={handleEditorReady}
           handleOpenNavigationPane={handleOpenNavigationPane}
           handlers={handlers}

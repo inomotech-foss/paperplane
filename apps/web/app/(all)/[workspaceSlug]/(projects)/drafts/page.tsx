@@ -4,14 +4,19 @@
  * See the LICENSE file for details.
  */
 
+import { observer } from "mobx-react";
+import { useTranslation } from "@plane/i18n";
 // components
 import { PageHead } from "@/components/core/page-title";
 import { WorkspaceDraftIssuesRoot } from "@/components/issues/workspace-draft";
+import { useWorkspace } from "@/hooks/store/use-workspace";
 import type { Route } from "./+types/page";
 
 function WorkspaceDraftPage({ params }: Route.ComponentProps) {
   const { workspaceSlug } = params;
-  const pageTitle = "Workspace Draft";
+  const { t } = useTranslation();
+  const { currentWorkspace } = useWorkspace();
+  const pageTitle = currentWorkspace?.name ? `${currentWorkspace.name} - ${t("drafts")}` : undefined;
 
   return (
     <>
@@ -23,4 +28,4 @@ function WorkspaceDraftPage({ params }: Route.ComponentProps) {
   );
 }
 
-export default WorkspaceDraftPage;
+export default observer(WorkspaceDraftPage);

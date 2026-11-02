@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 // plane imports
 import type { EventToPayloadMap } from "@plane/editor";
 import { setToast } from "@plane/blocks/toast";
@@ -20,6 +20,15 @@ import { usePageStore } from "@/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 
+const getRealtimeErrorMessage = ({ error_type, error_code }: EventToPayloadMap["error"]) => {
+  if (error_code === "content_too_large") return "Document is too large to save. Please reduce the content size.";
+  if (error_code === "page_locked") return "The page is locked.";
+  if (error_code === "page_archived") return "The page is archived.";
+  return error_type === "fetch"
+    ? "Unable to load the page. Please try refreshing."
+    : "Unable to save the page. Please try again.";
+};
+
 // Type for page update handlers with proper typing for action data
 export type PageUpdateHandler<T extends keyof EventToPayloadMap = keyof EventToPayloadMap> = (params: {
   pageIds: string[];
@@ -27,7 +36,7 @@ export type PageUpdateHandler<T extends keyof EventToPayloadMap = keyof EventToP
   performAction: boolean;
 }) => void;
 
-// Type for custom event handlers that can be provided to override default behavior
+// Extra handlers that run after the default ones
 export type TCustomEventHandlers = {
   [K in keyof EventToPayloadMap]?: PageUpdateHandler<K>;
 };
@@ -51,6 +60,7 @@ export const useRealtimePageEvents = ({
   const { removePage, getPageById } = usePageStore(storeType);
 
   const { data: currentUser } = useUser();
+  const saveErrorShownRef = useRef(false);
 
   // Helper function to safely get user display text
   const getUserDisplayText = useCallback(
@@ -131,49 +141,27 @@ export const useRealtimePageEvents = ({
         },
 
         property_updated: ({ pageIds, data }: { pageIds: string[]; data: EventToPayloadMap["property_updated"] }) => {
-          pageIds.forEach((pageId) => {
-            const pageInstance = getPageById(pageId);
-            const { name: updatedName, ...rest } = data;
-            if (updatedName != null) pageInstance?.updateTitle(updatedName);
-            pageInstance?.mutateProperties(rest);
-          });
+          pageIds.forEach((pageId) => getPageById(pageId)?.mutateProperties(data, false));
+          // a save went through, so the next failure is news again
+          if (data.updated_at) saveErrorShownRef.current = false;
         },
 
         error: ({ pageIds, data }: { pageIds: string[]; data: EventToPayloadMap["error"] }) => {
-          const errorType = data.error_type;
-          const errorMessage = data.error_message || "An error occurred";
-          const errorCode = data.error_code;
-
-          if (page.id && pageIds.includes(page.id)) {
-            // Show toast notification
-            setToast({
-              type: "error",
-              title: errorType === "fetch" ? "Failed to load page" : "Failed to save page",
-              message: errorMessage,
-            });
-
-            // Handle specific error codes
-            const pageInstance = getPageById(page.id);
-            if (pageInstance) {
-              if (errorCode === "page_locked") {
-                // Lock the page if not already locked
-                if (!pageInstance.is_locked) {
-                  pageInstance.mutateProperties({ is_locked: true });
-                }
-              } else if (errorCode === "page_archived") {
-                // Mark page as archived if not already
-                if (!pageInstance.archived_at) {
-                  pageInstance.mutateProperties({ archived_at: new Date().toISOString() });
-                }
-              }
-            }
+          if (!page.id || !pageIds.includes(page.id)) return;
+          if (data.error_type === "store") {
+            // the server retries a failed save, so only the first failure in a row is shown
+            if (saveErrorShownRef.current) return;
+            saveErrorShownRef.current = true;
           }
+          setToast({
+            type: "error",
+            title: data.error_type === "fetch" ? "Failed to load page" : "Failed to save page",
+            message: getRealtimeErrorMessage(data),
+          });
         },
-
-        ...customRealtimeEventHandlers,
       };
     },
-    [getPageById, removePage, page, currentUser, getUserDisplayText, router, handlers, customRealtimeEventHandlers]
+    [getPageById, removePage, page, currentUser, getUserDisplayText, router, handlers]
   );
 
   // The main function that will be returned from this hook
@@ -198,8 +186,9 @@ export const useRealtimePageEvents = ({
       } else {
         console.warn(`No handler for message type: ${actionType.toString()}`);
       }
+      customRealtimeEventHandlers?.[actionType]?.({ pageIds: normalizedPageIds, data, performAction });
     },
-    [ACTION_HANDLERS]
+    [ACTION_HANDLERS, customRealtimeEventHandlers]
   );
 
   return { updatePageProperties };

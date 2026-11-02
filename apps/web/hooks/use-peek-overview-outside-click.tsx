@@ -19,6 +19,9 @@ const usePeekOverviewOutsideClickDetector = (
       // mousedown listener for this same click (e.g. a dropdown closing itself) has detached.
       const path = event.composedPath().filter((node): node is Element => node instanceof Element);
       if (ref.current && !path.includes(ref.current)) {
+        // A modifier or middle click on a link opens it elsewhere and leaves this page as it is.
+        const opensElsewhere = event.metaKey || event.ctrlKey || event.shiftKey || event.button === 1;
+        if (opensElsewhere && path.some((el) => el instanceof HTMLAnchorElement && el.hasAttribute("href"))) return;
         // check for the closest element with attribute name data-prevent-outside-click
         const preventOutsideClickElement = path.find((el) => el.hasAttribute("data-prevent-outside-click"));
         // if the closest element with attribute name data-prevent-outside-click is found

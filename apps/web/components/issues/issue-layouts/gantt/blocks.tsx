@@ -33,7 +33,7 @@ import { useChartPalette } from "@/hooks/use-chart-palette";
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
 // local imports
 import { WorkItemPreviewCard } from "../../preview-card";
-import { getBlockViewDetails } from "../utils";
+import { calculateIdentifierWidth, getBlockViewDetails } from "../utils";
 import { getBarColor } from "./bar-color";
 import type { TGanttRowState } from "./hierarchy-context";
 import { useGanttHierarchy } from "./hierarchy-context";
@@ -220,7 +220,7 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   const { isMobile } = usePlatformOS();
   const storeType = useIssueStoreType();
   const { issuesFilter } = useIssues(storeType);
-  const { getProjectIdentifierById } = useProject();
+  const { getProjectById, getProjectIdentifierById } = useProject();
   const { getIssueTypeById } = useIssueTypes();
 
   // handlers
@@ -233,6 +233,10 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
   const issueDetails = getIssueById(issueId);
   const issueType = getIssueTypeById(issueDetails?.type_id);
   const projectIdentifier = getProjectIdentifierById(issueDetails?.project_id);
+  const identifierMinWidth = calculateIdentifierWidth(
+    projectIdentifier?.length ?? 0,
+    getProjectById(issueDetails?.project_id)?.next_work_item_sequence ?? 1
+  );
   const rowState = hierarchy?.getRowState(issueId);
 
   const nestingDepth = useNestingDepth(issueId, rowState);
@@ -259,13 +263,15 @@ export const IssueGanttSidebarBlock = observer(function IssueGanttSidebarBlock(p
       {nestingDepth > 0 && <span aria-hidden className="flex-shrink-0" style={{ width: `${nestingDepth * 16}px` }} />}
       {hierarchy && <GanttRowToggle rowState={rowState} onToggle={() => hierarchy.toggleRow(issueId)} />}
       {issueDetails?.project_id && (
-        <IssueIdentifier
-          issueId={issueDetails.id}
-          projectId={issueDetails.project_id}
-          size="xs"
-          variant="tertiary"
-          displayProperties={issuesFilter?.issueFilters?.displayProperties}
-        />
+        <div className="flex-shrink-0" style={{ minWidth: `${identifierMinWidth}px` }}>
+          <IssueIdentifier
+            issueId={issueDetails.id}
+            projectId={issueDetails.project_id}
+            size="xs"
+            variant="tertiary"
+            displayProperties={issuesFilter?.issueFilters?.displayProperties}
+          />
+        </div>
       )}
       {issueType && (
         <span className="flex flex-shrink-0 items-center">

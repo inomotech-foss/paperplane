@@ -7,8 +7,8 @@
 import React from "react";
 // plane imports
 import { AreaChart } from "@plane/blocks/charts/area-chart";
-import type { TChartData, TModuleCompletionChartDistribution } from "@plane/types";
-import { renderFormattedDateWithoutYear } from "@plane/utils";
+import type { TModuleCompletionChartDistribution } from "@plane/types";
+import { getBurndownChartData } from "@/lib/burndown-chart";
 
 type Props = {
   distribution: TModuleCompletionChartDistribution;
@@ -18,11 +18,7 @@ type Props = {
 };
 
 function ProgressChart({ distribution, totalIssues, className = "", plotTitle = "work items" }: Props) {
-  const chartData: TChartData<string, string>[] = Object.keys(distribution ?? []).map((key, index) => ({
-    name: renderFormattedDateWithoutYear(key),
-    current: distribution[key] ?? 0,
-    ideal: totalIssues * (1 - index / (Object.keys(distribution ?? []).length - 1)),
-  }));
+  const chartData = getBurndownChartData(distribution, totalIssues);
 
   return (
     <div className={`flex w-full items-center justify-center ${className}`}>

@@ -24,7 +24,7 @@ import type { TInboxIssueListQuery } from "@/services/inbox/inbox-issue.service"
 import type { IInboxIssueStore } from "@/store/inbox/inbox-issue.store";
 import { InboxIssueStore } from "@/store/inbox/inbox-issue.store";
 import type { CoreRootStore } from "../root.store";
-import { countAppliedInboxFilters, inboxIssueQuery } from "./inbox-query";
+import { countAppliedInboxFilters, getDefaultInboxStatus, hasUserInboxFilters, inboxIssueQuery } from "./inbox-query";
 
 type TLoader =
   | "init-loading"
@@ -48,6 +48,7 @@ export interface IProjectInboxStore {
   inboxFilters: Partial<TInboxIssueFilter>; // computed project inbox filters
   inboxSorting: Partial<TInboxIssueSorting>; // computed project inbox sorting
   getAppliedFiltersCount: number;
+  hasUserFilters: boolean;
   filteredInboxIssueIds: string[];
   // computed functions
   getIssueInboxByIssueId: (issueId: string) => IInboxIssueStore;
@@ -112,6 +113,7 @@ export class ProjectInboxStore implements IProjectInboxStore {
       inboxFilters: computed,
       inboxSorting: computed,
       getAppliedFiltersCount: computed,
+      hasUserFilters: computed,
       filteredInboxIssueIds: computed,
       // actions
       handleInboxIssueFilters: action,
@@ -144,6 +146,10 @@ export class ProjectInboxStore implements IProjectInboxStore {
 
   get getAppliedFiltersCount() {
     return countAppliedInboxFilters(this.inboxFilters);
+  }
+
+  get hasUserFilters() {
+    return hasUserInboxFilters(this.inboxFilters, this.currentTab);
   }
 
   get filteredInboxIssueIds() {
@@ -212,12 +218,7 @@ export class ProjectInboxStore implements IProjectInboxStore {
         set(this, ["inboxIssueIds"], []);
         set(this, ["inboxIssuePaginationInfo"], undefined);
         set(this.sortingMap, [projectId], { order_by: "issue__created_at", sort_by: "desc" });
-        set(this.filtersMap, [projectId], {
-          status:
-            tab === EInboxIssueCurrentTab.OPEN
-              ? [EInboxIssueStatus.PENDING]
-              : [EInboxIssueStatus.ACCEPTED, EInboxIssueStatus.DECLINED, EInboxIssueStatus.DUPLICATE],
-        });
+        set(this.filtersMap, [projectId], { status: getDefaultInboxStatus(tab) });
       });
       this.fetchInboxIssues(workspaceSlug, projectId, "filter-loading");
     }
@@ -250,12 +251,7 @@ export class ProjectInboxStore implements IProjectInboxStore {
   initializeDefaultFilters = (projectId: string, tab: TInboxIssueCurrentTab) => {
     if (!projectId || !tab) return;
     if (isEmpty(this.inboxFilters)) {
-      set(this.filtersMap, [projectId], {
-        status:
-          tab === EInboxIssueCurrentTab.OPEN
-            ? [EInboxIssueStatus.PENDING]
-            : [EInboxIssueStatus.ACCEPTED, EInboxIssueStatus.DECLINED, EInboxIssueStatus.DUPLICATE],
-      });
+      set(this.filtersMap, [projectId], { status: getDefaultInboxStatus(tab) });
     }
     if (isEmpty(this.inboxSorting)) {
       set(this.sortingMap, [projectId], { order_by: "issue__created_at", sort_by: "desc" });

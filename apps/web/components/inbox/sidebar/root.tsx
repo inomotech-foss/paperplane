@@ -62,7 +62,7 @@ export const InboxSidebar = observer(function InboxSidebar(props: IInboxSidebarP
     filteredInboxIssueIds,
     inboxIssuePaginationInfo,
     fetchInboxPaginationIssues,
-    getAppliedFiltersCount,
+    hasUserFilters,
   } = useProjectInbox();
   // derived values
   const fetchNextPages = useCallback(() => {
@@ -143,11 +143,11 @@ export const InboxSidebar = observer(function InboxSidebar(props: IInboxSidebarP
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center">
-                {getAppliedFiltersCount > 0 ? (
+                {hasUserFilters ? (
                   <EmptyStateDetailed
                     assetKey="search"
-                    title={t("common_empty_state.search.title")}
-                    description={t("common_empty_state.search.description")}
+                    title={t("inbox_issue.empty_state.sidebar_filter.title")}
+                    description={t("inbox_issue.empty_state.sidebar_filter.description")}
                     assetClassName="size-20"
                     rootClassName="px-page-x"
                   />
@@ -167,11 +167,10 @@ export const InboxSidebar = observer(function InboxSidebar(props: IInboxSidebarP
                     rootClassName="px-page-x"
                   />
                 ) : (
-                  // TODO: Add translation
                   <EmptyStateDetailed
                     assetKey="inbox"
-                    title="No request closed yet"
-                    description="All the work items whether accepted or declined can be found here."
+                    title={t("inbox_issue.empty_state.sidebar_closed_tab.title")}
+                    description={t("inbox_issue.empty_state.sidebar_closed_tab.description")}
                     assetClassName="size-20"
                     className="px-10"
                   />

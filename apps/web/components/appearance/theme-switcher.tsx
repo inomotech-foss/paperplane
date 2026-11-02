@@ -9,7 +9,6 @@ import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 // plane imports
 import type { I_THEME_OPTION } from "@plane/constants";
-import { THEME_OPTIONS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { setPromiseToast } from "@plane/blocks/toast";
 import { applyCustomTheme } from "@plane/utils";
@@ -17,6 +16,7 @@ import { applyCustomTheme } from "@plane/utils";
 import { CustomThemeSelector } from "@/components/core/theme/custom-theme-selector";
 import { ThemeSwitch } from "@/components/core/theme/theme-switch";
 import { SettingsControlItem } from "@/components/settings/control-item";
+import { getThemeOption } from "@/lib/theme-option";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
 
@@ -30,15 +30,14 @@ export const ThemeSwitcher = observer(function ThemeSwitcher(props: {
   // store hooks
   const { data: userProfile, updateUserTheme } = useUserProfile();
   // theme
-  const { setTheme } = useTheme();
+  const { theme: activeTheme, setTheme } = useTheme();
   // translation
   const { t } = useTranslation();
   // derived values
-  const currentTheme = useMemo(() => {
-    // oxlint-disable-next-line no-shadow
-    const userThemeOption = THEME_OPTIONS.find((t) => t.value === userProfile?.theme?.theme);
-    return userThemeOption || null;
-  }, [userProfile?.theme?.theme]);
+  const currentTheme = useMemo(
+    () => getThemeOption(userProfile?.theme?.theme, activeTheme),
+    [userProfile?.theme?.theme, activeTheme]
+  );
 
   const handleThemeChange = useCallback(
     async (themeOption: I_THEME_OPTION) => {
