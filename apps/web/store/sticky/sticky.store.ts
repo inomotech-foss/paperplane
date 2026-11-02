@@ -14,6 +14,8 @@ import { StickyService } from "@/services/sticky.service";
 export interface IStickyStore {
   creatingSticky: boolean;
   loader: TLoader;
+  /** The last first-page fetch failed. Cleared when the next one starts. */
+  fetchError: boolean;
   workspaceStickies: Record<string, string[]>; // workspaceId -> stickyIds
   stickies: Record<string, TSticky>; // stickyId -> sticky
   searchQuery: string;
@@ -45,6 +47,7 @@ export interface IStickyStore {
 
 export class StickyStore implements IStickyStore {
   loader: TLoader = "init-loader";
+  fetchError = false;
   creatingSticky = false;
   workspaceStickies: Record<string, string[]> = {};
   stickies: Record<string, TSticky> = {};
@@ -63,6 +66,7 @@ export class StickyStore implements IStickyStore {
       // observables
       creatingSticky: observable,
       loader: observable,
+      fetchError: observable,
       activeStickyId: observable,
       focusStickyId: observable,
       showAddNewSticky: observable,
@@ -155,6 +159,7 @@ export class StickyStore implements IStickyStore {
 
   fetchWorkspaceStickies = async (workspaceSlug: string) => {
     try {
+      this.fetchError = false;
       if (this.workspaceStickies[workspaceSlug]) {
         this.loader = "mutation";
       } else {
@@ -181,6 +186,7 @@ export class StickyStore implements IStickyStore {
       console.error(e);
       runInAction(() => {
         this.loader = "loaded";
+        this.fetchError = true;
       });
     }
   };

@@ -28,6 +28,7 @@ import lightStickiesAsset from "@/app/assets/empty-state/stickies/stickies-light
 import darkStickiesSearchAsset from "@/app/assets/empty-state/stickies/stickies-search-dark.webp?url";
 import lightStickiesSearchAsset from "@/app/assets/empty-state/stickies/stickies-search-light.webp?url";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { DetailedEmptyState } from "@/components/empty-state/detailed-empty-state-root";
 import { SimpleEmptyState } from "@/components/empty-state/simple-empty-state-root";
 import { StickiesEmptyState } from "@/components/home/widgets/empty-states/stickies";
@@ -66,7 +67,8 @@ export const StickiesList = observer(function StickiesList(props: TProps) {
   // plane hooks
   const { t } = useTranslation();
   // store hooks
-  const { getWorkspaceStickyIds, toggleShowNewSticky, searchQuery, loader } = useSticky();
+  const { getWorkspaceStickyIds, toggleShowNewSticky, searchQuery, loader, fetchError, fetchWorkspaceStickies } =
+    useSticky();
   const { allowPermissions } = useUserPermissions();
   // sticky operations
   const { stickyOperations } = useStickyOperations({ workspaceSlug: workspaceSlug?.toString() });
@@ -120,6 +122,8 @@ export const StickiesList = observer(function StickiesList(props: TProps) {
   if (loader === "init-loader") {
     return <StickiesLoader />;
   }
+
+  if (fetchError) return <LoadErrorState onRetry={() => fetchWorkspaceStickies(workspaceSlug)} />;
 
   if (loader === "loaded" && workspaceStickyIds.length === 0) {
     return (
