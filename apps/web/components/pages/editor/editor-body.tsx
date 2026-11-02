@@ -40,6 +40,7 @@ import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 // plane web imports
 import type { TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
 import { useRealtimePageEvents } from "@/hooks/use-realtime-page-events";
+import { useFocusEmptyTitle } from "@/hooks/use-focus-empty-title";
 import { useRealtimeServerEvents } from "@/hooks/use-realtime-server-events";
 import type { TExtendedEditorExtensionsConfig } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
@@ -149,6 +150,13 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     setSyncingStatus,
   } = page;
   const workspaceId = getWorkspaceBySlug(workspaceSlug)?.id ?? "";
+  useFocusEmptyTitle({
+    pageId,
+    name: page.name,
+    isEditable: isContentEditable,
+    isSynced: page.isSyncingWithServer === "synced",
+    titleRef: titleEditorRef,
+  });
   // use editor mention
   const { fetchMentions } = useEditorMention({
     enableAdvancedMentions: true,
@@ -262,6 +270,8 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       isServerDisconnected: false,
       hasUnsyncedChanges: false,
     });
+    // the page object outlives this editor, so a reopened page must not start as synced
+    return () => setSyncingStatus("syncing");
   }, [pageId, setSyncingStatus, onCollaborationStateChange]);
 
   const aiHandler = useWritingAssistant({ workspaceId, workspaceSlug, projectId });
