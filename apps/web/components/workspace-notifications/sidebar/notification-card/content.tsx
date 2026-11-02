@@ -45,16 +45,19 @@ export type TNotificationContentMap = {
   [key: string]: TNotificationContentHandler;
 };
 
+const relationContent =
+  (relation: string): TNotificationContentHandler =>
+  ({ verb, newValue, oldValue }) =>
+    verb === "deleted"
+      ? { action: `marked that this work item is no longer ${relation}`, value: oldValue, showConnector: false }
+      : { action: `marked that this work item is ${relation}`, value: newValue, showConnector: false };
+
 // Base notification content map for core fields
 export const BASE_NOTIFICATION_CONTENT_MAP: TNotificationContentMap = {
-  duplicate: ({ verb }) => ({
-    action:
-      verb === "created"
-        ? "marked that this work item is a duplicate of"
-        : "marked that this work item is not a duplicate",
-    value: null,
-    showConnector: false,
-  }),
+  relates_to: relationContent("related to"),
+  blocking: relationContent("blocking"),
+  blocked_by: relationContent("blocked by"),
+  duplicate: relationContent("a duplicate of"),
   assignees: ({ newValue, oldValue }) => ({
     action: newValue !== "" ? "added assignee" : "removed assignee",
     value: newValue !== "" ? newValue : oldValue,
@@ -79,11 +82,6 @@ export const BASE_NOTIFICATION_CONTENT_MAP: TNotificationContentMap = {
     action: newValue !== "" ? "added parent" : "removed parent",
     value: newValue !== "" ? newValue : oldValue,
     showConnector: false,
-  }),
-  relates_to: () => ({
-    action: "marked that this work item is related to",
-    value: null,
-    showConnector: true,
   }),
   comment: ({ newValue }, renderCommentBox?: boolean) => ({
     action: "commented",
@@ -195,6 +193,7 @@ export function NotificationContent({
   const renderValue = (): ReactNode => {
     // Check if value is explicitly defined in map
     if (contentDetails && "value" in contentDetails) return contentDetails.value;
+    if (verb === "deleted") return null;
     // Fallback to default value handler for fields not in map or without value defined
     return renderAdditionalValue(notificationField, newValue, oldValue);
   };
@@ -203,32 +202,35 @@ export function NotificationContent({
   const showConnector =
     contentDetails?.showConnector !== undefined ? contentDetails.showConnector : shouldShowConnector(notificationField);
 
+  const value = renderValue();
+  const hasValue = value !== null && value !== undefined && value !== "";
+
   return (
     <>
       {renderTriggerName()}
-      <span className="text-tertiary">{renderAction()} </span>
-      {verb !== "deleted" && (
+      <span className="text-tertiary">{renderAction()}</span>
+      {hasValue && (
         <>
-          {showConnector && <span className="text-tertiary">to </span>}
-          <span className="font-medium text-primary">{renderValue()}</span>
-          {notificationField === "comment" && renderCommentBox && (
-            <div className="origin-left scale-75">
-              <LiteTextEditor
-                editable={false}
-                id=""
-                initialValue={newValue ?? ""}
-                workspaceId={workspaceId}
-                workspaceSlug={workspaceSlug}
-                projectId={projectId}
-                displayConfig={{
-                  fontSize: "small-font",
-                }}
-              />
-            </div>
-          )}
-          {"."}
+          {showConnector && <span className="text-tertiary"> to</span>}{" "}
+          <span className="font-medium text-primary">{value}</span>
         </>
       )}
+      {verb !== "deleted" && notificationField === "comment" && renderCommentBox && (
+        <div className="origin-left scale-75">
+          <LiteTextEditor
+            editable={false}
+            id=""
+            initialValue={newValue ?? ""}
+            workspaceId={workspaceId}
+            workspaceSlug={workspaceSlug}
+            projectId={projectId}
+            displayConfig={{
+              fontSize: "small-font",
+            }}
+          />
+        </div>
+      )}
+      {"."}
     </>
   );
 }
