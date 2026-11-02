@@ -19,6 +19,7 @@ import { ModuleListItemAction, ModuleQuickActions } from "@/components/modules";
 // hooks
 import { useModule } from "@/hooks/store/use-module";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { MD_UP, useMediaQuery } from "@/hooks/use-media-query";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 
 type Props = {
@@ -37,6 +38,7 @@ export const ModuleListItem = observer(function ModuleListItem(props: Props) {
   // store hooks
   const { getModuleById } = useModule();
   const { isMobile } = usePlatformOS();
+  const isMdUp = useMediaQuery(MD_UP);
 
   // derived values
   const moduleDetails = getModuleById(moduleId);
@@ -107,16 +109,23 @@ export const ModuleListItem = observer(function ModuleListItem(props: Props) {
           <InfoOutline className="h-4 w-4 text-placeholder" />
         </button>
       }
-      actionableItems={<ModuleListItemAction moduleId={moduleId} moduleDetails={moduleDetails} parentRef={parentRef} />}
+      actionableItems={
+        <ModuleListItemAction
+          moduleId={moduleId}
+          moduleDetails={moduleDetails}
+          parentRef={parentRef}
+          showQuickActions={isMdUp}
+        />
+      }
       quickActionElement={
-        <div className="block md:hidden">
+        !isMdUp && (
           <ModuleQuickActions
             parentRef={parentRef}
             moduleId={moduleId}
             projectId={projectId.toString()}
             workspaceSlug={workspaceSlug.toString()}
           />
-        </div>
+        )
       }
       isMobile={isMobile}
       parentRef={parentRef}

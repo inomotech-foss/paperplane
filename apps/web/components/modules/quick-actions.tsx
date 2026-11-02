@@ -24,6 +24,7 @@ import { ArchiveModuleModal, CreateUpdateModuleModal, DeleteModuleModal } from "
 import { useModule } from "@/hooks/store/use-module";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { useMountOnOpen } from "@/hooks/use-mount-on-open";
 
 type Props = {
   parentRef: React.RefObject<HTMLDivElement | null>;
@@ -43,6 +44,9 @@ export const ModuleQuickActions = observer(function ModuleQuickActions(props: Pr
   const [editModal, setEditModal] = useState(false);
   const [archiveModuleModal, setArchiveModuleModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
+  const showEditModal = useMountOnOpen(editModal);
+  const showArchiveModal = useMountOnOpen(archiveModuleModal);
+  const showDeleteModal = useMountOnOpen(deleteModal);
   // store hooks
   const { allowPermissions } = useUserPermissions();
 
@@ -120,21 +124,27 @@ export const ModuleQuickActions = observer(function ModuleQuickActions(props: Pr
     <>
       {moduleDetails && (
         <div className="fixed">
-          <CreateUpdateModuleModal
-            isOpen={editModal}
-            onClose={() => setEditModal(false)}
-            data={moduleDetails}
-            projectId={projectId}
-            workspaceSlug={workspaceSlug}
-          />
-          <ArchiveModuleModal
-            workspaceSlug={workspaceSlug}
-            projectId={projectId}
-            moduleId={moduleId}
-            isOpen={archiveModuleModal}
-            handleClose={() => setArchiveModuleModal(false)}
-          />
-          <DeleteModuleModal data={moduleDetails} isOpen={deleteModal} onClose={() => setDeleteModal(false)} />
+          {showEditModal && (
+            <CreateUpdateModuleModal
+              isOpen={editModal}
+              onClose={() => setEditModal(false)}
+              data={moduleDetails}
+              projectId={projectId}
+              workspaceSlug={workspaceSlug}
+            />
+          )}
+          {showArchiveModal && (
+            <ArchiveModuleModal
+              workspaceSlug={workspaceSlug}
+              projectId={projectId}
+              moduleId={moduleId}
+              isOpen={archiveModuleModal}
+              handleClose={() => setArchiveModuleModal(false)}
+            />
+          )}
+          {showDeleteModal && (
+            <DeleteModuleModal data={moduleDetails} isOpen={deleteModal} onClose={() => setDeleteModal(false)} />
+          )}
           {additionalModals}
         </div>
       )}

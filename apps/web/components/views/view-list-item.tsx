@@ -14,6 +14,7 @@ import type { IProjectView } from "@plane/types";
 // components
 import { ListItem } from "@/components/core/list";
 // hooks
+import { MD_UP, useMediaQuery } from "@/hooks/use-media-query";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local imports
 import { ViewQuickActions } from "./quick-actions";
@@ -31,6 +32,7 @@ export const ProjectViewListItem = observer(function ProjectViewListItem(props: 
   const { workspaceSlug, projectId } = useParams();
   // store hooks
   const { isMobile } = usePlatformOS();
+  const isMdUp = useMediaQuery(MD_UP);
 
   return (
     <ListItem
@@ -45,16 +47,16 @@ export const ProjectViewListItem = observer(function ProjectViewListItem(props: 
       }
       title={view.name}
       itemLink={`/${workspaceSlug}/projects/${projectId}/views/${view.id}`}
-      actionableItems={<ViewListItemAction parentRef={parentRef} view={view} />}
+      actionableItems={<ViewListItemAction parentRef={parentRef} view={view} showQuickActions={isMdUp} />}
       quickActionElement={
-        <div className="block md:hidden">
+        !isMdUp && (
           <ViewQuickActions
             parentRef={parentRef}
             projectId={projectId.toString()}
             view={view}
             workspaceSlug={workspaceSlug.toString()}
           />
-        </div>
+        )
       }
       isMobile={isMobile}
       parentRef={parentRef}

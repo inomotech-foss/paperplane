@@ -23,6 +23,7 @@ import { copyUrlToClipboard } from "@plane/utils";
 import { useViewMenuItems } from "@/components/common/quick-actions-helper";
 // hooks
 import { useUser, useUserPermissions } from "@/hooks/store/user";
+import { useMountOnOpen } from "@/hooks/use-mount-on-open";
 import { useViewPublish } from "@/components/views/publish";
 // local imports
 import { DeleteProjectViewModal } from "./delete-view-modal";
@@ -48,6 +49,8 @@ export const ViewQuickActions = observer(function ViewQuickActions(props: Props)
   // states
   const [createUpdateViewModal, setCreateUpdateViewModal] = useState(false);
   const [deleteViewModal, setDeleteViewModal] = useState(false);
+  const showUpdateModal = useMountOnOpen(createUpdateViewModal);
+  const showDeleteModal = useMountOnOpen(deleteViewModal);
   // store hooks
   const { data } = useUser();
   const { allowPermissions } = useUserPermissions();
@@ -98,14 +101,18 @@ export const ViewQuickActions = observer(function ViewQuickActions(props: Props)
 
   return (
     <>
-      <CreateUpdateProjectViewModal
-        isOpen={createUpdateViewModal}
-        onClose={() => setCreateUpdateViewModal(false)}
-        workspaceSlug={workspaceSlug}
-        projectId={projectId}
-        data={view}
-      />
-      <DeleteProjectViewModal data={view} isOpen={deleteViewModal} onClose={() => setDeleteViewModal(false)} />
+      {showUpdateModal && (
+        <CreateUpdateProjectViewModal
+          isOpen={createUpdateViewModal}
+          onClose={() => setCreateUpdateViewModal(false)}
+          workspaceSlug={workspaceSlug}
+          projectId={projectId}
+          data={view}
+        />
+      )}
+      {showDeleteModal && (
+        <DeleteProjectViewModal data={view} isOpen={deleteViewModal} onClose={() => setDeleteViewModal(false)} />
+      )}
       {additionalModals}
       <ContextMenu parentRef={parentRef} items={CONTEXT_MENU_ITEMS} />
       <Menu>

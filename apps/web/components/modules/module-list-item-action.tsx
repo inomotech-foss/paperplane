@@ -32,10 +32,12 @@ type Props = {
   moduleId: string;
   moduleDetails: IModule;
   parentRef: React.RefObject<HTMLDivElement | null>;
+  /** The row renders its quick actions here on wider screens and next to the title otherwise. */
+  showQuickActions: boolean;
 };
 
 export const ModuleListItemAction = observer(function ModuleListItemAction(props: Props) {
-  const { moduleId, moduleDetails, parentRef } = props;
+  const { moduleId, moduleDetails, parentRef, showQuickActions } = props;
   // router
   const { workspaceSlug, projectId } = useParams();
   //   store hooks
@@ -181,15 +183,13 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
           selected={moduleDetails.is_favorite ?? false}
         />
       )}
-      {workspaceSlug && projectId && (
-        <div className="hidden md:block">
-          <ModuleQuickActions
-            parentRef={parentRef}
-            moduleId={moduleId}
-            projectId={projectId.toString()}
-            workspaceSlug={workspaceSlug.toString()}
-          />
-        </div>
+      {showQuickActions && workspaceSlug && projectId && (
+        <ModuleQuickActions
+          parentRef={parentRef}
+          moduleId={moduleId}
+          projectId={projectId.toString()}
+          workspaceSlug={workspaceSlug.toString()}
+        />
       )}
     </>
   );
