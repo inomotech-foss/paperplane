@@ -40,6 +40,7 @@ export const InboxIssueTitle = observer(function InboxIssueTitle(props: TInboxIs
           value={data?.name}
           onChange={(e) => handleData("name", e.target.value)}
           placeholder={t("title")}
+          autoFocus
           tabIndex={getIndex("name")}
           required
         />
