@@ -259,4 +259,13 @@ describe("page access on the collaboration server", () => {
     expect(connections()).toBe(2);
   });
 
+  it("retries instead of failing for good when the API is down at connect", async () => {
+    const viewer = connect("viewer", 503);
+    await vi.waitFor(() => expect(requestsBy("viewer")).toBeGreaterThan(0));
+    api.users.set("session=viewer", { id: "viewer", access: "read" });
+
+    await vi.waitFor(() => expect(viewer.provider.isSynced).toBe(true), { timeout: 10_000 });
+    expect(viewer.authFailed).toBe(false);
+    expect(viewer.scopes).toEqual(["readonly"]);
+  });
 });
