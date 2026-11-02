@@ -11,7 +11,7 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import validate_email
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.utils.html import strip_tags
 
@@ -57,6 +57,7 @@ from plane.db.models import (
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection, ServiceDeskNotifyMode
 from plane.utils.content_validator import validate_html_content
 from plane.utils.issue_type import work_item_type_error
+from plane.utils.openapi.schema import Nullable
 
 
 def _clean_email_list(emails, exclude=()):
@@ -242,15 +243,13 @@ class IssueEmailThreadEndpoint(BaseAPIView):
             .first()
         )
 
-    @extend_schema(responses={200: IssueEmailThreadSerializer})
+    @extend_schema(responses={200: Nullable(IssueEmailThreadSerializer)})
     @allow_permission([ROLE.ADMIN, ROLE.MEMBER])
     def get(self, request, slug, project_id, issue_id):
         thread = self._get_thread(slug, project_id, issue_id)
         if thread is None:
-            return Response(
-                {"error": "This work item has no email thread"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            # DRF renders None as an empty body, not as JSON null.
+            return JsonResponse(None, safe=False)
         return Response(IssueEmailThreadSerializer(thread).data, status=status.HTTP_200_OK)
 
     @extend_schema(request=IssueEmailThreadUpdateSerializer, responses={200: IssueEmailThreadSerializer})

@@ -21910,7 +21910,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IssueEmailThread"];
+                    "application/json": components["schemas"]["IssueEmailThread"] | null;
                 };
             };
         };

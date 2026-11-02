@@ -10716,7 +10716,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueEmailThread'
+                allOf:
+                - $ref: '#/components/schemas/IssueEmailThread'
+                nullable: true
           description: ''
     patch:
       operationId: workspaces_projects_issues_email_thread_partial_update
