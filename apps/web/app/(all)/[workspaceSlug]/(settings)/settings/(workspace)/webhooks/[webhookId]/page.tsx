@@ -16,8 +16,8 @@ import { LogoSpinner } from "@/components/common/logo-spinner";
 import { PageHead } from "@/components/core/page-title";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { DeleteWebhookModal, WebhookDeleteSection, WebhookForm } from "@/components/web-hooks";
+import { getApiErrorMessage, getApiFieldError } from "@/helpers/error.helper";
 // hooks
-import { readString } from "@plane/types";
 import { useWebhook } from "@/hooks/store/use-webhook";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -69,10 +69,11 @@ function WebhookDetailsPage({ params }: Route.ComponentProps) {
         message: "Webhook updated successfully.",
       });
     } catch (error) {
+      if (getApiFieldError(error, "url")) throw error;
       setToast({
         type: "error",
         title: "Error!",
-        message: readString(error, "error") ?? "Something went wrong. Please try again.",
+        message: getApiErrorMessage(error) ?? "Something went wrong. Please try again.",
       });
     }
   };
