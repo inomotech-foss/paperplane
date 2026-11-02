@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Osiągnięto limit treści, a synchronizacja na żywo jest wyłączona. Utwórz nową stronę lub użyj zagnieżdżonych stron, aby kontynuować synchronizację."
   },
+  "page_sync_timeout_banner": {
+    "message": "Ostatnie zmiany nie zostały jeszcze zapisane. Trwa ponowne łączenie z serwerem. Nie zamykaj tej strony."
+  },
   "page_list_tree": {
     "expand_button": "Rozwiń podstrony",
     "collapse_button": "Zwiń podstrony",

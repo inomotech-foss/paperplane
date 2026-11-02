@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "已达到内容上限，实时同步已关闭。请创建新页面或使用嵌套页面以继续同步。"
   },
+  "page_sync_timeout_banner": {
+    "message": "您最近的更改尚未保存。正在重新连接服务器。请保持此页面打开。"
+  },
   "page_list_tree": {
     "expand_button": "展开子页面",
     "collapse_button": "折叠子页面",

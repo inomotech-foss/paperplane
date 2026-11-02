@@ -6,11 +6,13 @@
 
 import { HocuspocusProvider } from "@hocuspocus/provider";
 // react
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react";
 // indexeddb
 import { IndexeddbPersistence } from "y-indexeddb";
 // yjs
 import type * as Y from "yjs";
+// helpers
+import { STORED_PAGE_ORIGIN } from "@/helpers/yjs-utils";
 // types
 import type { CollaborationState, CollabStage, CollaborationError } from "@/types/collaboration";
 
@@ -28,10 +30,22 @@ type UseYjsSetupArgs = {
   onStateChange?: (state: CollaborationState) => void;
   options?: {
     maxConnectionAttempts?: number;
+    authTimeoutMs?: number;
+    syncTimeoutMs?: number;
   };
 };
 
 const DEFAULT_MAX_RETRIES = 3;
+// Both stay above the live server's own bounds, so a slow server answers before the client gives up:
+// authentication calls the API with a 20 s timeout, and a load allows 30 s for the page fetch plus 10 s for Redis.
+// The provider also drops a socket that receives nothing for 30 s. handleClose reports that as a sync timeout too.
+const DEFAULT_AUTH_TIMEOUT_MS = 30_000;
+const DEFAULT_SYNC_TIMEOUT_MS = 45_000;
+
+// Sent by the live server when it gives up loading the document
+const DOCUMENT_LOAD_TIMEOUT_REASON = "document-load-timeout";
+
+const isSyncTimeout = (stage: CollabStage) => stage.kind === "disconnected" && stage.error.type === "sync-timeout";
 
 // The live server announces a forced close with a stateless message, then sends a
 // CLOSE message that the provider reports as code 1000 on a socket that stays open.
@@ -46,7 +60,9 @@ const readForceCloseCode = (payload: string): number | null => {
   }
 };
 
-export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseYjsSetupArgs) => {
+export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, options }: UseYjsSetupArgs) => {
+  const authTimeoutMs = options?.authTimeoutMs ?? DEFAULT_AUTH_TIMEOUT_MS;
+  const syncTimeoutMs = options?.syncTimeoutMs ?? DEFAULT_SYNC_TIMEOUT_MS;
   // Current collaboration stage
   const [stage, setStage] = useState<CollabStage>({ kind: "initial" });
 
@@ -63,7 +79,10 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
   const forcedCloseCodeRef = useRef<number | null>(null);
   const isDisposedRef = useRef(false);
   const stageRef = useRef<CollabStage>({ kind: "initial" });
+  const hasUnsyncedChangesRef = useRef(false);
   const lastReconnectTimeRef = useRef(0);
+
+  const notifyStateChange = useEffectEvent((state: CollaborationState) => onStateChange?.(state));
 
   // Create/destroy provider in effect (not during render)
   useEffect(() => {
@@ -73,42 +92,101 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
     forcedCloseSignalRef.current = false;
     forcedCloseCodeRef.current = null;
     stageRef.current = { kind: "initial" };
+    hasUnsyncedChangesRef.current = false;
+    let syncTimer: ReturnType<typeof setTimeout> | undefined;
+    let isAuthenticatedWithoutSync = false;
+
+    const reportState = () => {
+      const current = stageRef.current;
+      notifyStateChange({
+        stage: current,
+        isServerSynced: current.kind === "synced",
+        isServerDisconnected: current.kind === "disconnected",
+        hasUnsyncedChanges: hasUnsyncedChangesRef.current,
+      });
+    };
+
+    const setStageTo = (newStage: CollabStage) => {
+      stageRef.current = newStage;
+      setStage(newStage);
+      reportState();
+    };
+
+    const setUnsyncedChanges = (value: boolean) => {
+      if (hasUnsyncedChangesRef.current === value) return;
+      hasUnsyncedChangesRef.current = value;
+      reportState();
+    };
+
+    const stopSyncWatchdog = () => {
+      clearTimeout(syncTimer);
+      syncTimer = undefined;
+    };
+
+    // A socket that never authenticates or never syncs reports a sync timeout, and is dropped so the provider
+    // retries. A retry joins a load that is still running on the server, so a slow load is not cut off.
+    const reportSyncTimeout = (message: string) => {
+      stopSyncWatchdog();
+      if (!isSyncTimeout(stageRef.current))
+        setStageTo({ kind: "disconnected", error: { type: "sync-timeout", message } });
+      provider.configuration.websocketProvider.webSocket?.close();
+    };
+
+    const startSyncWatchdog = (timeoutMs: number, message: string) => {
+      stopSyncWatchdog();
+      syncTimer = setTimeout(() => {
+        syncTimer = undefined;
+        if (isDisposedRef.current || stageRef.current.kind === "synced") return;
+        reportSyncTimeout(message);
+      }, timeoutMs);
+    };
+
+    // During a sync timeout the page stays disconnected until a sync succeeds.
+    const awaitSync = () => {
+      isAuthenticatedWithoutSync = false;
+      startSyncWatchdog(authTimeoutMs, `Not authenticated within ${authTimeoutMs} ms`);
+      if (!isSyncTimeout(stageRef.current)) setStageTo({ kind: "awaiting-sync" });
+    };
 
     const provider = new HocuspocusProvider({
       name: docId,
       token: authToken,
       url: serverUrl,
-      onAuthenticationFailed: () => {
+      onAuthenticated: () => {
         if (isDisposedRef.current) return;
+        isAuthenticatedWithoutSync = true;
+        startSyncWatchdog(syncTimeoutMs, `Not synced within ${syncTimeoutMs} ms`);
+      },
+      onAuthenticationFailed: ({ reason }) => {
+        if (isDisposedRef.current) return;
+        if (reason === DOCUMENT_LOAD_TIMEOUT_REASON) {
+          reportSyncTimeout("The server could not load the document");
+          return;
+        }
+        stopSyncWatchdog();
         const error: CollaborationError = { type: "auth-failed", message: "Authentication failed" };
-        const newStage = { kind: "disconnected" as const, error };
-        stageRef.current = newStage;
-        setStage(newStage);
+        setStageTo({ kind: "disconnected", error });
       },
       onConnect: () => {
         if (isDisposedRef.current) {
           provider?.disconnect();
           return;
         }
-        retryCountRef.current = 0;
-        // After successful connection, transition to awaiting-sync (onSynced will move to synced)
-        const newStage = { kind: "awaiting-sync" as const };
-        stageRef.current = newStage;
-        setStage(newStage);
+        awaitSync();
       },
       onStatus: ({ status: providerStatus }) => {
         if (isDisposedRef.current) return;
         if (providerStatus === "connecting") {
+          if (isSyncTimeout(stageRef.current)) return;
           // Derive whether this is initial connect or reconnection from retry count
           const isReconnecting = retryCountRef.current > 0;
-          setStage(isReconnecting ? { kind: "reconnecting", attempt: retryCountRef.current } : { kind: "connecting" });
+          setStageTo(
+            isReconnecting ? { kind: "reconnecting", attempt: retryCountRef.current } : { kind: "connecting" }
+          );
         } else if (providerStatus === "disconnected") {
           // Do not transition here; let handleClose decide the final stage
         } else if (providerStatus === "connected") {
-          // Connection succeeded, move to awaiting-sync
-          const newStage = { kind: "awaiting-sync" as const };
-          stageRef.current = newStage;
-          setStage(newStage);
+          awaitSync();
         }
       },
       onStateless: ({ payload }) => {
@@ -119,15 +197,15 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
       },
       onSynced: () => {
         if (isDisposedRef.current) return;
+        stopSyncWatchdog();
+        isAuthenticatedWithoutSync = false;
         retryCountRef.current = 0;
-        // Document sync complete
-        const newStage = { kind: "synced" as const };
-        stageRef.current = newStage;
-        setStage(newStage);
+        setStageTo({ kind: "synced" });
       },
     });
 
     const pauseProvider = () => {
+      stopSyncWatchdog();
       const wsProvider = provider.configuration.websocketProvider;
       if (wsProvider) {
         try {
@@ -141,6 +219,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
 
     const permanentlyStopProvider = () => {
       isDisposedRef.current = true;
+      stopSyncWatchdog();
 
       // v3's provider.destroy() also tears down the websocket it created
       try {
@@ -152,6 +231,8 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
 
     const handleClose = (closeEvent: { event?: { code?: number; reason?: string } }) => {
       if (isDisposedRef.current) return;
+      // Edits sent while synced that the server never confirmed
+      if (stageRef.current.kind === "synced" && provider.hasUnsyncedChanges) setUnsyncedChanges(true);
 
       const closeCode = forcedCloseCodeRef.current ?? closeEvent.event?.code;
       const wsProvider = provider.configuration.websocketProvider;
@@ -169,9 +250,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
           code: closeCode || 0,
           message: isManualDisconnect ? "Manually disconnected" : "Server forced connection close",
         };
-        const newStage = { kind: "disconnected" as const, error };
-        stageRef.current = newStage;
-        setStage(newStage);
+        setStageTo({ kind: "disconnected", error });
 
         retryCountRef.current = 0;
         forcedCloseSignalRef.current = false;
@@ -186,8 +265,16 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
         // The server closed the document but not the socket (e.g. while draining).
         // Closing the socket lets the provider reconnect, likely to another server.
         wsProvider.webSocket.close();
+      } else if (isAuthenticatedWithoutSync) {
+        // The provider drops a socket that receives nothing for 30 s, which a slow load can outlast
+        isAuthenticatedWithoutSync = false;
+        reportSyncTimeout("Closed before the server synced the page");
+      } else if (isSyncTimeout(stageRef.current)) {
+        // Keep reconnecting with the provider's backoff until a sync succeeds
+        stopSyncWatchdog();
       } else {
         // Transient connection loss: attempt reconnection
+        stopSyncWatchdog();
         retryCountRef.current++;
 
         if (retryCountRef.current >= DEFAULT_MAX_RETRIES) {
@@ -196,21 +283,35 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
             type: "max-retries",
             message: `Failed to connect after ${DEFAULT_MAX_RETRIES} attempts`,
           };
-          const newStage = { kind: "disconnected" as const, error };
-          stageRef.current = newStage;
-          setStage(newStage);
+          setStageTo({ kind: "disconnected", error });
 
           pauseProvider();
         } else {
           // Still have retries left, move to reconnecting
-          const newStage = { kind: "reconnecting" as const, attempt: retryCountRef.current };
-          stageRef.current = newStage;
-          setStage(newStage);
+          setStageTo({ kind: "reconnecting", attempt: retryCountRef.current });
         }
       }
     };
 
     provider.on("close", handleClose);
+
+    // Only tracked while not synced. While synced, edits reach the server within milliseconds, and tracking
+    // every keystroke would re-render the page twice per key.
+    const handleDocumentUpdate = (_update: Uint8Array, origin: unknown) => {
+      if (
+        origin === provider ||
+        origin === STORED_PAGE_ORIGIN ||
+        origin instanceof IndexeddbPersistence ||
+        stageRef.current.kind === "synced"
+      )
+        return;
+      setUnsyncedChanges(true);
+    };
+    const handleUnsyncedChanges = ({ number }: { number: number }) => {
+      if (number === 0) setUnsyncedChanges(false);
+    };
+    provider.document.on("update", handleDocumentUpdate);
+    provider.on("unsyncedChanges", handleUnsyncedChanges);
 
     setYjsSession({ provider, ydoc: provider.document });
 
@@ -244,10 +345,8 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
           // Reset retry count for fresh reconnection attempt
           retryCountRef.current = 0;
 
-          // Move to connecting state
-          const newStage = { kind: "connecting" as const };
-          stageRef.current = newStage;
-          setStage(newStage);
+          // A sync timeout keeps its stage until a sync succeeds
+          if (!isSyncTimeout(stageRef.current)) setStageTo({ kind: "connecting" });
 
           wsProvider.disconnect();
           wsProvider.connect();
@@ -274,6 +373,8 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
     return () => {
       try {
         provider.off("close", handleClose);
+        provider.off("unsyncedChanges", handleUnsyncedChanges);
+        provider.document.off("update", handleDocumentUpdate);
       } catch (error) {
         console.error(`Error unregistering close handler:`, error);
       }
@@ -284,7 +385,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
 
       permanentlyStopProvider();
     };
-  }, [docId, serverUrl, authToken]);
+  }, [docId, serverUrl, authToken, authTimeoutMs, syncTimeoutMs]);
 
   // IndexedDB persistence lifecycle
   useEffect(() => {
@@ -342,25 +443,6 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange }: UseY
       }
     };
   }, [yjsSession, isCacheReady]);
-
-  // Notify state changes callback (use ref to avoid dependency on handler)
-  const stateChangeCallbackRef = useRef(onStateChange);
-  stateChangeCallbackRef.current = onStateChange;
-
-  useEffect(() => {
-    if (!stateChangeCallbackRef.current) return;
-
-    const isServerSynced = stage.kind === "synced";
-    const isServerDisconnected = stage.kind === "disconnected";
-
-    const state: CollaborationState = {
-      stage,
-      isServerSynced,
-      isServerDisconnected,
-    };
-
-    stateChangeCallbackRef.current(state);
-  }, [stage]);
 
   // Derived values for convenience
   const isServerSynced = stage.kind === "synced";

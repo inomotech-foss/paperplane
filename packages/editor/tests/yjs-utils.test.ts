@@ -9,6 +9,7 @@ import * as Y from "yjs";
 import {
   getAllDocumentFormatsFromDocumentEditorBinaryData,
   getBinaryDataFromDocumentEditorHTMLString,
+  hasChangesBeyond,
   isDocumentEditorYDocEmpty,
 } from "@/helpers/yjs-utils";
 
@@ -54,5 +55,44 @@ describe("span marks", () => {
 
   it("keeps a text colour", () => {
     expect(roundTrip('<p><span data-text-color="red">red</span></p>')).toContain('data-text-color="red"');
+  });
+});
+
+describe("hasChangesBeyond", () => {
+  const server = new Y.Doc();
+  server.getText("t").insert(0, "saved");
+  const saved = Y.encodeStateAsUpdate(server);
+  const localFrom = (edit: (text: Y.Text) => void) => {
+    const local = new Y.Doc();
+    Y.applyUpdate(local, saved);
+    edit(local.getText("t"));
+    return Y.encodeStateAsUpdate(local);
+  };
+
+  it("is false when the server already has everything", () => {
+    expect(
+      hasChangesBeyond(
+        localFrom(() => {}),
+        saved
+      )
+    ).toBe(false);
+  });
+
+  it("is true for an insertion", () => {
+    expect(
+      hasChangesBeyond(
+        localFrom((text) => text.insert(5, "!")),
+        saved
+      )
+    ).toBe(true);
+  });
+
+  it("is true for a deletion alone", () => {
+    expect(
+      hasChangesBeyond(
+        localFrom((text) => text.delete(0, 1)),
+        saved
+      )
+    ).toBe(true);
   });
 });

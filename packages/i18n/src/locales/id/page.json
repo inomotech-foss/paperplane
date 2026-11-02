@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Batas konten tercapai dan sinkronisasi langsung nonaktif. Buat halaman baru atau gunakan halaman bertingkat untuk melanjutkan sinkronisasi."
   },
+  "page_sync_timeout_banner": {
+    "message": "Perubahan terbaru Anda belum disimpan. Menghubungkan ulang ke server. Biarkan halaman ini tetap terbuka."
+  },
   "page_list_tree": {
     "expand_button": "Perluas subhalaman",
     "collapse_button": "Ciutkan subhalaman",

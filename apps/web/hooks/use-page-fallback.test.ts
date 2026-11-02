@@ -11,10 +11,12 @@ import type { TDocumentPayload } from "@plane/types";
 import { usePageFallback } from "./use-page-fallback";
 
 const seed = vi.hoisted(() => vi.fn((_html: string, _title?: string) => new Uint8Array([1])));
+const hasChangesBeyond = vi.hoisted(() => vi.fn((_update: Uint8Array, _base: Uint8Array) => true));
 
 vi.mock("@plane/editor", () => ({
   convertBinaryDataToBase64String: () => "base64",
   getBinaryDataFromDocumentEditorHTMLString: seed,
+  hasChangesBeyond,
 }));
 
 const AUTO_SAVE_MS = 30_000;
@@ -23,11 +25,19 @@ const disconnected: CollaborationState = {
   stage: { kind: "disconnected", error: { type: "max-retries", message: "down" } },
   isServerSynced: false,
   isServerDisconnected: true,
+  hasUnsyncedChanges: true,
 };
 const connected: CollaborationState = {
   stage: { kind: "synced" },
   isServerSynced: true,
   isServerDisconnected: false,
+  hasUnsyncedChanges: false,
+};
+const syncTimeout: CollaborationState = {
+  stage: { kind: "disconnected", error: { type: "sync-timeout", message: "slow" } },
+  isServerSynced: false,
+  isServerDisconnected: true,
+  hasUnsyncedChanges: true,
 };
 
 const httpError = (status: number) => new ApiError(new Response(null, { status }), {});
@@ -78,6 +88,8 @@ beforeEach(() => {
   vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(console, "error").mockImplementation(() => {});
   seed.mockClear();
+  hasChangesBeyond.mockReset();
+  hasChangesBeyond.mockReturnValue(true);
 });
 
 afterEach(() => {
@@ -129,6 +141,54 @@ describe("usePageFallback", () => {
 
     expect(seed).not.toHaveBeenCalled();
     expect(editor.setProviderDocument).toHaveBeenCalledWith(new Uint8Array(4));
+  });
+
+  it("does not save over live edits while a sync timeout reconnects", async () => {
+    const fetchPageDescription = vi.fn(async () => new ArrayBuffer(0));
+    const updatePageDescription = vi.fn(async (_data: TDocumentPayload) => {});
+    const { props, rerender } = setup({ fetchPageDescription, updatePageDescription });
+    rerender(props(connected));
+    await flush();
+    fetchPageDescription.mockClear();
+    updatePageDescription.mockClear();
+
+    rerender(props(syncTimeout));
+    await flush();
+    await act(() => vi.advanceTimersByTimeAsync(AUTO_SAVE_MS * 3));
+
+    expect(fetchPageDescription).not.toHaveBeenCalled();
+    expect(updatePageDescription).not.toHaveBeenCalled();
+  });
+
+  it("shows the stored page without saving when a sync timeout hits an empty doc", async () => {
+    const { editor, fetchPageDescription, updatePageDescription, props, rerender } = setup({
+      fetchPageDescription: vi.fn(async () => new ArrayBuffer(4)),
+    });
+    rerender(props(connected));
+    await flush();
+    vi.mocked(fetchPageDescription).mockClear();
+    vi.mocked(updatePageDescription).mockClear();
+    editor.setProviderDocument.mockClear();
+    editor.isProviderDocumentEmpty.mockReturnValueOnce(true).mockReturnValueOnce(true);
+
+    rerender(props(syncTimeout));
+    await flush();
+    await act(() => vi.advanceTimersByTimeAsync(AUTO_SAVE_MS * 3));
+
+    expect(fetchPageDescription).toHaveBeenCalledTimes(1);
+    expect(editor.setProviderDocument).toHaveBeenCalledWith(new Uint8Array(4));
+    expect(seed).not.toHaveBeenCalled();
+    expect(updatePageDescription).not.toHaveBeenCalled();
+  });
+
+  it("skips the save when the stored page already has every change", async () => {
+    hasChangesBeyond.mockReturnValue(false);
+    const { editor, updatePageDescription } = setup({ fetchPageDescription: vi.fn(async () => new ArrayBuffer(4)) });
+    await flush();
+
+    expect(editor.setProviderDocument).toHaveBeenCalledWith(new Uint8Array(4));
+    expect(hasChangesBeyond).toHaveBeenCalledWith(new Uint8Array([2]), new Uint8Array(4));
+    expect(updatePageDescription).not.toHaveBeenCalled();
   });
 
   it("never overlaps runs", async () => {

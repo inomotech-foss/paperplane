@@ -5,10 +5,11 @@
  */
 
 import { Redis as HocuspocusRedis } from "@hocuspocus/extension-redis";
-import { Redlock } from "@sesamecare-oss/redlock";
+import { ExecutionError, Redlock, ResourceLockedError } from "@sesamecare-oss/redlock";
 import { OutgoingMessage } from "@hocuspocus/server";
-import type { onConfigurePayload } from "@hocuspocus/server";
+import type { afterLoadDocumentPayload, onConfigurePayload, onStoreDocumentPayload } from "@hocuspocus/server";
 import { logger } from "@plane/logger";
+import { DocumentLoadTimeoutError } from "@/lib/document-load-timeout";
 import { AppError } from "@/lib/errors";
 import { waitForRedisReady } from "@/lib/wait-for-redis";
 import { redisManager } from "@/redis";
@@ -23,12 +24,42 @@ const getRedisClient = () => {
   return redisClient;
 };
 
+// Redlock reports a held lock and an unreachable Redis with the same error. Only the votes tell them apart.
+const isLockedByAnotherInstance = async (lockError: unknown): Promise<boolean> => {
+  if (!(lockError instanceof ExecutionError)) return false;
+  const votesAgainst: Error[] = [];
+  for (const attempt of await Promise.allSettled(lockError.attempts)) {
+    if (attempt.status === "fulfilled") votesAgainst.push(...attempt.value.votesAgainst.values());
+  }
+  return votesAgainst.length > 0 && votesAgainst.every((vote) => vote instanceof ResourceLockedError);
+};
+
 export class Redis extends HocuspocusRedis {
   private adminHandlers = new Map<AdminCommand, AdminCommandHandler>();
   private readonly ADMIN_CHANNEL = "hocuspocus:admin";
 
-  constructor() {
+  constructor(private readonly subscribeTimeoutMs = 10_000) {
     super({ redis: getRedisClient() });
+  }
+
+  /**
+   * The upstream subscribe waits for Redis without a limit, which would leave the load and its clients hanging.
+   * Failing here stops the hook chain before the document is registered. A late subscribe only adds a
+   * subscription that ignores documents this instance does not hold.
+   */
+  async afterLoadDocument(payload: afterLoadDocumentPayload) {
+    let timer: NodeJS.Timeout | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => {
+        const message = `Subscribing to ${payload.documentName} took over ${this.subscribeTimeoutMs} ms`;
+        reject(new DocumentLoadTimeoutError(message));
+      }, this.subscribeTimeoutMs);
+    });
+    try {
+      await Promise.race([super.afterLoadDocument(payload), timeout]);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   async onConfigure(payload: onConfigurePayload) {
@@ -51,6 +82,27 @@ export class Redis extends HocuspocusRedis {
     // Listen for admin messages
     this.sub.on("message", this.handleAdminMessage);
     logger.info(`[Redis] Attached admin message listener`);
+  }
+
+  /**
+   * The upstream hook skips the save whenever the lock fails, so an unreachable Redis silently dropped every
+   * save. Only skip when another instance holds the lock. Otherwise store without it, since saves are full-state
+   * writes.
+   */
+  async onStoreDocument({ documentName }: onStoreDocumentPayload) {
+    const resource = `${this.configuration.prefix}:${documentName}:lock`;
+    try {
+      const lock = await this.redlock.acquire([resource], this.configuration.lockTimeout);
+      const oldLock = this.locks.get(resource);
+      if (oldLock?.release) await oldLock.release;
+      this.locks.set(resource, { lock });
+    } catch (error) {
+      if (await isLockedByAnotherInstance(error)) {
+        // An empty message makes Hocuspocus stop the store chain without logging an error
+        throw new Error("", { cause: error });
+      }
+      logger.warn(`[Redis] Storing ${documentName} without a lock`, new AppError(error));
+    }
   }
 
   private handleAdminMessage = async (channel: string, message: string) => {

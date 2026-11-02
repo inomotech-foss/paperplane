@@ -186,7 +186,9 @@ function CollaborativeDocumentEditorInner(props: ICollaborativeDocumentEditorPro
 function CollaborativeDocumentEditor(props: ICollaborativeDocumentEditorProps) {
   const { id, realtimeConfig, serverHandler, user } = props;
 
-  const token = useMemo(() => JSON.stringify(user), [user]);
+  // The live server only reads id and cookie. Other user fields must not reconnect the editor.
+  const { id: userId, cookie } = user;
+  const token = useMemo(() => JSON.stringify({ id: userId, cookie }), [userId, cookie]);
 
   return (
     <CollaborationProvider

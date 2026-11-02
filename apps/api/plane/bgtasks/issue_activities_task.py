@@ -1444,6 +1444,7 @@ def delete_issue_relation_activity(
             epoch=epoch,
         )
     )
+    inverse_relation = get_inverse_relation(requested_data.get("relation_type"))
     issue_activities.append(
         IssueActivity(
             issue_id=requested_data.get("related_issue"),
@@ -1451,19 +1452,11 @@ def delete_issue_relation_activity(
             verb="deleted",
             old_value=f"{current_issue.project.identifier}-{current_issue.sequence_id}",
             new_value="",
-            field=(
-                "blocking"
-                if requested_data.get("relation_type") == "blocked_by"
-                else (
-                    "blocked_by"
-                    if requested_data.get("relation_type") == "blocking"
-                    else requested_data.get("relation_type")
-                )
-            ),
+            field=inverse_relation,
             project_id=project_id,
             workspace_id=workspace_id,
-            comment=f"deleted {requested_data.get('relation_type')} relation",
-            old_identifier=requested_data.get("related_issue"),
+            comment=f"deleted {inverse_relation} relation",
+            old_identifier=issue_id,
             epoch=epoch,
         )
     )

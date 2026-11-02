@@ -44,6 +44,7 @@ import { useRealtimeServerEvents } from "@/hooks/use-realtime-server-events";
 import type { TExtendedEditorExtensionsConfig } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
+import { isSyncTimeout } from "@/lib/collaboration-stage";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
@@ -259,6 +260,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       stage: { kind: "connecting" },
       isServerSynced: false,
       isServerDisconnected: false,
+      hasUnsyncedChanges: false,
     });
   }, [pageId, setSyncingStatus, onCollaborationStateChange]);
 
@@ -272,7 +274,10 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
 
         // Map collaboration stage to UI syncing status
         // Stage → UI mapping: disconnected → error | synced → synced | all others → syncing
-        if (state.stage.kind === "disconnected") {
+        // A sync timeout is still reconnecting. Its banner says the changes are not saved yet.
+        if (isSyncTimeout(state)) {
+          setSyncingStatus("syncing");
+        } else if (state.stage.kind === "disconnected") {
           setSyncingStatus("error");
         } else if (state.stage.kind === "synced") {
           setSyncingStatus("synced");
@@ -320,16 +325,14 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
           <div className="page-summary-container absolute top-[64px] right-0 z-5 h-full">
             <div className="sticky top-[72px]">
               <div className="group/page-toc relative px-page-x">
-                {/* oxlint-disable-next-line jsx_a11y/click-events-have-key-events */}
-                <div
-                  className="max-h-[50vh] !cursor-pointer overflow-hidden"
-                  // oxlint-disable-next-line jsx_a11y/prefer-tag-over-role
-                  role="button"
+                <button
+                  type="button"
+                  className="block max-h-[50vh] w-full cursor-pointer overflow-hidden text-left"
                   aria-label={t("page_navigation_pane.outline_floating_button")}
                   onClick={handleOpenNavigationPane}
                 >
                   <PageContentBrowser className="overflow-y-auto" editorRef={editorRef} showOutline />
-                </div>
+                </button>
                 <div className="vertical-scrollbar pointer-events-none absolute top-0 right-0 scrollbar-sm max-h-[70vh] w-52 translate-x-1/2 overflow-y-scroll rounded-sm bg-surface-2 p-4 whitespace-nowrap opacity-0 transition-all duration-300 group-hover/page-toc:pointer-events-auto group-hover/page-toc:-translate-x-1/4 group-hover/page-toc:opacity-100">
                   <PageContentBrowser className="overflow-y-auto" editorRef={editorRef} />
                 </div>
