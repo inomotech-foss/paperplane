@@ -9,6 +9,7 @@ import { Hocuspocus } from "@hocuspocus/server";
 import { WebSocketServer } from "ws";
 import * as Y from "yjs";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { recheckAffectedConnections } from "@/lib/access-events";
 import { onAuthenticate } from "@/lib/auth";
 import { onStateless } from "@/lib/stateless";
 import { PAGE, PROJECT, WORKSPACE, startFakeApi } from "../helpers/fake-api";
@@ -267,5 +268,89 @@ describe("page access on the collaboration server", () => {
     await vi.waitFor(() => expect(viewer.provider.isSynced).toBe(true), { timeout: 10_000 });
     expect(viewer.authFailed).toBe(false);
     expect(viewer.scopes).toEqual(["readonly"]);
+  });
+
+  describe("access events from the API", () => {
+    const OTHER = "33333333-3333-4333-8333-333333333333";
+    const publish = (event: unknown) => recheckAffectedConnections(server.documents, JSON.stringify(event));
+
+    it("closes only the connections of the user named in the event", async () => {
+      const editor = connect("editor", "edit");
+      const member = connect("member", "edit");
+      await synced(editor, member);
+      resetRequests();
+      api.users.set("session=member", { id: "member", access: 403 });
+
+      await publish({ user: "member" });
+
+      await vi.waitFor(() => expect(member.authFailed).toBe(true), { timeout: 10_000 });
+      expect(requestsBy("editor")).toBe(0);
+      write(member.document, "after removal");
+      await delay(200);
+      expect(serverBody()).not.toContain("after removal");
+    });
+
+    it("reconnects a demoted user as read-only", async () => {
+      const member = connect("member", "edit");
+      await synced(member);
+      api.users.set("session=member", { id: "member", access: "read" });
+
+      await publish({ project: PROJECT, user: "member" });
+
+      await vi.waitFor(() => expect(member.scopes).toEqual(["read-write", "readonly"]), { timeout: 10_000 });
+    });
+
+    it("re-checks every connection to the named page", async () => {
+      const editor = connect("editor", "edit");
+      const viewer = connect("viewer", "read");
+      await synced(editor, viewer);
+      resetRequests();
+
+      await publish({ page: PAGE.toUpperCase() });
+
+      expect(requestsBy("editor")).toBe(1);
+      expect(requestsBy("viewer")).toBe(1);
+      expect(connections()).toBe(2);
+    });
+
+    it("limits how many connections it re-checks at once", async () => {
+      const editors = [connect("editor1", "edit"), connect("editor2", "edit"), connect("editor3", "edit")];
+      await synced(...editors);
+      resetRequests();
+      api.maxConcurrentAccess = 0;
+      api.delayMs = 100;
+
+      await recheckAffectedConnections(server.documents, JSON.stringify({ project: PROJECT }), 2);
+
+      expect(api.accessRequests).toHaveLength(3);
+      expect(api.maxConcurrentAccess).toBe(2);
+    });
+
+    it.each([{ page: OTHER }, { project: OTHER }, { user: "someone-else" }, { project: PROJECT, user: "nobody" }])(
+      "leaves connections outside the scope %j alone",
+      async (event) => {
+        const editor = connect("editor", "edit");
+        await synced(editor);
+        resetRequests();
+
+        await publish(event);
+
+        expect(api.accessRequests).toEqual([]);
+      }
+    );
+
+    it.each(["not json", "null", "[]", "{}", '{"page":5}', '{"page":""}', '{"workspace":"acme"}'])(
+      "ignores the malformed message %s",
+      async (message) => {
+        const editor = connect("editor", "edit");
+        await synced(editor);
+        resetRequests();
+
+        await recheckAffectedConnections(server.documents, message);
+
+        expect(api.accessRequests).toEqual([]);
+        expect(connections()).toBe(1);
+      }
+    );
   });
 });

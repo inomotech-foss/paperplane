@@ -18,7 +18,7 @@ from django.utils import timezone
 
 # Module imports
 from plane.db.models import FileAsset
-from ..mixins import TimeAuditModel
+from ..mixins import ChangeTrackerMixin, TimeAuditModel
 from plane.utils.color import get_random_color
 
 
@@ -53,7 +53,9 @@ class BotTypeEnum(models.TextChoices):
     WORKSPACE_SEED = "WORKSPACE_SEED", "Workspace Seed"
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(ChangeTrackerMixin, AbstractBaseUser, PermissionsMixin):
+    TRACKED_FIELDS = ["is_active"]
+
     id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True, primary_key=True)
     username = models.CharField(max_length=128, unique=True)
     # user fields

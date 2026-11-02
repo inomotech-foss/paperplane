@@ -3,12 +3,14 @@
 
 import json
 from io import StringIO
+from unittest import mock
 
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
 from plane.db.models import Page, Project, ProjectMember, ProjectPage, User
+from plane.utils import live_access
 
 GLOBAL_SPACE_A = {"id": "111", "key": "DEMO", "name": "Demo Space", "type": "global", "status": "current"}
 # A space with no "type" key at all is treated as global, same as report_confluence.
@@ -146,6 +148,17 @@ class TestPrunePersonal:
 
         project = Project.all_objects.get(pk=personal_project.pk)
         assert project.deleted_at is None
+
+    @pytest.mark.parametrize("no_dry_run", [True, False])
+    def test_tells_live_servers_only_when_committed(
+        self, django_capture_on_commit_callbacks, workspace, backup_dir, personal_project, no_dry_run
+    ):
+        with mock.patch.object(live_access, "_publish") as publish:
+            with django_capture_on_commit_callbacks(execute=True):
+                run(backup_dir=str(backup_dir), workspace=workspace.slug, no_dry_run=no_dry_run, prune_personal=True)
+
+        scopes = [call.args[0] for call in publish.call_args_list]
+        assert ({"project": str(personal_project.pk)} in scopes) is no_dry_run
 
 
 @pytest.mark.unit

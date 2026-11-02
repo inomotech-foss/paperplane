@@ -62,6 +62,7 @@ from plane.db.models import (
     UserRecentVisit,
 )
 from plane.utils.error_codes import ERROR_CODES
+from plane.utils.live_access import notify_live_access_changed
 from plane.utils.page_order import PagePlacementError, move_page, next_sort_order, placement_error_response
 from plane.utils.order_queryset import PAGE_ORDER_BY_ALLOWLIST, sanitize_order_by
 
@@ -82,12 +83,14 @@ def unarchive_archive_page_and_descendants(page_id, archived_at):
         UNION
         SELECT pages.id FROM pages, descendants WHERE pages.parent_id = descendants.id
     )
-    UPDATE pages SET archived_at = %s WHERE id IN (SELECT id FROM descendants);
+    UPDATE pages SET archived_at = %s WHERE id IN (SELECT id FROM descendants) RETURNING id;
     """
 
     # Execute the SQL query
     with connection.cursor() as cursor:
         cursor.execute(sql, [page_id, archived_at])
+        for (changed_id,) in cursor.fetchall():
+            notify_live_access_changed(page=changed_id)
 
 
 class PageViewSet(BaseViewSet):

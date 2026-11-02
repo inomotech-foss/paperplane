@@ -68,7 +68,7 @@ def get_default_preferences():
 
 
 class Project(ChangeTrackerMixin, BaseModel):
-    TRACKED_FIELDS = ["timezone"]
+    TRACKED_FIELDS = ["timezone", "guest_view_all_features", "deleted_at"]
 
     NETWORK_CHOICES = ((0, "Secret"), (2, "Public"))
     name = models.CharField(max_length=255, verbose_name="Project Name")
@@ -273,7 +273,9 @@ class ProjectMemberInvite(ProjectBaseModel):
         return f"{self.project.name} {self.email} {self.accepted}"
 
 
-class ProjectMember(ProjectBaseModel):
+class ProjectMember(ChangeTrackerMixin, ProjectBaseModel):
+    TRACKED_FIELDS = ["role", "is_active", "deleted_at"]
+
     member = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

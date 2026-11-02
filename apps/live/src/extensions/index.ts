@@ -5,6 +5,7 @@
  */
 
 import { env } from "@/env";
+import { AccessEvents } from "./access-events";
 import { Database } from "./database";
 import { ForceCloseHandler } from "./force-close-handler";
 import { Logger } from "./logger";
@@ -17,4 +18,5 @@ export const getExtensions = () => [
   new Redis(),
   new TitleSyncExtension(),
   new ForceCloseHandler(), // Must be after Redis to receive broadcasts
+  new AccessEvents(),
 ];

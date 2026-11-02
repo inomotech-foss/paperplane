@@ -13,6 +13,7 @@ from django.db import models
 
 # Module imports
 from .base import BaseModel
+from plane.db.mixins import ChangeTrackerMixin
 from plane.utils.constants import RESTRICTED_WORKSPACE_SLUGS
 from plane.utils.color import get_random_color
 
@@ -198,7 +199,9 @@ class WorkspaceBaseModel(BaseModel):
         super(WorkspaceBaseModel, self).save(*args, **kwargs)
 
 
-class WorkspaceMember(BaseModel):
+class WorkspaceMember(ChangeTrackerMixin, BaseModel):
+    TRACKED_FIELDS = ["role", "is_active", "deleted_at"]
+
     workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="workspace_member")
     member = models.ForeignKey(
         settings.AUTH_USER_MODEL,
