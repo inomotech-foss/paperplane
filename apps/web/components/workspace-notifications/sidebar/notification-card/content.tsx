@@ -228,7 +228,7 @@ export function NotificationContent({
         <div className="origin-left scale-75">
           <LiteTextEditor
             editable={false}
-            id=""
+            id={`notification-comment-${notification.id}`}
             initialValue={newValue ?? ""}
             workspaceId={workspaceId}
             workspaceSlug={workspaceSlug}
