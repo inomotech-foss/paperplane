@@ -31,6 +31,7 @@ from plane.app.serializers.response.project import (
 from plane.db.models import Project, ProjectMember, ProjectUserProperty, WorkspaceMember
 from plane.bgtasks.project_add_user_email_task import project_add_user_email
 from plane.utils.host import base_host
+from plane.utils.live_access import notify_live_access_changed
 from plane.app.permissions.base import allow_permission, ROLE
 
 # Personal fields of a membership row, only returned to the member who owns it
@@ -114,6 +115,8 @@ class ProjectMemberViewSet(BaseViewSet):
 
         # Update the roles of the existing members
         ProjectMember.objects.bulk_update(bulk_project_members, ["is_active", "role"], batch_size=100)
+        for project_member in bulk_project_members:
+            notify_live_access_changed(project=project_id, user=project_member.member_id)
 
         # Get the minimum sort_order for each member in the workspace
         member_sort_orders = (

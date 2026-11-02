@@ -13,6 +13,8 @@ from django.db import models
 # Module imports
 from plane.utils.html_processor import strip_tags
 
+from plane.db.mixins import ChangeTrackerMixin
+
 from .base import BaseModel
 
 
@@ -20,7 +22,9 @@ def get_view_props():
     return {"full_width": False}
 
 
-class Page(BaseModel):
+class Page(ChangeTrackerMixin, BaseModel):
+    TRACKED_FIELDS = ["access", "owned_by_id", "is_locked", "archived_at", "deleted_at"]
+
     PRIVATE_ACCESS = 1
     PUBLIC_ACCESS = 0
     DEFAULT_SORT_ORDER = 65535
@@ -140,7 +144,9 @@ class PageLabel(BaseModel):
         return f"{self.page.name} {self.label.name}"
 
 
-class ProjectPage(BaseModel):
+class ProjectPage(ChangeTrackerMixin, BaseModel):
+    TRACKED_FIELDS = ["deleted_at"]
+
     project = models.ForeignKey("db.Project", on_delete=models.CASCADE, related_name="project_pages")
     page = models.ForeignKey("db.Page", on_delete=models.CASCADE, related_name="project_pages")
     workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="project_pages")
