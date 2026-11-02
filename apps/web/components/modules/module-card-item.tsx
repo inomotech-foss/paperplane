@@ -225,49 +225,51 @@ export const ModuleCardItem = observer(function ModuleCardItem(props: Props) {
             showValue={false}
             aria-label="Module progress"
           />
-          <ClickableCardRaised className="flex items-center justify-between py-0.5">
-            <DateRangeSelect
-              variant="select-ghost-md"
-              className={`h-6 w-full gap-1.5 rounded-sm border-[0.5px] border-strong text-11 text-tertiary ${
-                isDisabled ? "cursor-not-allowed" : "cursor-pointer"
-              }`}
-              value={{
-                from: getDate(moduleDetails.start_date) ?? null,
-                to: getDate(moduleDetails.target_date) ?? null,
-              }}
-              onChange={(range) => {
-                void handleModuleDetailsChange({
-                  start_date: range.from ? renderFormattedPayloadDate(range.from) : null,
-                  target_date: range.to ? renderFormattedPayloadDate(range.to) : null,
-                });
-              }}
-              placeholder="Start date - End date"
-              weekStartsOn={userProfile?.start_of_the_week}
-              disabled={isDisabled}
-              icon={renderIcon ? undefined : <CalendarOutline aria-hidden="true" />}
-            />
-          </ClickableCardRaised>
+          <div className="flex items-center gap-2 py-0.5">
+            <ClickableCardRaised className="min-w-0 flex-1">
+              <DateRangeSelect
+                variant="select-ghost-md"
+                className={`h-6 w-full gap-1.5 rounded-sm border-[0.5px] border-strong text-11 text-tertiary ${
+                  isDisabled ? "cursor-not-allowed" : "cursor-pointer"
+                }`}
+                value={{
+                  from: getDate(moduleDetails.start_date) ?? null,
+                  to: getDate(moduleDetails.target_date) ?? null,
+                }}
+                onChange={(range) => {
+                  void handleModuleDetailsChange({
+                    start_date: range.from ? renderFormattedPayloadDate(range.from) : null,
+                    target_date: range.to ? renderFormattedPayloadDate(range.to) : null,
+                  });
+                }}
+                placeholder="Start date - End date"
+                weekStartsOn={userProfile?.start_of_the_week}
+                disabled={isDisabled}
+                icon={renderIcon ? undefined : <CalendarOutline aria-hidden="true" />}
+              />
+            </ClickableCardRaised>
+            <ClickableCardRaised className="flex flex-shrink-0 items-center gap-1.5">
+              {isEditingAllowed && (
+                <FavoriteStar
+                  onClick={(e) => {
+                    if (moduleDetails.is_favorite) handleRemoveFromFavorites(e);
+                    else handleAddToFavorites(e);
+                  }}
+                  selected={!!moduleDetails.is_favorite}
+                />
+              )}
+              {workspaceSlug && projectId && (
+                <ModuleQuickActions
+                  parentRef={parentRef}
+                  moduleId={moduleId}
+                  projectId={projectId.toString()}
+                  workspaceSlug={workspaceSlug.toString()}
+                />
+              )}
+            </ClickableCardRaised>
+          </div>
         </div>
       </Card>
-      <ClickableCardRaised className="absolute right-4 bottom-[18px] flex items-center gap-1.5">
-        {isEditingAllowed && (
-          <FavoriteStar
-            onClick={(e) => {
-              if (moduleDetails.is_favorite) handleRemoveFromFavorites(e);
-              else handleAddToFavorites(e);
-            }}
-            selected={!!moduleDetails.is_favorite}
-          />
-        )}
-        {workspaceSlug && projectId && (
-          <ModuleQuickActions
-            parentRef={parentRef}
-            moduleId={moduleId}
-            projectId={projectId.toString()}
-            workspaceSlug={workspaceSlug.toString()}
-          />
-        )}
-      </ClickableCardRaised>
     </ClickableCard>
   );
 });

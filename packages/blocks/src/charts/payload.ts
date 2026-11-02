@@ -14,6 +14,11 @@ export const toChartNumber = (value: unknown): number => Number(value);
 export const toChartText = (value: unknown): string | number | undefined =>
   typeof value === "string" || typeof value === "number" ? value : undefined;
 
+export const formatChartValue = (value: unknown): string | number | undefined => {
+  if (typeof value !== "number") return toChartText(value);
+  return Number.isInteger(value) ? value : Math.round(value * 100) / 100;
+};
+
 export const toChartKey = (value: unknown): string | null => (typeof value === "string" ? value : null);
 
 export const toChartLabel = (value: unknown): string => {

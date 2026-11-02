@@ -25,6 +25,8 @@ type Props = {
   page: TPageInstance;
 };
 
+const CLIENT_EVENTS: TDocumentEventsClient[] = Object.values(DocumentCollaborativeEvents).map((event) => event.client);
+
 export const useCollaborativePageActions = (props: Props) => {
   const { page } = props;
   const editorRef = page.editor.editorRef;
@@ -92,15 +94,14 @@ export const useCollaborativePageActions = (props: Props) => {
 
   useEffect(() => {
     const realTimeStatelessMessageListener = editorRef?.listenToRealTimeUpdate();
-    const handleStatelessMessage = (message: { payload: TDocumentEventsClient }) => {
-      if (currentActionBeingProcessed === message.payload) {
+    const handleStatelessMessage = (message: { payload: string }) => {
+      const clientEvent = CLIENT_EVENTS.find((event) => event === message.payload);
+      if (!clientEvent) return;
+      if (currentActionBeingProcessed === clientEvent) {
         setCurrentActionBeingProcessed(null);
         return;
       }
-
-      if (message.payload) {
-        executeCollaborativeAction({ type: "receivedMessageFromServer", message: message.payload });
-      }
+      executeCollaborativeAction({ type: "receivedMessageFromServer", message: clientEvent });
     };
 
     realTimeStatelessMessageListener?.on("stateless", handleStatelessMessage);

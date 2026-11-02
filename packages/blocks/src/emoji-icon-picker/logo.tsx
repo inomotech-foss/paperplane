@@ -8,6 +8,7 @@
 // should be after the imported here rather than some below helper functions as it is in the original file
 
 import useFontFaceObserver from "use-font-face-observer";
+import { CubeOutline } from "@makeplane/propel/icons";
 // types
 import type { Logo as LogoType } from "../types/logo";
 // local imports
@@ -33,13 +34,16 @@ export function Logo({ logo, size = 16, type = "material" }: LogoProps) {
   // Reusable loading skeleton
   const loadingSkeleton = <span style={{ height: size, width: size }} className="rounded-sm bg-layer-1" />;
 
-  // Early returns for loading/empty states
-  if (!logo || !logo.in_use) return loadingSkeleton;
+  const placeholder = (
+    <CubeOutline aria-hidden="true" className="flex-shrink-0 text-tertiary" style={{ height: size, width: size }} />
+  );
+
+  if (!logo || !logo.in_use) return placeholder;
 
   const { in_use, emoji, icon } = logo;
   const value = in_use === "emoji" ? emoji?.value : icon?.name;
 
-  if (!value) return loadingSkeleton;
+  if (!value) return placeholder;
 
   // Emoji rendering
   if (in_use === "emoji") {

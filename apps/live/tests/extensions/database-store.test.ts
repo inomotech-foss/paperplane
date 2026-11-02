@@ -10,6 +10,18 @@ import { AppError } from "@/lib/errors";
 
 vi.mock("@/redis", () => ({ redisManager: { getClient: () => null } }));
 
+const broadcasts = vi.hoisted((): { action: string; data: Record<string, unknown> }[] => []);
+vi.mock("@/utils/broadcast-message", () => ({
+  broadcastMessageToPage: (
+    _server: unknown,
+    _page: string,
+    event: { action: string; data: Record<string, unknown> }
+  ) => {
+    broadcasts.push(event);
+    return Promise.resolve(true);
+  },
+}));
+
 const api = vi.hoisted(() => {
   const state: { saved: string[]; failures: number[] } = { saved: [], failures: [] };
   return state;
@@ -42,6 +54,18 @@ describe("page saves after a failed save", () => {
   afterEach(() => {
     api.saved.length = 0;
     api.failures.length = 0;
+    broadcasts.length = 0;
+  });
+
+  it("tells clients who saved the page", async () => {
+    const server = new Hocuspocus({ quiet: true, debounce: 20, maxDebounce: 100, extensions: [new Database()] });
+    const connection = await openPage(server);
+    await type(connection, "edited");
+    await vi.waitFor(() => expect(api.saved.at(-1)).toContain("edited"));
+    await vi.waitFor(() =>
+      expect(broadcasts.at(-1)).toMatchObject({ action: "property_updated", data: { updated_by: "u" } })
+    );
+    await connection.disconnect();
   });
 
   it("retries a save that failed with a server error", async () => {

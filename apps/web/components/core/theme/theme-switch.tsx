@@ -56,7 +56,6 @@ export function ThemeSwitch(props: Props) {
       getOptionValue={(option) => option.value}
       getOptionLabel={(option) => t(option.key)}
       getOptionIcon={(option) => <ThemeOptionIcon option={option} />}
-      contentSizing="anchor"
       showSearch={false}
       pinSelected={false}
       placeholder={t("select_your_theme")}

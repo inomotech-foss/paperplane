@@ -2,7 +2,13 @@
 // See the LICENSE file for details.
 
 import { EPastDurationFilters } from "@plane/constants";
-import type { TInboxIssueFilter, TInboxIssueSorting, TInboxIssueSortingOrderByQueryParamKeys } from "@plane/types";
+import { EInboxIssueCurrentTab, EInboxIssueStatus } from "@plane/types";
+import type {
+  TInboxIssueCurrentTab,
+  TInboxIssueFilter,
+  TInboxIssueSorting,
+  TInboxIssueSortingOrderByQueryParamKeys,
+} from "@plane/types";
 import { getCustomDates } from "@plane/utils";
 import { findLiteral } from "@plane/types";
 import type { TInboxIssueListQuery } from "@/services/inbox/inbox-issue.service";
@@ -50,3 +56,16 @@ export const inboxIssueQuery = (
 
 export const countAppliedInboxFilters = (filters: Partial<TInboxIssueFilter>): number =>
   INBOX_FILTER_KEYS.reduce((count, key) => count + (filters[key]?.length ?? 0), 0);
+
+export const getDefaultInboxStatus = (tab: TInboxIssueCurrentTab): EInboxIssueStatus[] =>
+  tab === EInboxIssueCurrentTab.OPEN
+    ? [EInboxIssueStatus.PENDING]
+    : [EInboxIssueStatus.ACCEPTED, EInboxIssueStatus.DECLINED, EInboxIssueStatus.DUPLICATE];
+
+/** Whether the user filtered beyond the status every tab starts with. */
+export const hasUserInboxFilters = (filters: Partial<TInboxIssueFilter>, tab: TInboxIssueCurrentTab): boolean => {
+  const { status = [], ...rest } = filters;
+  const defaultStatus = new Set(getDefaultInboxStatus(tab));
+  const statusChanged = status.length !== defaultStatus.size || status.some((value) => !defaultStatus.has(value));
+  return statusChanged || countAppliedInboxFilters(rest) > 0;
+};

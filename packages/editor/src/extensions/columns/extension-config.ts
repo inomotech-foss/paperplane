@@ -4,6 +4,7 @@
  */
 
 import { mergeAttributes, Node } from "@tiptap/core";
+import { TextSelection } from "@tiptap/pm/state";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 
@@ -56,7 +57,15 @@ export const ColumnsExtensionConfig = Node.create({
           const node = schema.nodes[CORE_EXTENSIONS.COLUMNS].createChecked({ layout: weights.join("-") }, columns);
 
           if (dispatch) {
-            tr.replaceSelectionWith(node).scrollIntoView();
+            tr.replaceSelectionWith(node);
+            // The selection lands after the block, which is inside the last column.
+            const { $from } = tr.selection;
+            for (let depth = $from.depth; depth > 0; depth--) {
+              if ($from.node(depth).type.name !== CORE_EXTENSIONS.COLUMNS) continue;
+              tr.setSelection(TextSelection.near(tr.doc.resolve($from.before(depth) + 1)));
+              break;
+            }
+            tr.scrollIntoView();
           }
 
           return true;

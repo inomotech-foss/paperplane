@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 // plane imports
 import { Dialog, DialogContent } from "@makeplane/propel/components/dialog";
 // local imports
@@ -21,6 +21,9 @@ export function InboxIssueCreateModalRoot(props: TInboxIssueCreateModalRoot) {
   const { workspaceSlug, projectId, modalState, handleModalClose } = props;
   // states
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
+  // Base UI's Popup option, which DialogContent forwards but does not type
+  const focusProps = { initialFocus: titleRef };
   // handlers
   const handleDuplicateIssueModal = (value: boolean) => setIsDuplicateModalOpen(value);
 
@@ -37,13 +40,14 @@ export function InboxIssueCreateModalRoot(props: TInboxIssueCreateModalRoot) {
         }
       }}
     >
-      <DialogContent size="lg">
+      <DialogContent size="lg" {...focusProps}>
         <InboxIssueCreateRoot
           workspaceSlug={workspaceSlug}
           projectId={projectId}
           handleModalClose={handleModalClose}
           isDuplicateModalOpen={isDuplicateModalOpen}
           handleDuplicateIssueModal={handleDuplicateIssueModal}
+          titleRef={titleRef}
         />
       </DialogContent>
     </Dialog>
