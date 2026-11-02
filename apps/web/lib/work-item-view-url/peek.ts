@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
+import { isApiError } from "@plane/services";
 import type { TPeekIssue } from "@/store/issue/issue-details/root.store";
 import { peekCodec } from "./codecs";
 import { VIEW_PARAM_NAMES } from "./schema";
@@ -108,7 +109,8 @@ export const createPeekBinding = (workspaceSlug: string, sources: TPeekSources):
       try {
         return toPeek(await sources.lookupIssue(ref));
       } catch (error) {
-        console.error(error);
+        // a missing work item, or one the person cannot see, is reported by the route
+        if (!isApiError(error) || (error.status !== 404 && error.status !== 403)) console.error(error);
         return undefined;
       }
     },

@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
+import { StrictMode } from "react";
 import { act, render, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it, vi } from "vitest";
+import { ApiError } from "@plane/services";
 import type { TPeekIssue } from "@/store/issue/issue-details/root.store";
 import { createPeekBinding, findIssueIdByRef, getPeekRoute, readPeekParam, withPeekParam } from "./peek";
 import type { TPeekableIssue } from "./peek";
@@ -39,7 +41,7 @@ const makeBinding = () => {
   return { binding, show, notFound, lookupIssue };
 };
 
-const renderRoute = (url: string, binding: ReturnType<typeof makeBinding>["binding"]) => {
+const renderRoute = (url: string, binding: ReturnType<typeof makeBinding>["binding"], strict = false) => {
   function Page() {
     usePeekRoute(binding);
     return null;
@@ -47,7 +49,15 @@ const renderRoute = (url: string, binding: ReturnType<typeof makeBinding>["bindi
   const router = createMemoryRouter([{ path: "/p1/issues", element: <Page /> }, { path: "/other" }], {
     initialEntries: [url],
   });
-  render(<RouterProvider router={router} />);
+  render(
+    strict ? (
+      <StrictMode>
+        <RouterProvider router={router} />
+      </StrictMode>
+    ) : (
+      <RouterProvider router={router} />
+    )
+  );
   return router;
 };
 
@@ -82,6 +92,14 @@ describe("usePeekRoute", () => {
     renderRoute("/p1/issues?peek=WEB-9", binding);
     await waitFor(() => expect(show).toHaveBeenLastCalledWith(peekOf("i9")));
     expect(lookupIssue).toHaveBeenCalledTimes(1);
+  });
+
+  it("looks up and reports a missing work item once, also in strict mode", async () => {
+    const { binding, notFound, lookupIssue } = makeBinding();
+    const router = renderRoute("/p1/issues?peek=WEB-5", binding, true);
+    await waitFor(() => expect(router.state.location.search).toBe(""));
+    expect(lookupIssue).toHaveBeenCalledTimes(1);
+    expect(notFound).toHaveBeenCalledTimes(1);
   });
 
   it("reports a work item it cannot find and drops it from the URL", async () => {
@@ -133,5 +151,36 @@ describe("usePeekRoute", () => {
     await act(() => router.navigate("/other"));
     expect(show).toHaveBeenLastCalledWith(undefined);
     expect(getPeekRoute()).toBeUndefined();
+  });
+});
+
+describe("createPeekBinding lookup", () => {
+  const bindingWith = (error: unknown) =>
+    createPeekBinding("w", {
+      getIssue: () => undefined,
+      findIssueId: () => undefined,
+      getProjectIdentifier: () => undefined,
+      lookupIssue: () => Promise.reject(error),
+      show: vi.fn(),
+      notFound: vi.fn(),
+    });
+  const ref = { projectIdentifier: "WEB", sequenceId: 1 };
+
+  it.each([404, 403])("treats a %i as not found without logging", async (status) => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(bindingWith(new ApiError(new Response(null, { status }), undefined)).lookup(ref)).resolves.toBe(
+      undefined
+    );
+    expect(log).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  it("logs an unexpected error", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(bindingWith(new ApiError(new Response(null, { status: 500 }), undefined)).lookup(ref)).resolves.toBe(
+      undefined
+    );
+    expect(log).toHaveBeenCalledTimes(1);
+    log.mockRestore();
   });
 });

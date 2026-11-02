@@ -20,6 +20,8 @@ type TPeekState = {
   requested: TPeekIssue | undefined;
   /** Whether the shown peek came from the URL. */
   shown: boolean;
+  /** The lookup of the peek in the URL, shared by effect reruns for the same URL. */
+  lookup?: { key: string; result: Promise<TPeekIssue | undefined> };
 };
 
 /** Replaces the peek param of the latest URL. False if the URL stays as it is. */
@@ -85,18 +87,22 @@ export const usePeekRoute = (binding: TPeekBinding) => {
 
   useEffect(() => {
     const ref = peekKey ? parsePeekRef(peekKey) : undefined;
-    if (!ref) {
+    if (!peekKey || !ref) {
+      state.current.lookup = undefined;
       if (state.current.shown) showPeek(state, binding, undefined);
       return;
     }
     const found = binding.find(ref);
     if (found) {
+      state.current.lookup = undefined;
       showPeek(state, binding, found);
       return;
     }
     let active = true;
-    binding
-      .lookup(ref)
+    const lookup =
+      state.current.lookup?.key === peekKey ? state.current.lookup : { key: peekKey, result: binding.lookup(ref) };
+    state.current.lookup = lookup;
+    lookup.result
       .then((peek) => {
         if (!active) return;
         if (peek) {
