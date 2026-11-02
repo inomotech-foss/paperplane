@@ -16,7 +16,7 @@ from rest_framework.response import Response
 
 # Module imports
 from .base import BaseViewSet
-from plane.db.models import IntakeIssue, Issue, IssueLink, FileAsset, DeployBoard, State, StateGroup
+from plane.db.models import IntakeIssue, Issue, IssueLink, FileAsset, DeployBoard, State
 from plane.app.serializers import (
     IssueSerializer,
     IntakeIssueSerializer,
@@ -132,21 +132,7 @@ class IntakeIssuePublicViewSet(BaseViewSet):
         ]:
             return Response({"error": "Invalid priority"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # get the triage state
-        triage_state = State.triage_objects.filter(
-            project_id=project_deploy_board.project_id, workspace_id=project_deploy_board.workspace_id
-        ).first()
-
-        if not triage_state:
-            triage_state = State.objects.create(
-                name="Triage",
-                group=StateGroup.TRIAGE.value,
-                project_id=project_deploy_board.project_id,
-                workspace_id=project_deploy_board.workspace_id,
-                color="#4E5355",
-                sequence=65000,
-                default=False,
-            )
+        triage_state = State.get_or_create_triage(project_deploy_board.project)
 
         # Sanitize description_html before saving to prevent stored XSS
         raw_description_html = request.data.get("issue", {}).get("description_html", "<p></p>")

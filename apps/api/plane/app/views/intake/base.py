@@ -36,7 +36,6 @@ from plane.db.models import (
     IntakeIssue,
     Issue,
     State,
-    StateGroup,
     IssueLink,
     FileAsset,
     Project,
@@ -252,18 +251,7 @@ class IntakeIssueViewSet(BaseViewSet):
 
         project = Project.objects.get(pk=project_id)
 
-        # get the triage state
-        triage_state = State.triage_objects.filter(project_id=project_id, workspace__slug=slug).first()
-        if not triage_state:
-            triage_state = State.objects.create(
-                name="Triage",
-                group=StateGroup.TRIAGE.value,
-                project_id=project_id,
-                workspace_id=project.workspace_id,
-                color="#4E5355",
-                sequence=65000,
-                default=False,
-            )
+        triage_state = State.get_or_create_triage(project)
         request.data["issue"]["state_id"] = triage_state.id
 
         # create an issue

@@ -360,7 +360,7 @@ def create_issues(workspace, project, user_id, issue_count, state_ids=None):
 
 
 def create_intake_issues(workspace, project, user_id, intake_issue_count):
-    triage_state = State.get_or_create_triage(project)
+    triage_state = State.get_or_create_triage(project, created_by_id=user_id)
     issues = create_issues(workspace, project, user_id, intake_issue_count, state_ids=[triage_state.id])
     statuses = [random.choice([-2, -1, 0, 1, 2]) for _ in issues]
     intake, _ = Intake.objects.get_or_create(name="Intake", project=project, is_default=True)

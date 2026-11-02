@@ -2,8 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+# Python imports
+from itertools import count
+
 # Django imports
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.template.defaultfilters import slugify
 from django.db.models import Q
 
@@ -102,11 +105,15 @@ class State(ProjectBaseModel):
         return f"{self.name} <{self.project.name}>"
 
     @classmethod
-    def get_or_create_triage(cls, project):
-        triage_state = cls.triage_objects.filter(project_id=project.id).first()
-        if triage_state is None:
-            triage_state = cls.objects.create(
-                name="Triage",
+    def get_or_create_triage(cls, project, created_by_id=None):
+        """A regular state may already be called "Triage", so the new one takes the next free "Triage N"."""
+        for suffix in count(1):
+            triage_state = cls.triage_objects.filter(project_id=project.id).first()
+            if triage_state is not None:
+                return triage_state
+            name = "Triage" if suffix == 1 else f"Triage {suffix}"
+            triage_state = cls(
+                name=name,
                 group=StateGroup.TRIAGE.value,
                 project_id=project.id,
                 workspace_id=project.workspace_id,
@@ -114,7 +121,16 @@ class State(ProjectBaseModel):
                 sequence=65000,
                 default=False,
             )
-        return triage_state
+            try:
+                with transaction.atomic():
+                    triage_state.save(created_by_id=created_by_id)
+                return triage_state
+            except IntegrityError:
+                name_taken = cls.all_state_objects.filter(
+                    project_id=project.id, name=name, deleted_at__isnull=True
+                ).exists()
+                if not name_taken:
+                    raise
 
     class Meta:
         unique_together = ["name", "project", "deleted_at"]
