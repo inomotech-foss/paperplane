@@ -15,7 +15,7 @@ describe("WebhookForm", () => {
     });
     render(<WebhookForm onSubmit={onSubmit} />);
     fireEvent.change(screen.getByRole("textbox"), { target: { value: "http://localhost/" } });
-    fireEvent.submit(screen.getByRole("textbox").closest("form")!);
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
     expect(await screen.findByText("Invalid or disallowed webhook URL.")).toBeTruthy();
   });
 });

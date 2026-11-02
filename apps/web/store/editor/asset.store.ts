@@ -128,7 +128,7 @@ export class EditorAssetStore implements IEditorAssetStore {
         return response;
       }
     } catch (error) {
-      console.error("Error in uploading page asset:", error);
+      console.error("Error in uploading editor asset:", error);
       throw error;
     } finally {
       runInAction(() => {
