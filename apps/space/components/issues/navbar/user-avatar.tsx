@@ -67,7 +67,7 @@ export const UserAvatar = observer(function UserAvatar() {
               onSubmit={signOut}
               ref={signOutFormRef}
             >
-              <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken ?? ""} />
+              <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
               <input type="hidden" name="next_path" value={`${pathName}?${queryParam}`} />
             </form>
           )}
