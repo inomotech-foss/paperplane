@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Byl dosažen limit obsahu a živá synchronizace je vypnutá. Vytvořte novou stránku nebo použijte vnořené stránky a pokračujte v synchronizaci."
   },
+  "page_sync_timeout_banner": {
+    "message": "Vaše poslední změny zatím nejsou uloženy. Probíhá opětovné připojení k serveru. Nezavírejte tuto stránku."
+  },
   "page_list_tree": {
     "expand_button": "Rozbalit podstránky",
     "collapse_button": "Sbalit podstránky",

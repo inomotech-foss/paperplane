@@ -38,6 +38,8 @@ export type CollaborationState = {
   stage: CollabStage;
   isServerSynced: boolean;
   isServerDisconnected: boolean;
+  /** Local edits the server has not confirmed yet, tracked while the page is not synced */
+  hasUnsyncedChanges: boolean;
 };
 
 export type TServerHandler = {

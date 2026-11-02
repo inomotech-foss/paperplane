@@ -66,6 +66,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
   // Cache readiness state
   const [hasCachedContent, setHasCachedContent] = useState(false);
   const [isCacheReady, setIsCacheReady] = useState(false);
+  const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
 
   // Provider and Y.Doc in state (nullable until effect runs)
   const [yjsSession, setYjsSession] = useState<{ provider: HocuspocusProvider; ydoc: Y.Doc } | null>(null);
@@ -203,6 +204,8 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
 
     const handleClose = (closeEvent: { event?: { code?: number; reason?: string } }) => {
       if (isDisposedRef.current) return;
+      // Edits sent while synced that the server never confirmed
+      if (stageRef.current.kind === "synced" && provider.hasUnsyncedChanges) setHasUnsyncedChanges(true);
 
       const closeCode = forcedCloseCodeRef.current ?? closeEvent.event?.code;
       const wsProvider = provider.configuration.websocketProvider;
@@ -267,6 +270,18 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
 
     provider.on("close", handleClose);
 
+    // Only tracked while not synced. While synced, edits reach the server within milliseconds, and tracking
+    // every keystroke would re-render the page twice per key.
+    const handleDocumentUpdate = (_update: Uint8Array, origin: unknown) => {
+      if (origin === provider || origin instanceof IndexeddbPersistence || stageRef.current.kind === "synced") return;
+      setHasUnsyncedChanges(true);
+    };
+    const handleUnsyncedChanges = ({ number }: { number: number }) => {
+      if (number === 0) setHasUnsyncedChanges(false);
+    };
+    provider.document.on("update", handleDocumentUpdate);
+    provider.on("unsyncedChanges", handleUnsyncedChanges);
+
     setYjsSession({ provider, ydoc: provider.document });
 
     // Handle page visibility changes (sleep/wake, tab switching)
@@ -327,6 +342,8 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
     return () => {
       try {
         provider.off("close", handleClose);
+        provider.off("unsyncedChanges", handleUnsyncedChanges);
+        provider.document.off("update", handleDocumentUpdate);
       } catch (error) {
         console.error(`Error unregistering close handler:`, error);
       }
@@ -410,10 +427,11 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
       stage,
       isServerSynced,
       isServerDisconnected,
+      hasUnsyncedChanges,
     };
 
     stateChangeCallbackRef.current(state);
-  }, [stage]);
+  }, [stage, hasUnsyncedChanges]);
 
   // Derived values for convenience
   const isServerSynced = stage.kind === "synced";

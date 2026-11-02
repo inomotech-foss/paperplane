@@ -43,6 +43,7 @@ import { useRealtimePageEvents } from "@/hooks/use-realtime-page-events";
 import type { TExtendedEditorExtensionsConfig } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
+import { isSyncTimeout } from "@/lib/collaboration-stage";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
@@ -255,6 +256,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       stage: { kind: "connecting" },
       isServerSynced: false,
       isServerDisconnected: false,
+      hasUnsyncedChanges: false,
     });
   }, [pageId, setSyncingStatus, onCollaborationStateChange]);
 
@@ -268,7 +270,10 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
 
         // Map collaboration stage to UI syncing status
         // Stage → UI mapping: disconnected → error | synced → synced | all others → syncing
-        if (state.stage.kind === "disconnected") {
+        // A sync timeout is still reconnecting. Its banner says the changes are not saved yet.
+        if (isSyncTimeout(state)) {
+          setSyncingStatus("syncing");
+        } else if (state.stage.kind === "disconnected") {
           setSyncingStatus("error");
         } else if (state.stage.kind === "synced") {
           setSyncingStatus("synced");

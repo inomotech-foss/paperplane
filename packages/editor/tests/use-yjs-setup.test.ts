@@ -12,6 +12,7 @@ import { useYjsSetup } from "@/hooks/use-yjs-setup";
 import type { CollaborationState } from "@/types/collaboration";
 
 type TCloseHandler = (event: { event?: { code?: number } }) => void;
+type TUnsyncedHandler = (data: { number: number }) => void;
 type TConfig = {
   onAuthenticationFailed?: (data: { reason: string }) => void;
   onAuthenticated?: () => void;
@@ -31,6 +32,8 @@ const websocketProvider = {
 };
 let config: TConfig = {};
 let closeHandler: TCloseHandler | null = null;
+let unsyncedHandler: TUnsyncedHandler | null = null;
+const providerState = { document: new Y.Doc(), hasUnsyncedChanges: false };
 
 vi.mock("@hocuspocus/provider", () => ({
   HocuspocusProvider: class {
@@ -38,9 +41,14 @@ vi.mock("@hocuspocus/provider", () => ({
     configuration = { websocketProvider };
     constructor(options: TConfig) {
       config = options;
+      providerState.document = this.document;
     }
-    on(_event: string, handler: TCloseHandler) {
-      closeHandler = handler;
+    get hasUnsyncedChanges() {
+      return providerState.hasUnsyncedChanges;
+    }
+    on(event: string, handler: TCloseHandler & TUnsyncedHandler) {
+      if (event === "close") closeHandler = handler;
+      if (event === "unsyncedChanges") unsyncedHandler = handler;
     }
     off() {}
     destroy() {}
@@ -63,6 +71,8 @@ const Harness = () => {
 };
 
 const lastStage = () => states[states.length - 1]?.stage;
+const lastState = () => states[states.length - 1];
+const typeLocally = () => providerState.document.getText("t").insert(0, "x");
 
 const dropSocket = () => {
   socket.readyState = WebSocket.CLOSED;
@@ -248,5 +258,48 @@ describe("useYjsSetup sync watchdog", () => {
       error: { type: "max-retries", message: "Failed to connect after 3 attempts" },
     });
     expect(websocketProvider.disconnect).toHaveBeenCalled();
+  });
+});
+
+describe("useYjsSetup unsynced changes", () => {
+  let root: ReturnType<typeof createRoot>;
+
+  beforeEach(async () => {
+    Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+    states = [];
+    providerState.hasUnsyncedChanges = false;
+    websocketProvider.shouldConnect = true;
+    socket.readyState = WebSocket.OPEN;
+    root = createRoot(document.createElement("div"));
+    await act(async () => root.render(createElement(Harness)));
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+  });
+
+  it("tracks edits made while not synced until the server confirms them", () => {
+    act(() => config.onConnect?.());
+    act(() => typeLocally());
+    expect(lastState()?.hasUnsyncedChanges).toBe(true);
+
+    act(() => {
+      config.onSynced?.();
+      unsyncedHandler?.({ number: 0 });
+    });
+    expect(lastState()?.hasUnsyncedChanges).toBe(false);
+  });
+
+  it("ignores edits while synced unless the connection drops before they are confirmed", () => {
+    act(() => {
+      config.onConnect?.();
+      config.onSynced?.();
+    });
+    act(() => typeLocally());
+    expect(lastState()?.hasUnsyncedChanges).toBe(false);
+
+    providerState.hasUnsyncedChanges = true;
+    act(() => dropSocket());
+    expect(lastState()?.hasUnsyncedChanges).toBe(true);
   });
 });

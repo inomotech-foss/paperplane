@@ -146,6 +146,9 @@
   "page_content_limit_banner": {
     "message": "Limite de contenu atteinte et la synchronisation en direct est désactivée. Créez une nouvelle page ou utilisez des pages imbriquées pour continuer la synchronisation."
   },
+  "page_sync_timeout_banner": {
+    "message": "Vos dernières modifications ne sont pas encore enregistrées. Reconnexion au serveur en cours. Gardez cette page ouverte."
+  },
   "page_list_tree": {
     "expand_button": "Développer les sous-pages",
     "collapse_button": "Réduire les sous-pages",
