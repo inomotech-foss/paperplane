@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import json
+import re
 from types import SimpleNamespace
 
 from plane.db.models import ProjectIssueType
@@ -21,6 +23,38 @@ def link_untyped_projects(cursor):
     for project_id, workspace_id in projects:
         link_starter_type(SimpleNamespace(id=project_id, workspace_id=workspace_id))
     return len(projects)
+
+
+# Plane Commercial names type icons in its own set; PaperPlane draws Material Symbols by name.
+_MATERIAL_NAMES = {"epic": "stacks", "file": "description"}
+_DEFAULT_ICON = "task_alt"
+_DEFAULT_COLOR = "#6b7280"
+
+
+def _material_icon(logo_props):
+    icon = logo_props.get("icon") or {}
+    name = (icon.get("name") or "").strip()
+    name = _MATERIAL_NAMES.get(name.lower(), re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")) or _DEFAULT_ICON
+    color = icon.get("color")
+    if not color or color.lower() in ("#fff", "#ffffff"):
+        color = icon.get("background_color") or _DEFAULT_COLOR
+    return {"in_use": "icon", "icon": {"name": name, "color": color}}
+
+
+def material_type_icons(cursor):
+    """Rewrite every non-emoji type icon as a Material Symbols icon; returns how many changed."""
+    cursor.execute("SELECT id, logo_props FROM issue_types")
+    changed = 0
+    for type_id, logo_props in cursor.fetchall():
+        # Django's raw cursor hands jsonb back as text.
+        logo_props = json.loads(logo_props) if isinstance(logo_props, str) else logo_props or {}
+        if logo_props.get("in_use") == "emoji":
+            continue
+        new = _material_icon(logo_props)
+        if new != logo_props:
+            cursor.execute("UPDATE issue_types SET logo_props = %s WHERE id = %s", [json.dumps(new), type_id])
+            changed += 1
+    return changed
 
 
 def _source_default_types(source):

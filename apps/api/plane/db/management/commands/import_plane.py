@@ -42,6 +42,7 @@ class Command(BaseCommand):
             self.stdout.write(f"{table:<32} {rows}")
         self.stdout.write(f"typed        {report.typed} work items given a default type")
         self.stdout.write(f"projects     {report.typed_projects} projects given the Task type")
+        self.stdout.write(f"type icons   {report.type_icons} type icons converted to Material Symbols")
         self.stdout.write(f"page links   {report.page_links} work item to page links")
         for table, reason in report.skipped.items():
             self.stdout.write(self.style.WARNING(f"skipped      {table}: {reason}"))

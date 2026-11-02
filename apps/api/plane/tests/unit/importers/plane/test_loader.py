@@ -119,3 +119,23 @@ def test_unhandled_source_tables_stop_before_writing(create_user):
         PlaneImporter(source, web_url="http://pp.test").run()
     assert "issue_reactions" in str(error.value)
     assert Workspace.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_imported_type_icons_become_material_icons(create_user):
+    row = workspace_row(create_user)
+    epic = {
+        "id": uuid.uuid4(),
+        "workspace_id": row["id"],
+        "name": "Epic",
+        "description": "",
+        "is_active": True,
+        "level": 0,
+        "logo_props": {"in_use": "icon", "icon": {"name": "Epic", "background_color": "#999AA0"}},
+        "created_at": NOW,
+        "updated_at": NOW,
+    }
+    source = FakeSource({"workspaces": [row], "issue_types": [epic]}, types={"logo_props": "jsonb"})
+    report = PlaneImporter(source, web_url="http://pp.test").run()
+    assert report.type_icons == 1
+    assert IssueType.objects.get(id=epic["id"]).logo_props["icon"]["name"] == "stacks"

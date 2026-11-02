@@ -8,7 +8,7 @@ from django.core.management import call_command
 from django.db import IntegrityError, connection, transaction
 
 from .copier import MissingTableError, copy_table, target_columns
-from .fixups import assign_default_types, link_untyped_projects, link_work_item_pages
+from .fixups import assign_default_types, link_untyped_projects, link_work_item_pages, material_type_icons
 from .tables import SKIPPED, TABLES
 
 
@@ -35,6 +35,7 @@ class ImportReport:
     copied: dict = field(default_factory=dict)
     typed: int = 0
     typed_projects: int = 0
+    type_icons: int = 0
     page_links: int = 0
     skipped: dict = field(default_factory=dict)
     orphans: dict = field(default_factory=dict)
@@ -99,6 +100,7 @@ class PlaneImporter:
                 report.copied[spec.name] = copy_table(self.source, spec, cursor)
             report.typed = assign_default_types(self.source, cursor)
             report.typed_projects = link_untyped_projects(cursor)
+            report.type_icons = material_type_icons(cursor)
             report.page_links = link_work_item_pages(self.source, cursor, self.web_url)
             cursor.execute("SET LOCAL session_replication_role = origin")
             cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
