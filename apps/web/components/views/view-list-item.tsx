@@ -16,8 +16,10 @@ import { ListItem } from "@/components/core/list";
 // hooks
 import { MD_UP, useMediaQuery } from "@/hooks/use-media-query";
 import { usePlatformOS } from "@/hooks/use-platform-os";
+import { useRowDialog } from "@/hooks/use-row-dialog";
 // local imports
-import { ViewQuickActions } from "./quick-actions";
+import type { TViewDialog } from "./quick-actions";
+import { ViewQuickActionDialogs, ViewQuickActions } from "./quick-actions";
 import { ViewListItemAction } from "./view-list-item-action";
 
 type Props = {
@@ -33,33 +35,45 @@ export const ProjectViewListItem = observer(function ProjectViewListItem(props: 
   // store hooks
   const { isMobile } = usePlatformOS();
   const isMdUp = useMediaQuery(MD_UP);
+  const dialog = useRowDialog<TViewDialog>();
 
   return (
-    <ListItem
-      prependTitleElement={
-        <>
-          {view?.logo_props?.in_use ? (
-            <Logo logo={view?.logo_props} size={16} type="lucide" />
-          ) : (
-            <ViewsOutline className="h-4 w-4 text-tertiary" />
-          )}
-        </>
-      }
-      title={view.name}
-      itemLink={`/${workspaceSlug}/projects/${projectId}/views/${view.id}`}
-      actionableItems={<ViewListItemAction parentRef={parentRef} view={view} showQuickActions={isMdUp} />}
-      quickActionElement={
-        !isMdUp && (
-          <ViewQuickActions
-            parentRef={parentRef}
-            projectId={projectId.toString()}
-            view={view}
-            workspaceSlug={workspaceSlug.toString()}
-          />
-        )
-      }
-      isMobile={isMobile}
-      parentRef={parentRef}
-    />
+    <>
+      <ViewQuickActionDialogs
+        projectId={projectId.toString()}
+        view={view}
+        workspaceSlug={workspaceSlug.toString()}
+        dialog={dialog}
+      />
+      <ListItem
+        prependTitleElement={
+          <>
+            {view?.logo_props?.in_use ? (
+              <Logo logo={view?.logo_props} size={16} type="lucide" />
+            ) : (
+              <ViewsOutline className="h-4 w-4 text-tertiary" />
+            )}
+          </>
+        }
+        title={view.name}
+        itemLink={`/${workspaceSlug}/projects/${projectId}/views/${view.id}`}
+        actionableItems={
+          <ViewListItemAction parentRef={parentRef} view={view} showQuickActions={isMdUp} dialog={dialog} />
+        }
+        quickActionElement={
+          !isMdUp && (
+            <ViewQuickActions
+              parentRef={parentRef}
+              projectId={projectId.toString()}
+              view={view}
+              workspaceSlug={workspaceSlug.toString()}
+              dialog={dialog}
+            />
+          )
+        }
+        isMobile={isMobile}
+        parentRef={parentRef}
+      />
+    </>
   );
 });

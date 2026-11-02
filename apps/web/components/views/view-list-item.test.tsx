@@ -16,7 +16,10 @@ vi.mock("@/hooks/store/use-project-view", () => ({
 }));
 vi.mock("@/hooks/store/user", () => ({ useUserPermissions: () => ({ allowPermissions: () => true }) }));
 vi.mock("../dropdowns/member/avatar", () => ({ ButtonAvatars: () => null }));
-vi.mock("./quick-actions", () => ({ ViewQuickActions: () => <span data-testid="quick-actions" /> }));
+vi.mock("./quick-actions", () => ({
+  ViewQuickActions: () => <span data-testid="quick-actions" />,
+  ViewQuickActionDialogs: () => null,
+}));
 
 const view: IProjectView = {
   id: "v1",

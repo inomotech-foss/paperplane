@@ -36,9 +36,11 @@ import { useMember } from "@/hooks/store/use-member";
 import { useUserPermissions, useUserProfile } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useMountOnOpen } from "@/hooks/use-mount-on-open";
+import type { TRowDialog } from "@/hooks/use-row-dialog";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 import { useTimeZoneConverter } from "@/hooks/use-timezone-converter";
 // local imports
+import type { TCycleDialog } from "../quick-actions";
 import { CycleQuickActions } from "../quick-actions";
 import { TransferIssuesModal } from "../transfer-issues-modal";
 import { getCycleGroup } from "@/components/cycles/cycle-group";
@@ -52,10 +54,20 @@ type Props = {
   isActive?: boolean;
   /** The row renders its quick actions here on wider screens and next to the title otherwise. */
   showQuickActions: boolean;
+  dialog: TRowDialog<TCycleDialog>;
 };
 
 export const CycleListItemAction = observer(function CycleListItemAction(props: Props) {
-  const { workspaceSlug, projectId, cycleId, cycleDetails, parentRef, isActive = false, showQuickActions } = props;
+  const {
+    workspaceSlug,
+    projectId,
+    cycleId,
+    cycleDetails,
+    parentRef,
+    isActive = false,
+    showQuickActions,
+    dialog,
+  } = props;
   // router
   const { projectId: routerProjectId } = useParams();
   //states
@@ -289,6 +301,7 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
           cycleId={cycleId}
           projectId={projectId}
           workspaceSlug={workspaceSlug}
+          dialog={dialog}
         />
       )}
     </>

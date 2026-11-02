@@ -19,7 +19,9 @@ import { FavoriteStar } from "@plane/blocks/common";
 import { DateRangeSelect } from "@plane/blocks/property-select";
 import { renderFormattedPayloadDate, getDate } from "@plane/utils";
 // components
+import type { TModuleDialog } from "@/components/modules";
 import { ModuleQuickActions } from "@/components/modules";
+import type { TRowDialog } from "@/hooks/use-row-dialog";
 import { ModuleStatusDropdown } from "@/components/modules/module-status-dropdown";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
@@ -34,6 +36,7 @@ type Props = {
   parentRef: React.RefObject<HTMLDivElement | null>;
   /** The row renders its quick actions here on wider screens and next to the title otherwise. */
   showQuickActions: boolean;
+  dialog: TRowDialog<TModuleDialog>;
 };
 
 const ModuleLead = observer(function ModuleLead({ leadId }: { leadId: string | null }) {
@@ -54,7 +57,7 @@ const ModuleLead = observer(function ModuleLead({ leadId }: { leadId: string | n
 });
 
 export const ModuleListItemAction = observer(function ModuleListItemAction(props: Props) {
-  const { moduleId, moduleDetails, parentRef, showQuickActions } = props;
+  const { moduleId, moduleDetails, parentRef, showQuickActions, dialog } = props;
   // router
   const { workspaceSlug, projectId } = useParams();
   //   store hooks
@@ -195,6 +198,7 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
           moduleId={moduleId}
           projectId={projectId.toString()}
           workspaceSlug={workspaceSlug.toString()}
+          dialog={dialog}
         />
       )}
     </>

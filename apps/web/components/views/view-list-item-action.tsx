@@ -22,17 +22,20 @@ import { useProjectView } from "@/hooks/store/use-project-view";
 import { useUserPermissions } from "@/hooks/store/user";
 // local imports
 import { ButtonAvatars } from "../dropdowns/member/avatar";
+import type { TViewDialog } from "./quick-actions";
 import { ViewQuickActions } from "./quick-actions";
+import type { TRowDialog } from "@/hooks/use-row-dialog";
 
 type Props = {
   parentRef: React.RefObject<HTMLElement | null>;
   view: IProjectView;
   /** The row renders its quick actions here on wider screens and next to the title otherwise. */
   showQuickActions: boolean;
+  dialog: TRowDialog<TViewDialog>;
 };
 
 export const ViewListItemAction = observer(function ViewListItemAction(props: Props) {
-  const { parentRef, view, showQuickActions } = props;
+  const { parentRef, view, showQuickActions, dialog } = props;
   // states
   const [_, setPublishModalOpen] = useState<boolean>(false);
   // router
@@ -116,6 +119,7 @@ export const ViewListItemAction = observer(function ViewListItemAction(props: Pr
           projectId={projectId.toString()}
           view={view}
           workspaceSlug={workspaceSlug.toString()}
+          dialog={dialog}
         />
       )}
     </>

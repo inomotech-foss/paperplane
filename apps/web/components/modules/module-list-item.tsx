@@ -14,12 +14,14 @@ import { CircularProgress } from "@makeplane/propel/components/circular-progress
 // components
 import { generateQueryParams } from "@plane/utils";
 import { ListItem } from "@/components/core/list";
-import { ModuleListItemAction, ModuleQuickActions } from "@/components/modules";
+import type { TModuleDialog } from "@/components/modules";
+import { ModuleListItemAction, ModuleQuickActionDialogs, ModuleQuickActions } from "@/components/modules";
 // helpers
 // hooks
 import { useModule } from "@/hooks/store/use-module";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { MD_UP, useMediaQuery } from "@/hooks/use-media-query";
+import { useRowDialog } from "@/hooks/use-row-dialog";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 
 type Props = {
@@ -39,6 +41,7 @@ export const ModuleListItem = observer(function ModuleListItem(props: Props) {
   const { getModuleById } = useModule();
   const { isMobile } = usePlatformOS();
   const isMdUp = useMediaQuery(MD_UP);
+  const dialog = useRowDialog<TModuleDialog>();
 
   // derived values
   const moduleDetails = getModuleById(moduleId);
@@ -72,63 +75,73 @@ export const ModuleListItem = observer(function ModuleListItem(props: Props) {
   const handleItemClick = moduleDetails.archived_at ? handleArchivedModuleClick : undefined;
 
   return (
-    <ListItem
-      title={moduleDetails?.name ?? ""}
-      itemLink={`/${workspaceSlug?.toString()}/projects/${moduleDetails.project_id}/modules/${moduleDetails.id}`}
-      onItemClick={handleItemClick}
-      prependTitleElement={
-        <div className="relative size-[30px]">
-          <div className="absolute inset-0 flex scale-150 items-center justify-center">
-            <CircularProgress
-              value={progress}
-              size="md"
-              variant={progress === 100 ? "success" : "brand"}
-              aria-label="Module progress"
-            />
-          </div>
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            {completedModuleCheck ? (
-              progress === 100 ? (
+    <>
+      <ModuleQuickActionDialogs
+        moduleId={moduleId}
+        projectId={projectId.toString()}
+        workspaceSlug={workspaceSlug.toString()}
+        dialog={dialog}
+      />
+      <ListItem
+        title={moduleDetails?.name ?? ""}
+        itemLink={`/${workspaceSlug?.toString()}/projects/${moduleDetails.project_id}/modules/${moduleDetails.id}`}
+        onItemClick={handleItemClick}
+        prependTitleElement={
+          <div className="relative size-[30px]">
+            <div className="absolute inset-0 flex scale-150 items-center justify-center">
+              <CircularProgress
+                value={progress}
+                size="md"
+                variant={progress === 100 ? "success" : "brand"}
+                aria-label="Module progress"
+              />
+            </div>
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              {completedModuleCheck ? (
+                progress === 100 ? (
+                  <TickOutline className="h-3 w-3 stroke-[2] text-accent-primary" />
+                ) : (
+                  <span className="text-13 text-accent-primary">{`!`}</span>
+                )
+              ) : progress === 100 ? (
                 <TickOutline className="h-3 w-3 stroke-[2] text-accent-primary" />
               ) : (
-                <span className="text-13 text-accent-primary">{`!`}</span>
-              )
-            ) : progress === 100 ? (
-              <TickOutline className="h-3 w-3 stroke-[2] text-accent-primary" />
-            ) : (
-              <span className="text-9 text-tertiary">{`${progress}%`}</span>
-            )}
+                <span className="text-9 text-tertiary">{`${progress}%`}</span>
+              )}
+            </div>
           </div>
-        </div>
-      }
-      appendTitleElement={
-        <button
-          onClick={openModuleOverview}
-          className={`z-5 flex-shrink-0 ${isMobile ? "flex" : "hidden group-hover:flex"}`}
-        >
-          <InfoOutline className="h-4 w-4 text-placeholder" />
-        </button>
-      }
-      actionableItems={
-        <ModuleListItemAction
-          moduleId={moduleId}
-          moduleDetails={moduleDetails}
-          parentRef={parentRef}
-          showQuickActions={isMdUp}
-        />
-      }
-      quickActionElement={
-        !isMdUp && (
-          <ModuleQuickActions
-            parentRef={parentRef}
+        }
+        appendTitleElement={
+          <button
+            onClick={openModuleOverview}
+            className={`z-5 flex-shrink-0 ${isMobile ? "flex" : "hidden group-hover:flex"}`}
+          >
+            <InfoOutline className="h-4 w-4 text-placeholder" />
+          </button>
+        }
+        actionableItems={
+          <ModuleListItemAction
             moduleId={moduleId}
-            projectId={projectId.toString()}
-            workspaceSlug={workspaceSlug.toString()}
+            moduleDetails={moduleDetails}
+            parentRef={parentRef}
+            showQuickActions={isMdUp}
+            dialog={dialog}
           />
-        )
-      }
-      isMobile={isMobile}
-      parentRef={parentRef}
-    />
+        }
+        quickActionElement={
+          !isMdUp && (
+            <ModuleQuickActions
+              parentRef={parentRef}
+              moduleId={moduleId}
+              projectId={projectId.toString()}
+              workspaceSlug={workspaceSlug.toString()}
+              dialog={dialog}
+            />
+          )
+        }
+        isMobile={isMobile}
+        parentRef={parentRef}
+      />
+    </>
   );
 });

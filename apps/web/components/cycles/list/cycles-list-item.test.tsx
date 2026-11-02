@@ -3,7 +3,7 @@
 
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ICycle } from "@plane/types";
 import { CyclesListItem } from "./cycles-list-item";
 
@@ -44,15 +44,30 @@ vi.mock("@/hooks/store/use-cycle", () => ({
     removeCycleFromFavorites: vi.fn(),
   }),
 }));
-vi.mock("../quick-actions", () => ({ CycleQuickActions: () => <span data-testid="quick-actions" /> }));
+type TDialogProps = { dialog?: { open: string | null; setOpen: (dialog: string) => void } };
+
+const media = vi.hoisted(() => ({ isMdUp: false }));
+vi.mock("@/hooks/use-media-query", () => ({ MD_UP: "md", useMediaQuery: () => media.isMdUp }));
+vi.mock("../quick-actions", () => ({
+  CycleQuickActions: ({ dialog }: TDialogProps) => (
+    <button type="button" data-testid="quick-actions" onClick={() => dialog?.setOpen("edit")}>
+      menu
+    </button>
+  ),
+  CycleQuickActionDialogs: ({ dialog }: TDialogProps) => <span data-testid="dialogs" data-open={dialog?.open ?? ""} />,
+}));
 vi.mock("../transfer-issues-modal", () => ({ TransferIssuesModal: () => <span data-testid="transfer-modal" /> }));
 
-const renderRow = () =>
-  render(
-    <MemoryRouter>
-      <CyclesListItem cycleId="c1" workspaceSlug="ws" projectId="p1" />
-    </MemoryRouter>
-  );
+const row = (
+  <MemoryRouter>
+    <CyclesListItem cycleId="c1" workspaceSlug="ws" projectId="p1" />
+  </MemoryRouter>
+);
+const renderRow = () => render(row);
+
+afterEach(() => {
+  media.isMdUp = false;
+});
 
 describe("CyclesListItem", () => {
   it("mounts one quick actions menu per row", () => {
@@ -65,5 +80,17 @@ describe("CyclesListItem", () => {
     expect(screen.queryByTestId("transfer-modal")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /transfer/i }));
     expect(screen.getByTestId("transfer-modal")).toBeTruthy();
+  });
+
+  it("keeps an open dialog when the menu moves across the breakpoint", () => {
+    const { rerender } = renderRow();
+    fireEvent.click(screen.getByRole("button", { name: "menu" }));
+    expect(screen.getByTestId("dialogs").dataset.open).toBe("edit");
+
+    media.isMdUp = true;
+    rerender(row);
+
+    expect(screen.getAllByTestId("quick-actions")).toHaveLength(1);
+    expect(screen.getByTestId("dialogs").dataset.open).toBe("edit");
   });
 });
