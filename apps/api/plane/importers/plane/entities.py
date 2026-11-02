@@ -93,9 +93,13 @@ def _build(entity, row, ctx, rewrite):
         if name in entity.convert:
             values[name] = entity.convert[name](row, ctx)
             continue
-        if name not in row:
+        value = row.get(name)
+        if value is None and not f.null and f.is_relation:
+            _drop(ctx, model, table, row, MISSING_PARENT)
+            return None
+        if name not in row or (value is None and not f.null):
+            # A NULL Plane allows where PaperPlane does not takes the default too.
             continue
-        value = row[name]
         if not f.is_relation or value is None:
             values[name] = rewrite(value) if rewrite and isinstance(f, _TEXT_FIELDS) else value
             continue

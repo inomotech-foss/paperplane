@@ -184,3 +184,10 @@ def test_convert_and_keep(ctx, base):
     load(entity, FakeSource({"issues": [kept, dropped]}), ctx)
     assert Issue.all_objects.get(pk=kept["id"]).priority == "urgent"
     assert ctx.report.dropped["issues"]["unwanted"] == 1
+
+
+@pytest.mark.django_db
+def test_null_into_not_null_field_takes_default(ctx):
+    user = stamped(email="n@example.test", username="n", password="x", first_name=None)
+    load(Entity(User), FakeSource({"users": [user]}), ctx)
+    assert User.objects.get(pk=user["id"]).first_name == ""
