@@ -38,33 +38,27 @@ export type TModuleRootStore = {
 };
 
 export interface IModuleStore {
-  //Loaders
-  loader: boolean;
-  fetchedMap: Record<string, boolean>;
-  archivedFetchedMap: Record<string, boolean>;
   plotType: Record<string, TModulePlotType>;
   // observables
   moduleMap: Record<string, IModule>;
   // computed
-  projectModuleIds: string[] | null;
-  projectArchivedModuleIds: string[] | null;
+  projectModuleIds: string[];
+  projectArchivedModuleIds: string[];
   // computed actions
-  getModulesFetchStatusByProjectId: (projectId: string) => boolean;
-  getFilteredModuleIds: (projectId: string) => string[] | null;
-  getFilteredArchivedModuleIds: (projectId: string) => string[] | null;
+  getFilteredModuleIds: (projectId: string) => string[];
+  getFilteredArchivedModuleIds: (projectId: string) => string[];
   getModuleById: (moduleId: string) => IModule | null;
-  getModuleNameById: (moduleId: string) => string;
-  getProjectModuleDetails: (projectId: string) => IModule[] | null;
-  getProjectModuleIds: (projectId: string) => string[] | null;
+  getModuleNameById: (moduleId: string) => string | undefined;
+  getProjectModuleDetails: (projectId: string) => IModule[];
+  getProjectModuleIds: (projectId: string) => string[];
   getPlotTypeByModuleId: (moduleId: string) => TModulePlotType;
   // actions
   setPlotType: (moduleId: string, plotType: TModulePlotType) => void;
   // fetch
   updateModuleDistribution: (distributionUpdates: DistributionUpdates, moduleId: string) => void;
   fetchWorkspaceModules: (workspaceSlug: string) => Promise<IModule[]>;
-  fetchModules: (workspaceSlug: string, projectId: string) => Promise<undefined | IModule[]>;
-  fetchModulesSlim: (workspaceSlug: string, projectId: string) => Promise<undefined | IModule[]>;
-  fetchArchivedModules: (workspaceSlug: string, projectId: string) => Promise<undefined | IModule[]>;
+  fetchModules: (workspaceSlug: string, projectId: string) => Promise<IModule[]>;
+  fetchArchivedModules: (workspaceSlug: string, projectId: string) => Promise<IModule[]>;
   fetchArchivedModuleDetails: (workspaceSlug: string, projectId: string, moduleId: string) => Promise<IModule>;
   fetchModuleDetails: (workspaceSlug: string, projectId: string, moduleId: string) => Promise<IModule>;
   // crud
@@ -100,12 +94,8 @@ export interface IModuleStore {
 
 export class ModulesStore implements IModuleStore {
   // observables
-  loader: boolean = false;
   moduleMap: Record<string, IModule> = {};
   plotType: Record<string, TModulePlotType> = {};
-  //loaders
-  fetchedMap: Record<string, boolean> = {};
-  archivedFetchedMap: Record<string, boolean> = {};
   // root store
   rootStore;
   // services
@@ -116,11 +106,8 @@ export class ModulesStore implements IModuleStore {
   constructor(_rootStore: TModuleRootStore) {
     makeObservable(this, {
       // observables
-      loader: observable.ref,
       moduleMap: observable,
       plotType: observable.ref,
-      fetchedMap: observable,
-      archivedFetchedMap: observable,
       // computed
       projectModuleIds: computed,
       projectArchivedModuleIds: computed,
@@ -151,118 +138,65 @@ export class ModulesStore implements IModuleStore {
     this.moduleArchiveService = new ModuleArchiveService();
   }
 
+  /** All modules of a project, archived included. Every per-project list derives from this one pass. */
+  private getAllProjectModules = computedFn((projectId: string): IModule[] =>
+    Object.values(this.moduleMap).filter((m) => m.project_id === projectId)
+  );
+
   // computed
-  /**
-   * get all module ids for the current project
-   */
   get projectModuleIds() {
     const projectId = this.rootStore.router.projectId;
-    if (!projectId || !this.fetchedMap[projectId]) return null;
-    let projectModules = Object.values(this.moduleMap).filter((m) => m.project_id === projectId && !m?.archived_at);
-    projectModules = sortBy(projectModules, [(m) => m.sort_order]);
-    const projectModuleIds = projectModules.map((m) => m.id);
-    return projectModuleIds || null;
+    return projectId ? this.getProjectModuleIds(projectId) : [];
   }
 
-  /**
-   * get all archived module ids for the current project
-   */
   get projectArchivedModuleIds() {
     const projectId = this.rootStore.router.projectId;
-    if (!projectId || !this.archivedFetchedMap[projectId]) return null;
-    let archivedModules = Object.values(this.moduleMap).filter((m) => m.project_id === projectId && !!m?.archived_at);
-    archivedModules = sortBy(archivedModules, [(m) => m.sort_order]);
-    const projectModuleIds = archivedModules.map((m) => m.id);
-    return projectModuleIds || null;
+    if (!projectId) return [];
+    const archivedModules = this.getAllProjectModules(projectId).filter((m) => !!m.archived_at);
+    return sortBy(archivedModules, [(m) => m.sort_order]).map((m) => m.id);
   }
 
-  /**
-   * Returns the fetch status for a specific project
-   * @param projectId
-   * @returns boolean
-   */
-  getModulesFetchStatusByProjectId = computedFn((projectId: string) => this.fetchedMap[projectId] ?? false);
-
-  /**
-   * @description returns filtered module ids based on display filters and filters
-   * @param {TModuleDisplayFilters} displayFilters
-   * @param {TModuleFilters} filters
-   * @returns {string[] | null}
-   */
+  /** Non-archived module ids of a project that match the search, filters and display filters. */
   getFilteredModuleIds = computedFn((projectId: string) => {
     const displayFilters = this.rootStore.moduleFilter.getDisplayFiltersByProjectId(projectId);
     const filters = this.rootStore.moduleFilter.getFiltersByProjectId(projectId);
-    const searchQuery = this.rootStore.moduleFilter.searchQuery;
-    if (!this.fetchedMap[projectId]) return null;
-    let modules = Object.values(this.moduleMap ?? {}).filter(
+    const searchQuery = this.rootStore.moduleFilter.searchQuery.toLowerCase();
+    const modules = this.getAllProjectModules(projectId).filter(
       (m) =>
-        m.project_id === projectId &&
         !m.archived_at &&
-        m.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        m.name.toLowerCase().includes(searchQuery) &&
         shouldFilterModule(m, displayFilters ?? {}, filters ?? {})
     );
-    modules = orderModules(modules, getModuleOrderBy(displayFilters));
-    const moduleIds = modules.map((m) => m.id);
-    return moduleIds;
+    return orderModules(modules, getModuleOrderBy(displayFilters)).map((m) => m.id);
   });
 
-  /**
-   * @description returns filtered archived module ids based on display filters and filters
-   * @param {string} projectId
-   * @returns {string[] | null}
-   */
+  /** Archived module ids of a project that match the archive search and filters. */
   getFilteredArchivedModuleIds = computedFn((projectId: string) => {
     const displayFilters = this.rootStore.moduleFilter.getDisplayFiltersByProjectId(projectId);
     const filters = this.rootStore.moduleFilter.getArchivedFiltersByProjectId(projectId);
-    const searchQuery = this.rootStore.moduleFilter.archivedModulesSearchQuery;
-    if (!this.archivedFetchedMap[projectId]) return null;
-    let modules = Object.values(this.moduleMap ?? {}).filter(
+    const searchQuery = this.rootStore.moduleFilter.archivedModulesSearchQuery.toLowerCase();
+    const modules = this.getAllProjectModules(projectId).filter(
       (m) =>
-        m.project_id === projectId &&
         !!m.archived_at &&
-        m.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        m.name.toLowerCase().includes(searchQuery) &&
         shouldFilterModule(m, displayFilters ?? {}, filters ?? {})
     );
-    modules = orderModules(modules, displayFilters?.order_by);
-    const moduleIds = modules.map((m) => m.id);
-    return moduleIds;
+    return orderModules(modules, displayFilters?.order_by).map((m) => m.id);
   });
 
-  /**
-   * @description get module by id
-   * @param moduleId
-   * @returns IModule | null
-   */
-  getModuleById = computedFn((moduleId: string) => this.moduleMap?.[moduleId] || null);
+  getModuleById = computedFn((moduleId: string): IModule | null => this.moduleMap[moduleId] ?? null);
 
-  /**
-   * @description get module by id
-   * @param moduleId
-   * @returns IModule | null
-   */
-  getModuleNameById = computedFn((moduleId: string) => this.moduleMap?.[moduleId]?.name);
+  getModuleNameById = computedFn((moduleId: string): string | undefined => this.moduleMap[moduleId]?.name);
 
-  /**
-   * @description returns list of module details of the project id passed as argument
-   * @param projectId
-   */
-  getProjectModuleDetails = computedFn((projectId: string) => {
-    if (!this.fetchedMap[projectId]) return null;
-    let projectModules = Object.values(this.moduleMap).filter((m) => m.project_id === projectId && !m.archived_at);
-    projectModules = sortBy(projectModules, [(m) => m.sort_order]);
-    return projectModules;
+  /** Non-archived modules of a project, in manual order. Whether the list is complete is the query's concern. */
+  getProjectModuleDetails = computedFn((projectId: string): IModule[] => {
+    const projectModules = this.getAllProjectModules(projectId).filter((m) => !m.archived_at);
+    return sortBy(projectModules, [(m) => m.sort_order]);
   });
 
-  /**
-   * @description returns list of module ids of the project id passed as argument
-   * @param projectId
-   */
-  getProjectModuleIds = computedFn((projectId: string) => {
-    const projectModules = this.getProjectModuleDetails(projectId);
-    if (!projectModules) return null;
-    const projectModuleIds = projectModules.map((m) => m.id);
-    return projectModuleIds;
-  });
+  getProjectModuleIds = computedFn((projectId: string): string[] =>
+    this.getProjectModuleDetails(projectId).map((m) => m.id)
+  );
 
   /**
    * @description gets the plot type for the module store
@@ -289,44 +223,14 @@ export class ModulesStore implements IModuleStore {
    * @param workspaceSlug
    * @returns IModule[]
    */
-  fetchWorkspaceModules = async (workspaceSlug: string) =>
-    await this.moduleService.getWorkspaceModules(workspaceSlug).then((response) => {
-      runInAction(() => {
-        response.forEach((module) => {
-          set(this.moduleMap, [module.id], { ...this.moduleMap[module.id], ...module });
-        });
-        // check for all unique project ids and update the fetchedMap
-        const uniqueProjectIds = new Set(response.map((module) => module.project_id));
-        uniqueProjectIds.forEach((projectId) => {
-          set(this.fetchedMap, projectId, true);
-        });
+  fetchWorkspaceModules = async (workspaceSlug: string) => {
+    const response = await this.moduleService.getWorkspaceModules(workspaceSlug);
+    runInAction(() => {
+      response.forEach((module) => {
+        set(this.moduleMap, [module.id], { ...this.moduleMap[module.id], ...module });
       });
-      return response;
     });
-
-  /**
-   * @description fetch all modules
-   * @param workspaceSlug
-   * @param projectId
-   * @returns IModule[]
-   */
-  fetchModules = async (workspaceSlug: string, projectId: string) => {
-    try {
-      this.loader = true;
-      await this.moduleService.getModules(workspaceSlug, projectId).then((response) => {
-        runInAction(() => {
-          response.forEach((module) => {
-            set(this.moduleMap, [module.id], { ...this.moduleMap[module.id], ...module });
-          });
-          set(this.fetchedMap, projectId, true);
-          this.loader = false;
-        });
-        return response;
-      });
-    } catch {
-      this.loader = false;
-      return undefined;
-    }
+    return response;
   };
 
   /**
@@ -335,24 +239,14 @@ export class ModulesStore implements IModuleStore {
    * @param projectId
    * @returns IModule[]
    */
-  fetchModulesSlim = async (workspaceSlug: string, projectId: string) => {
-    try {
-      this.loader = true;
-      await this.moduleService.getWorkspaceModules(workspaceSlug).then((response) => {
-        const projectModules = response.filter((module) => module.project_id === projectId);
-        runInAction(() => {
-          projectModules.forEach((module) => {
-            set(this.moduleMap, [module.id], { ...this.moduleMap[module.id], ...module });
-          });
-          set(this.fetchedMap, projectId, true);
-          this.loader = false;
-        });
-        return projectModules;
+  fetchModules = async (workspaceSlug: string, projectId: string) => {
+    const response = await this.moduleService.getModules(workspaceSlug, projectId);
+    runInAction(() => {
+      response.forEach((module) => {
+        set(this.moduleMap, [module.id], { ...this.moduleMap[module.id], ...module });
       });
-    } catch {
-      this.loader = false;
-      return undefined;
-    }
+    });
+    return response;
   };
 
   /**
@@ -362,23 +256,13 @@ export class ModulesStore implements IModuleStore {
    * @returns IModule[]
    */
   fetchArchivedModules = async (workspaceSlug: string, projectId: string) => {
-    this.loader = true;
-    return await this.moduleArchiveService
-      .getArchivedModules(workspaceSlug, projectId)
-      .then((response) => {
-        runInAction(() => {
-          response.forEach((module) => {
-            set(this.moduleMap, [module.id], { ...this.moduleMap[module.id], ...module });
-          });
-          set(this.archivedFetchedMap, projectId, true);
-          this.loader = false;
-        });
-        return response;
-      })
-      .catch(() => {
-        this.loader = false;
-        return undefined;
+    const response = await this.moduleArchiveService.getArchivedModules(workspaceSlug, projectId);
+    runInAction(() => {
+      response.forEach((module) => {
+        set(this.moduleMap, [module.id], { ...this.moduleMap[module.id], ...module });
       });
+    });
+    return response;
   };
 
   /**

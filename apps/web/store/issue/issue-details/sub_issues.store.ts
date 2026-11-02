@@ -352,9 +352,13 @@ export class IssueSubIssuesStore implements IIssueSubIssuesStore {
         // fetching other project labels
         this.rootIssueDetailStore.rootIssueStore.rootStore.label.fetchProjectLabels(workspaceSlug, projectId);
         // fetching other project cycles
-        this.rootIssueDetailStore.rootIssueStore.rootStore.cycle.fetchAllCycles(workspaceSlug, projectId);
+        this.rootIssueDetailStore.rootIssueStore.rootStore.cycle
+          .fetchAllCycles(workspaceSlug, projectId)
+          .catch(() => undefined);
         // fetching other project modules
-        this.rootIssueDetailStore.rootIssueStore.rootStore.module.fetchModules(workspaceSlug, projectId);
+        this.rootIssueDetailStore.rootIssueStore.rootStore.module
+          .fetchModules(workspaceSlug, projectId)
+          .catch(() => undefined);
         // fetching other project estimates
         this.rootIssueDetailStore.rootIssueStore.rootStore.projectEstimate.getProjectEstimates(
           workspaceSlug,

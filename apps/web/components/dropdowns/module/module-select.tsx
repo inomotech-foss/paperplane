@@ -14,6 +14,7 @@ import type { SelectPaginationParams, SelectTooltip, SelectTooltipOverride, Sele
 import { useTranslation } from "@plane/i18n";
 import type { IModule, TPaginatedResponse } from "@plane/types";
 // hooks
+import { useProjectModules } from "@/hooks/queries/use-module-queries";
 import { useModule } from "@/hooks/store/use-module";
 
 type ModuleSelectWebBaseProps = {
@@ -60,7 +61,8 @@ export const ModuleSelect = observer(function ModuleSelect(props: ModuleSelectWe
   // router params
   const { workspaceSlug } = useParams();
   // store hooks
-  const { getProjectModuleIds, getModuleById, fetchModules } = useModule();
+  const { getProjectModuleIds, getModuleById } = useModule();
+  const { ensureLoaded } = useProjectModules(workspaceSlug?.toString(), projectId, { lazy: true });
   // translation
   const { t } = useTranslation();
   const resolvedTooltip = useMemo<SelectTooltipOverride | undefined>(() => {
@@ -75,20 +77,17 @@ export const ModuleSelect = observer(function ModuleSelect(props: ModuleSelectWe
   const getValues = useCallback(
     async ({ search }: SelectPaginationParams): Promise<TPaginatedResponse<ModuleOption[]>> => {
       if (!workspaceSlug || !projectId) return { results: [] };
-      let moduleIds = getProjectModuleIds(projectId);
-      if (!moduleIds) {
-        await fetchModules(workspaceSlug.toString(), projectId);
-        moduleIds = getProjectModuleIds(projectId);
-      }
+      await ensureLoaded();
+      const moduleIds = getProjectModuleIds(projectId);
       const query = search?.trim().toLowerCase();
-      const results = (moduleIds ?? [])
+      const results = moduleIds
         .map((moduleId) => getModuleById(moduleId))
         .filter((module): module is IModule => !!module)
         .filter((module) => !query || module.name.toLowerCase().includes(query))
         .map(toOption);
       return { results, next_page_results: false };
     },
-    [workspaceSlug, projectId, getProjectModuleIds, fetchModules, getModuleById]
+    [workspaceSlug, projectId, getProjectModuleIds, ensureLoaded, getModuleById]
   );
 
   if (!props.multiple) {

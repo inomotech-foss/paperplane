@@ -16,12 +16,14 @@ import { EUserProjectRoles } from "@plane/types";
 import { Header, EHeaderVariant } from "@plane/blocks/layout";
 import { calculateTotalFilters } from "@plane/utils";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { PageHead } from "@/components/core/page-title";
 import { CycleAppliedFiltersList } from "@/components/cycles/applied-filters";
 import { CyclesView } from "@/components/cycles/cycles-view";
 import { CycleCreateUpdateModal } from "@/components/cycles/modal";
 import { CycleModuleListLayoutLoader } from "@/components/ui/loader/cycle-module-list-loader";
 // hooks
+import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useCycleFilter } from "@/hooks/store/use-cycle-filter";
 import { useProject } from "@/hooks/store/use-project";
@@ -32,16 +34,17 @@ function ProjectCyclesPage({ params }: Route.ComponentProps) {
   // states
   const [createModal, setCreateModal] = useState(false);
   // store hooks
-  const { currentProjectCycleIds, loader } = useCycle();
-  const { getProjectById } = useProject();
   const { workspaceSlug, projectId } = params;
+  const { getProjectCycleIds } = useCycle();
+  const { isLoading, error, retry } = useProjectCycles(workspaceSlug, projectId);
+  const { getProjectById } = useProject();
   // plane hooks
   const { t } = useTranslation();
   // cycle filters hook
   const { clearAllFilters, currentProjectFilters, updateFilters } = useCycleFilter();
   const { allowPermissions } = useUserPermissions();
   // derived values
-  const totalCycles = currentProjectCycleIds?.length ?? 0;
+  const totalCycles = getProjectCycleIds(projectId).length;
   const project = getProjectById(projectId);
   const pageTitle = project?.name ? `${project?.name} - ${t("common.cycles", { count: 2 })}` : undefined;
   const hasMemberLevelPermission = allowPermissions(
@@ -58,7 +61,8 @@ function ProjectCyclesPage({ params }: Route.ComponentProps) {
     updateFilters(projectId, { [key]: newValues });
   };
 
-  if (loader) return <CycleModuleListLayoutLoader />;
+  if (isLoading) return <CycleModuleListLayoutLoader />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   return (
     <>

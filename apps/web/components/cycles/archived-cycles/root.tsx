@@ -7,15 +7,16 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 import { EmptyStateDetailed } from "@plane/blocks/empty-state";
 import type { TCycleFilters } from "@plane/types";
 import { calculateTotalFilters } from "@plane/utils";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { CycleModuleListLayoutLoader } from "@/components/ui/loader/cycle-module-list-loader";
 // hooks
+import { useArchivedCycles } from "@/hooks/queries/use-cycle-queries";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useCycleFilter } from "@/hooks/store/use-cycle-filter";
 // local imports
@@ -28,21 +29,12 @@ export const ArchivedCycleLayoutRoot = observer(function ArchivedCycleLayoutRoot
   // plane hooks
   const { t } = useTranslation();
   // hooks
-  const { fetchArchivedCycles, currentProjectArchivedCycleIds, loader } = useCycle();
+  const { currentProjectArchivedCycleIds } = useCycle();
+  const { isLoading, error, retry } = useArchivedCycles(workspaceSlug?.toString(), projectId?.toString());
   // cycle filters hook
   const { clearAllFilters, currentProjectArchivedFilters, updateFilters } = useCycleFilter();
   // derived values
-  const totalArchivedCycles = currentProjectArchivedCycleIds?.length ?? 0;
-
-  useSWR(
-    workspaceSlug && projectId ? `ARCHIVED_CYCLES_${workspaceSlug.toString()}_${projectId.toString()}` : null,
-    async () => {
-      if (workspaceSlug && projectId) {
-        await fetchArchivedCycles(workspaceSlug.toString(), projectId.toString());
-      }
-    },
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
+  const totalArchivedCycles = currentProjectArchivedCycleIds.length;
 
   const handleRemoveFilter = (key: keyof TCycleFilters, value: string | null) => {
     if (!projectId) return;
@@ -56,9 +48,8 @@ export const ArchivedCycleLayoutRoot = observer(function ArchivedCycleLayoutRoot
 
   if (!workspaceSlug || !projectId) return <></>;
 
-  if (loader || !currentProjectArchivedCycleIds) {
-    return <CycleModuleListLayoutLoader />;
-  }
+  if (isLoading) return <CycleModuleListLayoutLoader />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   return (
     <>

@@ -9,9 +9,11 @@ import { observer } from "mobx-react";
 import type { ICycle } from "@plane/types";
 import { Spinner } from "@plane/blocks/spinner";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import type { TPowerKContext } from "@/components/power-k/core/types";
 import { PowerKCyclesMenu } from "@/components/power-k/menus/cycles";
 // hooks
+import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
 import { useCycle } from "@/hooks/store/use-cycle";
 
 type Props = {
@@ -22,16 +24,18 @@ type Props = {
 export const PowerKOpenProjectCyclesMenu = observer(function PowerKOpenProjectCyclesMenu(props: Props) {
   const { context, handleSelect } = props;
   // store hooks
-  const { fetchedMap, getProjectCycleIds, getCycleById } = useCycle();
+  const { getProjectCycleIds, getCycleById } = useCycle();
   // derived values
   const projectId = context.params.projectId?.toString();
-  const isFetched = projectId ? fetchedMap[projectId] : false;
-  const projectCycleIds = projectId ? getProjectCycleIds(projectId) : undefined;
-  const cyclesList = projectCycleIds
-    ? projectCycleIds.map((cycleId) => getCycleById(cycleId)).filter((cycle) => !!cycle)
+  const { isLoading, error, retry } = useProjectCycles(context.params.workspaceSlug?.toString(), projectId);
+  const cyclesList = projectId
+    ? getProjectCycleIds(projectId)
+        .map((cycleId) => getCycleById(cycleId))
+        .filter((cycle) => !!cycle)
     : [];
 
-  if (!isFetched) return <Spinner />;
+  if (isLoading) return <Spinner />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   return <PowerKCyclesMenu cycles={cyclesList} onSelect={handleSelect} />;
 });

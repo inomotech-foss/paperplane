@@ -54,7 +54,7 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useWorkspaceDraftIssues } from "@/hooks/store/workspace-draft";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 import { usePreselectedIssueTypeId } from "@/hooks/use-preselected-issue-type";
-import { useProjectIssueProperties } from "@/hooks/use-project-issue-properties";
+import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
 
 export interface IssueFormProps {
   data?: Partial<TIssue>;
@@ -136,7 +136,6 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
   const {
     issue: { getIssueById },
   } = useIssueDetail();
-  const { fetchCycles } = useProjectIssueProperties();
   const { getStateById } = useProjectState();
 
   // form info
@@ -157,6 +156,8 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
 
   const projectId = watch("project_id");
   const preselectedTypeId = usePreselectedIssueTypeId(workspaceSlug?.toString(), projectId);
+  // the project wrapper loads the route project's cycles
+  useProjectCycles(workspaceSlug?.toString(), projectId && routeProjectId !== projectId ? projectId : undefined);
 
   const isDisabled = isSubmitting || isApplyingTemplate;
 
@@ -174,8 +175,6 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
         reset(getUpdateFormDataForReset(projectId, getValues()));
       }
     }
-    if (projectId && routeProjectId !== projectId) fetchCycles(workspaceSlug?.toString(), projectId);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 

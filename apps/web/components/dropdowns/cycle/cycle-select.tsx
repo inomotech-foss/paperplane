@@ -15,6 +15,7 @@ import { CYCLE_STATUS } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import type { ICycle, TCycleGroups, TPaginatedResponse } from "@plane/types";
 // hooks
+import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { isOneOf } from "@plane/types";
 
@@ -88,7 +89,8 @@ export const CycleSelect = observer(function CycleSelect(props: CycleSelectWebPr
   // router params
   const { workspaceSlug } = useParams();
   // store hooks
-  const { getProjectCycleIds, getCycleById, fetchAllCycles } = useCycle();
+  const { getProjectCycleIds, getCycleById } = useCycle();
+  const { ensureLoaded } = useProjectCycles(workspaceSlug?.toString(), projectId, { lazy: true });
   // translation
   const { t } = useTranslation();
   const resolvedTooltip = useMemo<SelectTooltipOverride | undefined>(() => {
@@ -105,15 +107,12 @@ export const CycleSelect = observer(function CycleSelect(props: CycleSelectWebPr
   const getValues = useCallback(
     async ({ search }: SelectPaginationParams): Promise<TPaginatedResponse<CycleOption[]>> => {
       if (!workspaceSlug || !projectId) return { results: [] };
-      let cycleIds = getProjectCycleIds(projectId);
-      if (!cycleIds) {
-        await fetchAllCycles(workspaceSlug.toString(), projectId);
-        cycleIds = getProjectCycleIds(projectId);
-      }
+      await ensureLoaded();
+      const cycleIds = getProjectCycleIds(projectId);
       const query = search?.trim().toLowerCase();
       const excluded = new Set(excludeIds);
       const statuses = new Set(allowedStatuses);
-      const results = (cycleIds ?? [])
+      const results = cycleIds
         .filter((cycleId) => !excluded.has(cycleId))
         .map((cycleId) => getCycleById(cycleId))
         .filter((cycle): cycle is ICycle => !!cycle)
@@ -122,7 +121,7 @@ export const CycleSelect = observer(function CycleSelect(props: CycleSelectWebPr
         .map(toOption);
       return { results, next_page_results: false };
     },
-    [workspaceSlug, projectId, getProjectCycleIds, fetchAllCycles, getCycleById, excludeIds, allowedStatuses]
+    [workspaceSlug, projectId, getProjectCycleIds, ensureLoaded, getCycleById, excludeIds, allowedStatuses]
   );
 
   // Resolved in the observer render (not in a memo) so MobX re-renders when the cycle loads.

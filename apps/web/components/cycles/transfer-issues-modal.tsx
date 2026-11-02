@@ -89,7 +89,7 @@ export const TransferIssuesModal = observer(function TransferIssuesModal(props: 
     });
   };
 
-  const filteredOptions = currentProjectIncompleteCycleIds?.filter((optionId) => {
+  const filteredOptions = currentProjectIncompleteCycleIds.filter((optionId) => {
     const cycleDetails = getCycleById(optionId);
 
     return cycleDetails?.name?.toLowerCase().includes(query?.toLowerCase());
@@ -132,46 +132,42 @@ export const TransferIssuesModal = observer(function TransferIssuesModal(props: 
           </div>
           <DialogBody tabIndex={0}>
             <div className="flex w-full flex-col items-start gap-2">
-              {filteredOptions ? (
-                filteredOptions.length > 0 ? (
-                  filteredOptions.map((optionId) => {
-                    const cycleDetails = getCycleById(optionId);
+              {filteredOptions.length > 0 ? (
+                filteredOptions.map((optionId) => {
+                  const cycleDetails = getCycleById(optionId);
 
-                    if (!cycleDetails) return;
+                  if (!cycleDetails) return;
 
-                    return (
-                      <button
-                        key={optionId}
-                        className="flex w-full items-center gap-4 rounded-sm px-4 py-3 text-13 text-secondary hover:bg-surface-2"
-                        onClick={() => {
-                          transferIssue({
-                            new_cycle_id: optionId,
-                          });
-                          handleClose();
-                        }}
-                      >
-                        <CyclesOutline className="h-5 w-5" />
-                        <div className="flex w-full justify-between truncate">
-                          <span className="truncate">{cycleDetails?.name}</span>
-                          {cycleDetails.status && (
-                            <span className="flex flex-shrink-0 items-center rounded-full bg-layer-1 px-2 capitalize">
-                              {cycleDetails.status.toLocaleLowerCase()}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })
-                ) : (
-                  <div className="flex w-full items-center justify-center gap-4 p-5 text-13">
-                    <WarningCircleOutline className="h-3.5 w-3.5 text-secondary" />
-                    <span className="text-center text-secondary">
-                      You don’t have any current cycle. Please create one to transfer the work items.
-                    </span>
-                  </div>
-                )
+                  return (
+                    <button
+                      key={optionId}
+                      className="flex w-full items-center gap-4 rounded-sm px-4 py-3 text-13 text-secondary hover:bg-surface-2"
+                      onClick={() => {
+                        transferIssue({
+                          new_cycle_id: optionId,
+                        });
+                        handleClose();
+                      }}
+                    >
+                      <CyclesOutline className="h-5 w-5" />
+                      <div className="flex w-full justify-between truncate">
+                        <span className="truncate">{cycleDetails?.name}</span>
+                        {cycleDetails.status && (
+                          <span className="flex flex-shrink-0 items-center rounded-full bg-layer-1 px-2 capitalize">
+                            {cycleDetails.status.toLocaleLowerCase()}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })
               ) : (
-                <p className="text-center text-secondary">Loading...</p>
+                <div className="flex w-full items-center justify-center gap-4 p-5 text-13">
+                  <WarningCircleOutline className="h-3.5 w-3.5 text-secondary" />
+                  <span className="text-center text-secondary">
+                    You don’t have any current cycle. Please create one to transfer the work items.
+                  </span>
+                </div>
               )}
             </div>
           </DialogBody>

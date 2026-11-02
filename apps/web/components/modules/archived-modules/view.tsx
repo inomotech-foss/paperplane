@@ -10,8 +10,6 @@ import AllFiltersImage from "@/app/assets/empty-state/module/all-filters.svg?url
 import NameFilterImage from "@/app/assets/empty-state/module/name-filter.svg?url";
 // components
 import { ModuleListItem, ModulePeekOverview } from "@/components/modules";
-// ui
-import { CycleModuleListLayoutLoader } from "@/components/ui/loader/cycle-module-list-loader";
 // hooks
 import { useModule } from "@/hooks/store/use-module";
 import { useModuleFilter } from "@/hooks/store/use-module-filter";
@@ -24,12 +22,10 @@ export interface IArchivedModulesView {
 export const ArchivedModulesView = observer(function ArchivedModulesView(props: IArchivedModulesView) {
   const { workspaceSlug, projectId } = props;
   // store hooks
-  const { getFilteredArchivedModuleIds, loader } = useModule();
+  const { getFilteredArchivedModuleIds } = useModule();
   const { archivedModulesSearchQuery } = useModuleFilter();
   // derived values
   const filteredArchivedModuleIds = getFilteredArchivedModuleIds(projectId);
-
-  if (loader || !filteredArchivedModuleIds) return <CycleModuleListLayoutLoader />;
 
   if (filteredArchivedModuleIds.length === 0)
     return (

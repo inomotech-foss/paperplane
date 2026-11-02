@@ -18,20 +18,17 @@ import { ViewService } from "@/services/view.service";
 import type { CoreRootStore } from "./root.store";
 
 export interface IProjectViewStore {
-  //Loaders
-  loader: boolean;
-  fetchedMap: Record<string, boolean>;
   // observables
   viewMap: Record<string, IProjectView>;
   filters: TViewFilters;
   // computed
-  projectViewIds: string[] | null;
+  projectViewIds: string[];
   // computed actions
-  getProjectViews: (projectId: string) => IProjectView[] | undefined;
-  getFilteredProjectViews: (projectId: string) => IProjectView[] | undefined;
+  getProjectViews: (projectId: string) => IProjectView[];
+  getFilteredProjectViews: (projectId: string) => IProjectView[];
   getViewById: (viewId: string) => IProjectView;
   // fetch actions
-  fetchViews: (workspaceSlug: string, projectId: string) => Promise<undefined | IProjectView[]>;
+  fetchViews: (workspaceSlug: string, projectId: string) => Promise<IProjectView[]>;
   fetchViewDetails: (workspaceSlug: string, projectId: string, viewId: string) => Promise<IProjectView>;
   // CRUD actions
   createView: (workspaceSlug: string, projectId: string, data: Partial<IProjectView>) => Promise<IProjectView>;
@@ -51,10 +48,7 @@ export interface IProjectViewStore {
 
 export class ProjectViewStore implements IProjectViewStore {
   // observables
-  loader: boolean = false;
   viewMap: Record<string, IProjectView> = {};
-  //loaders
-  fetchedMap: Record<string, boolean> = {};
   filters: TViewFilters = { searchQuery: "", sortBy: "desc", sortKey: "updated_at" };
   // root store
   rootStore: CoreRootStore;
@@ -64,9 +58,7 @@ export class ProjectViewStore implements IProjectViewStore {
   constructor(_rootStore: CoreRootStore) {
     makeObservable(this, {
       // observables
-      loader: observable.ref,
       viewMap: observable,
-      fetchedMap: observable,
       filters: observable,
       // computed
       projectViewIds: computed,
@@ -98,38 +90,30 @@ export class ProjectViewStore implements IProjectViewStore {
    */
   get projectViewIds() {
     const projectId = this.rootStore.router.projectId;
-    if (!projectId || !this.fetchedMap[projectId]) return null;
+    if (!projectId) return [];
     const viewIds = Object.keys(this.viewMap ?? {})?.filter((viewId) => this.viewMap?.[viewId]?.project === projectId);
     return viewIds;
   }
 
   getProjectViews = computedFn((projectId: string) => {
-    if (!this.fetchedMap[projectId]) return undefined;
-
     const ViewsList = Object.values(this.viewMap ?? {});
     // helps to filter views based on the projectId
-    let filteredViews = ViewsList.filter((view) => view?.project === projectId);
-    filteredViews = orderViews(filteredViews, this.filters.sortKey, this.filters.sortBy);
-
-    return filteredViews ?? undefined;
+    const filteredViews = ViewsList.filter((view) => view?.project === projectId);
+    return orderViews(filteredViews, this.filters.sortKey, this.filters.sortBy);
   });
   /**
    * returns viewsIds of issues
    */
   getFilteredProjectViews = computedFn((projectId: string) => {
-    if (!this.fetchedMap[projectId]) return undefined;
-
     const ViewsList = Object.values(this.viewMap ?? {});
     // helps to filter views based on the projectId, searchQuery and filters
-    let filteredViews = ViewsList.filter(
+    const filteredViews = ViewsList.filter(
       (view) =>
         view?.project === projectId &&
         getViewName(view.name).toLowerCase().includes(this.filters.searchQuery.toLowerCase()) &&
         shouldFilterView(view, this.filters.filters)
     );
-    filteredViews = orderViews(filteredViews, this.filters.sortKey, this.filters.sortBy);
-
-    return filteredViews ?? undefined;
+    return orderViews(filteredViews, this.filters.sortKey, this.filters.sortBy);
   });
 
   /**
@@ -163,22 +147,13 @@ export class ProjectViewStore implements IProjectViewStore {
    * @returns Promise<IProjectView[]>
    */
   fetchViews = async (workspaceSlug: string, projectId: string) => {
-    try {
-      this.loader = true;
-      await this.viewService.getViews(workspaceSlug, projectId).then((response) => {
-        runInAction(() => {
-          response.forEach((view) => {
-            set(this.viewMap, [view.id], view);
-          });
-          set(this.fetchedMap, projectId, true);
-          this.loader = false;
-        });
-        return response;
+    const response = await this.viewService.getViews(workspaceSlug, projectId);
+    runInAction(() => {
+      response.forEach((view) => {
+        set(this.viewMap, [view.id], view);
       });
-    } catch (_error) {
-      this.loader = false;
-      return undefined;
-    }
+    });
+    return response;
   };
 
   /**

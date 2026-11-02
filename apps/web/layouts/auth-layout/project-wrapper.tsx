@@ -26,22 +26,19 @@ import {
   PROJECT_MEMBER_PREFERENCES,
   PROJECT_STATES,
   PROJECT_ESTIMATES,
-  PROJECT_ALL_CYCLES,
-  PROJECT_MODULES,
-  PROJECT_VIEWS,
   PROJECT_INTAKE_STATE,
 } from "@plane/constants";
 // hooks
+import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
+import { useProjectModules } from "@/hooks/queries/use-module-queries";
+import { useProjectViews } from "@/hooks/queries/use-project-view-queries";
 import { useProjectEstimates } from "@/hooks/store/estimates";
-import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { useLabel } from "@/hooks/store/use-label";
 import { useMember } from "@/hooks/store/use-member";
-import { useModule } from "@/hooks/store/use-module";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
-import { useProjectView } from "@/hooks/store/use-project-view";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
 
@@ -60,10 +57,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   const { fetchUserProjectInfo, allowPermissions, getProjectRoleByWorkspaceSlugAndProjectId } = useUserPermissions();
   const { fetchProjectDetails, getProjectById } = useProject();
   const { joinProject } = useUserPermissions();
-  const { fetchAllCycles } = useCycle();
-  const { fetchModulesSlim, fetchModules } = useModule();
   const { initGantt } = useTimeLineChart(GANTT_TIMELINE_TYPE.MODULE);
-  const { fetchViews } = useProjectView();
   const {
     project: { fetchProjectMembers, fetchProjectUserProperties, getProjectUserProperties },
   } = useMember();
@@ -148,24 +142,9 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
-  // fetching project cycles
-  useSWR(roleKey(PROJECT_ALL_CYCLES), () => fetchAllCycles(workspaceSlug, projectId), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
-  // fetching project modules
-  useSWR(
-    roleKey(PROJECT_MODULES),
-    async () => {
-      await Promise.all([fetchModulesSlim(workspaceSlug, projectId), fetchModules(workspaceSlug, projectId)]);
-    },
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
-  // fetching project views
-  useSWR(roleKey(PROJECT_VIEWS), () => fetchViews(workspaceSlug, projectId), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
+  useProjectCycles(workspaceSlug, projectId);
+  useProjectModules(workspaceSlug, projectId);
+  useProjectViews(workspaceSlug, projectId);
 
   // handle join project
   const handleJoinProject = () => {

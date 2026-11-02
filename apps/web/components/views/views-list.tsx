@@ -12,9 +12,11 @@ import { useTranslation } from "@plane/i18n";
 import { EmptyStateDetailed } from "@plane/blocks/empty-state";
 import { EUserProjectRoles } from "@plane/types";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { ListLayout } from "@/components/core/list";
 import { ViewListLoader } from "@/components/ui/loader/view-list-loader";
 // hooks
+import { useProjectViews } from "@/hooks/queries/use-project-view-queries";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProjectView } from "@/hooks/store/use-project-view";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -22,22 +24,24 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { ProjectViewListItem } from "./view-list-item";
 
 export const ProjectViewsList = observer(function ProjectViewsList() {
-  const { projectId } = useParams();
+  const { workspaceSlug, projectId } = useParams();
   // plane hooks
   const { t } = useTranslation();
   // store hooks
   const { toggleCreateViewModal } = useCommandPalette();
-  const { getProjectViews, getFilteredProjectViews, loader } = useProjectView();
+  const { getProjectViews, getFilteredProjectViews } = useProjectView();
+  const { isLoading, error, retry } = useProjectViews(workspaceSlug?.toString(), projectId?.toString());
   const { allowPermissions } = useUserPermissions();
   // derived values
-  const projectViews = getProjectViews(projectId?.toString());
-  const filteredProjectViews = getFilteredProjectViews(projectId?.toString());
+  const projectViews = projectId ? getProjectViews(projectId.toString()) : [];
+  const filteredProjectViews = projectId ? getFilteredProjectViews(projectId.toString()) : [];
   const canPerformEmptyStateActions = allowPermissions(
     [EUserProjectRoles.ADMIN, EUserProjectRoles.MEMBER, EUserProjectRoles.GUEST],
     EUserPermissionsLevel.PROJECT
   );
 
-  if (loader || !projectViews || !filteredProjectViews) return <ViewListLoader />;
+  if (isLoading) return <ViewListLoader />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   if (filteredProjectViews.length === 0 && projectViews.length > 0) {
     return (

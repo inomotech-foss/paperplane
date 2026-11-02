@@ -13,12 +13,14 @@ import { EmptyStateDetailed } from "@plane/blocks/empty-state";
 import { EUserProjectRoles } from "@plane/types";
 import { ContentWrapper, Row, ERowVariant } from "@plane/blocks/layout";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { ListLayout } from "@/components/core/list";
 import { ModuleCardItem, ModuleListItem, ModulePeekOverview, ModulesListGanttChartView } from "@/components/modules";
 import { CycleModuleBoardLayoutLoader } from "@/components/ui/loader/cycle-module-board-loader";
 import { CycleModuleListLayoutLoader } from "@/components/ui/loader/cycle-module-list-loader";
 import { GanttLayoutLoader } from "@/components/ui/loader/layouts/gantt-layout-loader";
 // hooks
+import { useProjectModules } from "@/hooks/queries/use-module-queries";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useModule } from "@/hooks/store/use-module";
 import { useModuleFilter } from "@/hooks/store/use-module-filter";
@@ -33,18 +35,19 @@ export const ModulesListView = observer(function ModulesListView() {
   const { t } = useTranslation();
   // store hooks
   const { toggleCreateModuleModal } = useCommandPalette();
-  const { getProjectModuleIds, getFilteredModuleIds, loader } = useModule();
+  const { getProjectModuleIds, getFilteredModuleIds } = useModule();
+  const { isLoading, error, retry } = useProjectModules(workspaceSlug?.toString(), projectId?.toString());
   const { currentProjectDisplayFilters: displayFilters } = useModuleFilter();
   const { allowPermissions } = useUserPermissions();
   // derived values
-  const projectModuleIds = projectId ? getProjectModuleIds(projectId.toString()) : undefined;
-  const filteredModuleIds = projectId ? getFilteredModuleIds(projectId.toString()) : undefined;
+  const projectModuleIds = projectId ? getProjectModuleIds(projectId.toString()) : [];
+  const filteredModuleIds = projectId ? getFilteredModuleIds(projectId.toString()) : [];
   const canPerformEmptyStateActions = allowPermissions(
     [EUserProjectRoles.ADMIN, EUserProjectRoles.MEMBER],
     EUserPermissionsLevel.PROJECT
   );
 
-  if (loader || !projectModuleIds || !filteredModuleIds)
+  if (isLoading)
     return (
       <>
         {displayFilters?.layout === "list" && <CycleModuleListLayoutLoader />}
@@ -52,6 +55,8 @@ export const ModulesListView = observer(function ModulesListView() {
         {displayFilters?.layout === "gantt" && <GanttLayoutLoader />}
       </>
     );
+
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   if (projectModuleIds.length === 0)
     return (
