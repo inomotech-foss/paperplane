@@ -56,16 +56,14 @@ const walkHtml = (html: string, allowedTags: ReadonlySet<string>, visitor: THtml
   parser.end();
 };
 
-const escapeText = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
 /**
- * Removes all tags and returns the text content with `&`, `<` and `>` escaped.
+ * Removes all tags and returns the decoded text content. The result is plain text, not HTML.
  */
-export const htmlToEscapedText = (html: string): string => {
+export const htmlToPlainText = (html: string): string => {
   let result = "";
   walkHtml(html, new Set(), {
     onText: (text) => {
-      result += escapeText(text);
+      result += text;
     },
     onAllowedTag: () => {},
   });

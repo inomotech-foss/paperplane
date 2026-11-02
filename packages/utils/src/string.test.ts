@@ -5,9 +5,9 @@
 
 import { describe, expect, it } from "vitest";
 import { sanitizeCommentForNotification } from "./notification";
-import { isCommentEmpty, isEmptyHtmlString, isStringCommentEmpty, sanitizeHTML, stripAndTruncateHTML } from "./string";
+import { isCommentEmpty, isEmptyHtmlString, isStringCommentEmpty, stripAndTruncateHTML, stripHTML } from "./string";
 
-describe("sanitizeHTML", () => {
+describe("stripHTML", () => {
   it.each([
     ["", ""],
     ["plain text", "plain text"],
@@ -26,18 +26,22 @@ describe("sanitizeHTML", () => {
     ["<xmp><b>hidden</b></xmp>shown", "shown"],
     ["<iframe><p>inner</p></iframe>", "inner"],
     ["<!-- comment -->text", "text"],
-    ["<p>Tom &amp; Jerry</p>", "Tom &amp; Jerry"],
-    ["<p>1 &lt; 2 &gt; 0</p>", "1 &lt; 2 &gt; 0"],
+    ["<p>Tom &amp; Jerry</p>", "Tom & Jerry"],
+    ["<p>1 &lt; 2 &gt; 0</p>", "1 < 2 > 0"],
+    ["A & B", "A & B"],
+    ["<b>x</b>", "x"],
+    ["&lt;script&gt;", "<script>"],
+    ["&amp;lt;b&amp;gt;", "&lt;b&gt;"],
     ["<p>&quot;quoted&quot; &#39;single&#39;</p>", "\"quoted\" 'single'"],
     ["<p>&nbsp;</p>", ""],
     ["<p>caf&eacute; &#x1F600;</p>", "café \u{1F600}"],
     ["unclosed <b>bold", "unclosed bold"],
-    ["a < b", "a &lt; b"],
+    ["a < b", "a < b"],
     ['<mention-component label="Alice"></mention-component> hi', "hi"],
     ['{"in_use":"emoji","emoji":{"value":"128512"}}', '{"in_use":"emoji","emoji":{"value":"128512"}}'],
     ["#ff0000", "#ff0000"],
   ])("strips %j to %j", (input, expected) => {
-    expect(sanitizeHTML(input)).toBe(expected);
+    expect(stripHTML(input)).toBe(expected);
   });
 });
 
@@ -59,6 +63,14 @@ describe("sanitizeCommentForNotification", () => {
         '<p>Hi <mention-component id="1" label="Alice" entity_name="user_mention"></mention-component>!</p>'
       )
     ).toBe("Hi Alice!");
+  });
+
+  it("returns decoded text", () => {
+    expect(
+      sanitizeCommentForNotification(
+        '<p><mention-component label="A &amp; B"></mention-component> &lt;script&gt; <b>x</b></p>'
+      )
+    ).toBe("A & B <script> x");
   });
 
   it("passes undefined through", () => {

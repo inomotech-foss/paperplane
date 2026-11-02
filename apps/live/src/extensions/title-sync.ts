@@ -8,14 +8,9 @@
 import type { Extension, Hocuspocus, Document } from "@hocuspocus/server";
 import { getSchema } from "@tiptap/core";
 import { prosemirrorJSONToYDoc } from "@tiptap/y-tiptap";
-import type * as Y from "yjs";
+import * as Y from "yjs";
 // editor extensions
-import {
-  TITLE_EDITOR_EXTENSIONS,
-  createRealtimeEvent,
-  extractTextFromHTML,
-  generateTitleProsemirrorJson,
-} from "@plane/editor/server";
+import { TITLE_EDITOR_EXTENSIONS, createRealtimeEvent, generateTitleProsemirrorJson } from "@plane/editor/server";
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
 // helpers
@@ -23,6 +18,7 @@ import { getPageService } from "@/services/page/handler";
 import type { HocusPocusServerContext, OnLoadDocumentPayloadWithContext } from "@/types";
 import { broadcastMessageToPage } from "@/utils/broadcast-message";
 import { TitleUpdateManager } from "./title-update/title-update-manager";
+import { extractTitleText } from "./title-update/title-utils";
 
 const titleSchema = getSchema(TITLE_EDITOR_EXTENSIONS);
 
@@ -107,11 +103,8 @@ export class TitleSyncExtension implements Extension {
    * This is a separate method to avoid closure memory leaks
    */
   private handleTitleChange(documentName: string, events: Y.YEvent<Y.AbstractType<unknown>>[]) {
-    let title = "";
-    events.forEach((event) => {
-      const html: unknown = event.currentTarget.toJSON();
-      title = typeof html === "string" ? extractTextFromHTML(html) : "";
-    });
+    const target = events.at(-1)?.currentTarget;
+    const title = target instanceof Y.XmlFragment ? extractTitleText(target, titleSchema) : "";
 
     // Get the manager for this document
     const manager = this.titleUpdateManagers.get(documentName);

@@ -7,7 +7,7 @@
 import type { Attrs } from "@tiptap/pm/model";
 // plane imports
 import type { TLogoProps } from "@plane/types";
-import { sanitizeHTML } from "@plane/utils";
+import { stripHTML } from "@plane/utils";
 // helpers
 import { isOneOf, readField, readString } from "@plane/types";
 import { readText } from "@/helpers/narrow";
@@ -56,7 +56,7 @@ export const getStoredLogo = (): TStoredLogoValue => {
   };
 
   if (typeof window !== "undefined") {
-    const storedData = sanitizeHTML(localStorage.getItem("editor-calloutComponent-logo") ?? "");
+    const storedData = stripHTML(localStorage.getItem("editor-calloutComponent-logo") ?? "");
     if (storedData) {
       let parsedData: unknown;
       try {
@@ -100,7 +100,7 @@ export const updateStoredLogo = (value: TLogoProps): void => {
 // function to get the stored background color from local storage
 export const getStoredBackgroundColor = (): string | null => {
   if (typeof window !== "undefined") {
-    return sanitizeHTML(localStorage.getItem("editor-calloutComponent-background") ?? "");
+    return stripHTML(localStorage.getItem("editor-calloutComponent-background") ?? "");
   }
   return null;
 };

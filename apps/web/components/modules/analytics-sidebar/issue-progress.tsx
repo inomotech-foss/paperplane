@@ -133,12 +133,14 @@ export const ModuleAnalyticsProgress = observer(function ModuleAnalyticsProgress
               <ProgressChart
                 distribution={completionChartDistributionData}
                 totalIssues={totalEstimatePoints}
+                cancelledIssues={groupedIssues.cancelled}
                 plotTitle={"points"}
               />
             ) : (
               <ProgressChart
                 distribution={completionChartDistributionData}
                 totalIssues={totalIssues}
+                cancelledIssues={groupedIssues.cancelled}
                 plotTitle={"work items"}
               />
             )}

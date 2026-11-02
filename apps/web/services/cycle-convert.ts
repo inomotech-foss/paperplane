@@ -114,6 +114,7 @@ export function toProgressSnapshot(snapshot: ApiSchema<"ProgressSnapshot">): Par
   if (snapshot.unstarted_estimate_points !== undefined)
     result.unstarted_estimate_points = snapshot.unstarted_estimate_points;
   if (snapshot.backlog_estimate_points !== undefined) result.backlog_estimate_points = snapshot.backlog_estimate_points;
+  if (snapshot.burndown_scope !== undefined) result.burndown_scope = snapshot.burndown_scope;
   if (snapshot.distribution) result.distribution = toCycleDistribution(snapshot.distribution);
   const estimates = snapshot.estimate_distribution && toCycleEstimateDistribution(snapshot.estimate_distribution);
   if (estimates) result.estimate_distribution = estimates;

@@ -5,7 +5,7 @@
  */
 
 import type { Content, JSONContent } from "@plane/types";
-import { hasNoHtmlContent, htmlToEscapedText } from "./html-text";
+import { hasNoHtmlContent, htmlToPlainText } from "./html-text";
 
 /**
  * @description Adds space between camelCase words
@@ -136,15 +136,10 @@ export const getNumberCount = (number: number): string => {
 export const capitalizeFirstLetter = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
 /**
- * @description : This function will remove all the HTML tags from the string
- * @param {string} htmlString
- * @return {string}
- * @example :
- * const html = "<p>Some text</p>";
-const text = stripHTML(html);
-console.log(text); // Some text
+ * Removes all HTML tags and decodes entities, so "<p>A &amp; B</p>" becomes "A & B".
+ * The result is plain text. Render it as text, never insert it as HTML.
  */
-export const sanitizeHTML = (htmlString: string) => htmlToEscapedText(htmlString).trim();
+export const stripHTML = (htmlString: string) => htmlToPlainText(htmlString).trim();
 
 /**
  * @description: This function will remove all the HTML tags from the string and truncate the string to the specified length
@@ -156,7 +151,7 @@ export const sanitizeHTML = (htmlString: string) => htmlToEscapedText(htmlString
  * const text = stripAndTruncateHTML(html);
  * console.log(text); // Some text
  */
-export const stripAndTruncateHTML = (html: string, length: number = 55) => truncateText(sanitizeHTML(html), length);
+export const stripAndTruncateHTML = (html: string, length: number = 55) => truncateText(stripHTML(html), length);
 
 /**
  * @returns {boolean} true if email is valid, false otherwise

@@ -14,6 +14,7 @@ from django.db.models import (
 )
 
 from plane.db.models import Issue
+from plane.utils.chart_states import merged_state_keys
 from rest_framework.exceptions import ValidationError
 
 
@@ -98,6 +99,17 @@ def process_grouped_data(
     return list(response.values()), schema
 
 
+def merge_state_rows(rows: List[Dict[str, Any]], fields: List[str]) -> List[Dict[str, Any]]:
+    if not fields:
+        return rows
+    keys = merged_state_keys({row[field] for row in rows for field in fields})
+    for row in rows:
+        for field in fields:
+            if row[field]:
+                row[field] = keys.get(str(row[field]), row[field])
+    return rows
+
+
 def build_number_chart_response(
     queryset: QuerySet[Issue],
     y_axis_filter: Dict[str, Any],
@@ -115,6 +127,7 @@ def build_grouped_chart_response(
     group_field: str,
     group_name_field: str,
     aggregate_func: Aggregate,
+    state_fields: Optional[List[str]] = None,
 ) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
     data = (
         queryset.annotate(
@@ -127,11 +140,15 @@ def build_grouped_chart_response(
         .annotate(count=aggregate_func)
         .order_by("-count")
     )
-    return process_grouped_data(data)
+    return process_grouped_data(merge_state_rows(list(data), state_fields or []))
 
 
 def build_simple_chart_response(
-    queryset: QuerySet, id_field: str, name_field: str, aggregate_func: Aggregate
+    queryset: QuerySet,
+    id_field: str,
+    name_field: str,
+    aggregate_func: Aggregate,
+    state_fields: Optional[List[str]] = None,
 ) -> List[Dict[str, Any]]:
     data = (
         queryset.annotate(key=F(id_field), display_name=F(name_field) if name_field else F(id_field))
@@ -140,14 +157,18 @@ def build_simple_chart_response(
         .order_by("key")
     )
 
-    return [
-        {
-            "key": item["key"] if item["key"] else "None",
-            "name": item["display_name"] if item["display_name"] else "None",
-            "count": item["count"],
-        }
-        for item in data
-    ]
+    response: Dict[Any, Dict[str, Any]] = {}
+    for item in merge_state_rows(list(data), state_fields or []):
+        key = item["key"] if item["key"] else "None"
+        if key in response:
+            response[key]["count"] += item["count"]
+        else:
+            response[key] = {
+                "key": key,
+                "name": item["display_name"] if item["display_name"] else "None",
+                "count": item["count"],
+            }
+    return list(response.values())
 
 
 def build_analytics_chart(
@@ -177,6 +198,7 @@ def build_analytics_chart(
         queryset = queryset.filter(**group_additional_filter)
 
     aggregate_func = Count("id", distinct=True)
+    state_fields = [key for key, field in (("key", id_field), ("group_key", group_field)) if field == "state__id"]
 
     if group_field:
         response, schema = build_grouped_chart_response(
@@ -186,9 +208,10 @@ def build_analytics_chart(
             group_field,
             group_name_field,
             aggregate_func,
+            state_fields,
         )
     else:
-        response = build_simple_chart_response(queryset, id_field, name_field, aggregate_func)
+        response = build_simple_chart_response(queryset, id_field, name_field, aggregate_func, state_fields)
         schema = {}
 
     return {"data": response, "schema": schema}

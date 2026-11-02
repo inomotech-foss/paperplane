@@ -54,6 +54,7 @@ from plane.db.models import (
     User,
     CycleIssue,
 )
+from plane.utils.chart_states import merged_state_keys
 from plane.utils.issue_property import number_to_json, relation_column
 from plane.utils.pql import PQLSyntaxError, WorkItemFilterError, compile_pql, parse_pql
 
@@ -271,6 +272,8 @@ def evaluate_widget(definition, user, slug, queryset=None):
     for dimension in dimensions:
         if dimension.kind == "ancestor":
             dimension.ancestors = _nearest_ancestors(rows, dimension.type_id, slug)
+        elif dimension.field == "state":
+            dimension.aliases = merged_state_keys({row["state_id"] for row in rows})
 
     groups = defaultdict(_Accumulator)
     total = _Accumulator()
@@ -307,6 +310,7 @@ class _Dimension:
         self.property = None
         self.type_id = None
         self.ancestors = {}
+        self.aliases = {}
         if not self.field:
             self.kind = "none"
         elif self.field in NATIVE_DIMENSIONS:
@@ -353,7 +357,7 @@ class _Dimension:
             return ["true" if raw else "false"]
         if isinstance(raw, Decimal):
             return [str(number_to_json(raw))]
-        return [str(raw)]
+        return [self.aliases.get(str(raw), str(raw))]
 
 
 class _Metric:

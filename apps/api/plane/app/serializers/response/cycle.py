@@ -3,6 +3,7 @@
 
 from rest_framework import serializers
 
+from plane.utils.analytics_plot import BURNDOWN_SCOPE
 from plane.utils.openapi.fields import typed_json
 
 COUNTS = ("total_issues", "completed_issues", "pending_issues")
@@ -76,6 +77,10 @@ class ProgressSnapshotSerializer(serializers.Serializer):
     started_estimate_points = serializers.FloatField()
     unstarted_estimate_points = serializers.FloatField()
     backlog_estimate_points = serializers.FloatField()
+    burndown_scope = serializers.ChoiceField(
+        choices=[BURNDOWN_SCOPE],
+        help_text="Set when the completion charts leave out cancelled work items. Older snapshots include them.",
+    )
     distribution = DistributionSerializer()
     estimate_distribution = EstimateDistributionSerializer()
 
@@ -93,6 +98,7 @@ class ProgressSnapshotSerializer(serializers.Serializer):
             "started_estimate_points",
             "unstarted_estimate_points",
             "backlog_estimate_points",
+            "burndown_scope",
             "distribution",
             "estimate_distribution",
         )

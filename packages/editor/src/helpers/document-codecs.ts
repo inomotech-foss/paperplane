@@ -17,7 +17,7 @@ import {
 } from "@/extensions/core-without-props";
 import { TitleExtensions } from "@/extensions/title-extension";
 import { nodeToJSONContent } from "@/helpers/prosemirror-json";
-import { sanitizeHTML } from "@plane/utils";
+import { stripHTML } from "@plane/utils";
 
 export type HTMLCodec = {
   generateHTML: (doc: JSONContent, extensions: Extensions) => string;
@@ -253,13 +253,7 @@ export const createDocumentCodecs = ({ generateHTML, generateJSON }: HTMLCodec) 
     return allFormats;
   };
 
-  const extractTextFromHTML = (html: string): string => {
-    // Use DOMPurify to safely extract text and remove all HTML tags
-    // This is more secure than regex as it handles edge cases and prevents injection
-    // Note: sanitizeHTML trims whitespace, which is acceptable for title extraction
-    const sanitizedText = sanitizeHTML(html); // sanitize the string to remove all HTML tags
-    return sanitizedText.trim() || ""; // trim the string to remove leading and trailing whitespaces
-  };
+  const extractTextFromHTML = (html: string): string => stripHTML(html);
 
   return {
     TITLE_EDITOR_EXTENSIONS,

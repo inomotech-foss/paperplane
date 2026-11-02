@@ -94,6 +94,8 @@ export type TProgressSnapshot = {
   started_estimate_points: number;
   unstarted_estimate_points: number;
   cancelled_estimate_points: number;
+  /** Set when the stored completion charts leave out cancelled work items. Older snapshots include them. */
+  burndown_scope?: "excludes_cancelled";
   distribution?: TCycleDistribution;
   estimate_distribution?: TCycleEstimateDistribution;
 };

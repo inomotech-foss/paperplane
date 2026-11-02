@@ -13,12 +13,19 @@ import { getBurndownChartData } from "@/lib/burndown-chart";
 type Props = {
   distribution: TModuleCompletionChartDistribution;
   totalIssues: number;
+  cancelledIssues: number;
   className?: string;
   plotTitle?: string;
 };
 
-function ProgressChart({ distribution, totalIssues, className = "", plotTitle = "work items" }: Props) {
-  const chartData = getBurndownChartData(distribution, totalIssues);
+function ProgressChart({
+  distribution,
+  totalIssues,
+  cancelledIssues,
+  className = "",
+  plotTitle = "work items",
+}: Props) {
+  const chartData = getBurndownChartData(distribution, totalIssues, cancelledIssues);
 
   return (
     <div className={`flex w-full items-center justify-center ${className}`}>
