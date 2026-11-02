@@ -14,19 +14,19 @@ describe("parseRealtimePageEvent", () => {
     expect(parseRealtimePageEvent("{broken")).toBeNull();
   });
 
-  it("keeps only page fields of a property update", () => {
-    expect(parseRealtimePageEvent(message("property_updated", { updated_by: "u", user_id: "u", x: 1 }))).toEqual({
-      pageIds: ["p1", "p2"],
-      action: "property_updated",
-      data: { updated_by: "u" },
-    });
+  it("keeps only the save details of a property update, for the current page", () => {
+    expect(
+      parseRealtimePageEvent(message("property_updated", { updated_by: "u", name: "x", is_locked: true }))
+    ).toEqual({ pageId: "p1", action: "property_updated", data: { updated_by: "u" } });
   });
 
-  it("reads an error event", () => {
-    expect(parseRealtimePageEvent(message("error", { error_type: "store", error_code: "page_locked" }))).toEqual({
-      pageIds: ["p1", "p2"],
+  it("drops the server's text from an error event", () => {
+    expect(
+      parseRealtimePageEvent(message("error", { error_type: "store", error_code: "page_locked", error_message: "x" }))
+    ).toEqual({
+      pageId: "p1",
       action: "error",
-      data: { error_message: "", error_type: "store", error_code: "page_locked", should_disconnect: false },
+      data: { error_message: "", error_type: "store", error_code: "page_locked" },
     });
   });
 });
