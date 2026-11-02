@@ -38,6 +38,11 @@ class Context:
     state: dict = field(default_factory=dict)
     # (model, field) -> [(pk, source id)] for FKs set once their target is loaded
     pending: defaultdict = field(default_factory=lambda: defaultdict(list))
+    # (report counter, source id) noted while a batch is built, counted once it is written
+    notes: list = field(default_factory=list)
+
+    def note(self, counter, row):
+        self.notes.append((counter, row.get("id")))
 
 
 @dataclass
@@ -74,6 +79,7 @@ def load(entity, source, ctx):
         for obj in objs:
             ctx.ids.add(model, obj.pk)
         written += len(objs)
+        _count_notes(ctx, {obj.pk for obj in objs})
 
     ctx.ids.mark_loaded(model)
     ctx.report.written[entity.table] = ctx.report.written.get(entity.table, 0) + written
@@ -140,6 +146,18 @@ def _build(entity, row, ctx, rewrite):
     for f, value in deferred:
         ctx.pending[(model, f)].append((obj.pk, value))
     return obj
+
+
+def _count_notes(ctx, written):
+    """A converter's count only stands for a row that was written in the end."""
+    for counter, source_id in ctx.notes:
+        if source_id is not None and _as_uuid(source_id) in written:
+            setattr(ctx.report, counter, getattr(ctx.report, counter) + 1)
+    ctx.notes.clear()
+
+
+def _as_uuid(value):
+    return value if isinstance(value, uuid.UUID) else uuid.UUID(str(value))
 
 
 def _unclaimed(entity, objs, ctx):

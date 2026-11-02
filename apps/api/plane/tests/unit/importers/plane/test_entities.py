@@ -257,3 +257,14 @@ def test_rerun_cannot_take_over_another_workspace_by_id(ctx, create_user):
     theirs.refresh_from_db()
     assert (theirs.name, theirs.slug) == ("Theirs", "theirs")
     assert ctx.report.dropped["workspaces"]["id already used in the target"] == 1
+
+
+@pytest.mark.django_db
+def test_counts_only_rows_that_are_written(ctx, base):
+    def noting(row, ctx):
+        ctx.note("typed", row)
+        return "low"
+
+    kept, orphan = issue_row(base), issue_row(base, sequence_id=2, project_id=ident())
+    load(Entity(Issue, convert={"priority": noting}), FakeSource({"issues": [kept, orphan]}), ctx)
+    assert ctx.report.typed == 1

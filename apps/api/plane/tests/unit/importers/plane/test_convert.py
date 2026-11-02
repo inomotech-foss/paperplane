@@ -40,13 +40,13 @@ def test_plane_type_icons_become_material_icons(ctx):
     }
     assert icon(ctx, "Task", {}) == {"in_use": "icon", "icon": {"name": "task_alt", "color": "#6b7280"}}
     assert icon(ctx, "Epic", None) == {"in_use": "icon", "icon": {"name": "stacks", "color": "#6b7280"}}
-    assert ctx.report.type_icons == 5
+    assert [counter for counter, _ in ctx.notes] == ["type_icons"] * 5
 
 
 def test_emoji_icons_are_left_alone(ctx):
     emoji = {"in_use": "emoji", "emoji": {"value": "128027"}}
     assert icon(ctx, "Bug", emoji) == emoji
-    assert ctx.report.type_icons == 0
+    assert ctx.notes == []
 
 
 def test_archived_date():
@@ -74,7 +74,7 @@ def test_unknown_relation_type_becomes_relates_to(ctx):
     ctx.state["relation_definitions"] = {definition: "Caused by"}
     assert relation_type({"relation_type": None, "definition_id": definition}, ctx) == "relates_to"
     assert relation_type({"relation_type": "clones"}, ctx) == "relates_to"
-    assert ctx.report.relations_downgraded == 2
+    assert [counter for counter, _ in ctx.notes] == ["relations_downgraded"] * 2
 
 
 def test_page_link_url_and_title(ctx):

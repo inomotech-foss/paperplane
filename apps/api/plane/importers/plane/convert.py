@@ -47,7 +47,7 @@ def material_icon(row, ctx):
 
     converted = {"in_use": "icon", "icon": {"name": name or _DEFAULT_ICON, "color": color}}
     if converted != logo_props:
-        ctx.report.type_icons += 1
+        ctx.note("type_icons", row)
     return converted
 
 
@@ -63,7 +63,7 @@ def relation_type(row, ctx):
         value = name.strip().lower().replace(" ", "_")
     if value in _RELATION_TYPES:
         return value
-    ctx.report.relations_downgraded += 1
+    ctx.note("relations_downgraded", row)
     return IssueRelationChoices.RELATES_TO.value
 
 

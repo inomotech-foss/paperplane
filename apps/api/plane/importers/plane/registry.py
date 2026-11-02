@@ -96,7 +96,7 @@ def _work_item_type(row, ctx):
     found = ctx.ids.get(m.IssueType, row.get("type_id"))
     if found is not None:
         return found
-    ctx.report.typed += 1
+    ctx.note("typed", row)
     return ctx.state["default_types"].get(ctx.ids.get(m.Project, row.get("project_id")))
 
 
