@@ -293,6 +293,10 @@
       "click_to_downvote": "Clicca per votare contro",
       "click_to_view_upvotes": "Clicca per vedere i voti a favore",
       "click_to_view_downvotes": "Clicca per vedere i voti contro"
+    },
+    "peek_not_found": {
+      "title": "Elemento di lavoro non disponibile",
+      "message": "L'elemento di lavoro collegato non esiste o non ha accesso a esso."
     }
   },
   "sub_work_item": {

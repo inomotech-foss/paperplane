@@ -293,6 +293,10 @@
       "click_to_downvote": "Kliknite pre hlasovanie dole",
       "click_to_view_upvotes": "Kliknite pre zobrazenie hlasov hore",
       "click_to_view_downvotes": "Kliknite pre zobrazenie hlasov dole"
+    },
+    "peek_not_found": {
+      "title": "Pracovná položka nie je dostupná",
+      "message": "Prepojená pracovná položka neexistuje alebo k nej nemáte prístup."
     }
   },
   "sub_work_item": {

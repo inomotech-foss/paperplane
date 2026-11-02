@@ -2,21 +2,46 @@
 // See the LICENSE file for details.
 
 import { useEffect, useLayoutEffect, useRef } from "react";
+import type { RefObject } from "react";
 import { useLocation, useNavigate, useNavigation } from "react-router";
-import type { Path } from "react-router";
+import type { NavigateFunction, Path } from "react-router";
 import type { TPeekIssue } from "@/store/issue/issue-details/root.store";
 import { formatPeekRef, parsePeekRef, readPeekParam, registerPeekRoute, withPeekParam } from "./peek";
+import type { TPeekBinding } from "./peek";
 import { normalizeSearch } from "./stringify";
 import type { TPeekRef } from "./types";
 
-/** What a route needs to show the peek from its URL. */
-export type TPeekBinding = {
-  /** The URL form of a peek, or undefined if it has none. */
-  toRef: (peek: TPeekIssue) => TPeekRef | undefined;
-  /** The peek a URL asks for, or undefined if the work item is not found. */
-  resolve: (ref: TPeekRef) => Promise<TPeekIssue | undefined>;
-  /** Shows the peek in the store. */
-  show: (peek: TPeekIssue | undefined) => void;
+export type { TPeekBinding } from "./peek";
+
+type TPeekState = {
+  /** The URL a change builds on, or undefined while a navigation leaves this page. */
+  latest: Path | undefined;
+  /** The last peek asked for, so the shown one keeps details the URL does not hold. */
+  requested: TPeekIssue | undefined;
+  /** Whether the shown peek came from the URL. */
+  shown: boolean;
+};
+
+/** Replaces the peek param of the latest URL. False if the URL stays as it is. */
+const writePeek = (state: RefObject<TPeekState>, navigate: NavigateFunction, ref: TPeekRef | undefined): boolean => {
+  const { latest } = state.current;
+  if (!latest) return false;
+  const { pathname, search, hash } = latest;
+  const next = `?${withPeekParam(search, ref)}`;
+  if (normalizeSearch(next) === normalizeSearch(search)) return false;
+  // set before React renders the navigation, so a change right after builds on this one
+  state.current.latest = { pathname, search: next, hash };
+  Promise.resolve(navigate({ pathname, search: next, hash }, { replace: true, preventScrollReset: true })).catch(
+    (error: unknown) => console.error(error)
+  );
+  return true;
+};
+
+const showPeek = (state: RefObject<TPeekState>, binding: TPeekBinding, peek: TPeekIssue | undefined) => {
+  const asked = state.current.requested;
+  const next = peek && asked?.issueId === peek.issueId ? asked : peek;
+  state.current.shown = !!next;
+  binding.show(next);
 };
 
 /**
@@ -27,35 +52,28 @@ export const usePeekRoute = (binding: TPeekBinding) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { location: target } = useNavigation();
-  /** The URL a change builds on, or undefined while a navigation leaves this page. */
-  const latest = useRef<Path | undefined>(location);
-  /** The last peek asked for, so the shown one keeps details the URL does not hold. */
-  const requested = useRef<TPeekIssue | undefined>(undefined);
-  /** Whether the shown peek came from the URL. */
-  const shown = useRef(false);
+  const state = useRef<TPeekState>({ latest: location, requested: undefined, shown: false });
 
   useLayoutEffect(() => {
-    latest.current = target && target.pathname !== location.pathname ? undefined : (target ?? location);
+    state.current.latest = target && target.pathname !== location.pathname ? undefined : (target ?? location);
   }, [target, location]);
 
   useLayoutEffect(
     () =>
       registerPeekRoute({
         onPeek: (peek) => {
+          const { latest } = state.current;
+          if (!latest) return false;
           const ref = peek ? binding.toRef(peek) : undefined;
-          if (!latest.current || (peek && !ref)) return false;
-          requested.current = peek;
-          const { pathname, search, hash } = latest.current;
-          const next = `?${withPeekParam(search, ref)}`;
-          if (normalizeSearch(next) === normalizeSearch(search)) {
-            shown.current = !!peek;
-            binding.show(peek);
-            return true;
+          state.current.requested = peek;
+          if (peek && !ref) {
+            // shown in place, so the URL must stop naming another work item
+            state.current.shown = false;
+            writePeek(state, navigate, undefined);
+            return false;
           }
-          latest.current = { pathname, search: next, hash };
-          Promise.resolve(
-            navigate({ pathname, search: next, hash }, { replace: true, preventScrollReset: true })
-          ).catch((error: unknown) => console.error(error));
+          // an unchanged URL brings no navigation to show it
+          if (!writePeek(state, navigate, ref)) showPeek(state, binding, peek);
           return true;
         },
       }),
@@ -68,33 +86,38 @@ export const usePeekRoute = (binding: TPeekBinding) => {
   useEffect(() => {
     const ref = peekKey ? parsePeekRef(peekKey) : undefined;
     if (!ref) {
-      if (shown.current) {
-        shown.current = false;
-        binding.show(undefined);
-      }
+      if (state.current.shown) showPeek(state, binding, undefined);
+      return;
+    }
+    const found = binding.find(ref);
+    if (found) {
+      showPeek(state, binding, found);
       return;
     }
     let active = true;
     binding
-      .resolve(ref)
+      .lookup(ref)
       .then((peek) => {
         if (!active) return;
-        const asked = requested.current;
-        const next = peek && asked?.issueId === peek.issueId ? asked : peek;
-        shown.current = !!next;
-        binding.show(next);
+        if (peek) {
+          showPeek(state, binding, peek);
+          return;
+        }
+        binding.notFound();
+        if (state.current.shown) showPeek(state, binding, undefined);
+        writePeek(state, navigate, undefined);
       })
       .catch((error: unknown) => console.error(error));
     return () => {
       active = false;
     };
-  }, [peekKey, binding]);
+  }, [peekKey, binding, navigate]);
 
   // the peek belongs to this page
   useEffect(
     () => () => {
-      if (!shown.current) return;
-      shown.current = false;
+      if (!state.current.shown) return;
+      state.current.shown = false;
       binding.show(undefined);
     },
     [binding]

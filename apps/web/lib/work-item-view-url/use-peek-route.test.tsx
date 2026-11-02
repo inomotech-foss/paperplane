@@ -5,9 +5,9 @@ import { act, render, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import type { TPeekIssue } from "@/store/issue/issue-details/root.store";
-import { getPeekRoute, readPeekParam, withPeekParam } from "./peek";
+import { createPeekBinding, findIssueIdByRef, getPeekRoute, readPeekParam, withPeekParam } from "./peek";
+import type { TPeekableIssue } from "./peek";
 import { usePeekRoute } from "./use-peek-route";
-import type { TPeekBinding } from "./use-peek-route";
 
 const peekOf = (issueId: string, nestingLevel?: number): TPeekIssue => ({
   workspaceSlug: "w",
@@ -16,25 +16,30 @@ const peekOf = (issueId: string, nestingLevel?: number): TPeekIssue => ({
   nestingLevel,
 });
 
-const SEQUENCES: Record<string, number> = { i1: 1, i2: 2 };
+const LOADED: Record<string, TPeekableIssue> = {
+  i1: { id: "i1", project_id: "p1", sequence_id: 1 },
+  i2: { id: "i2", project_id: "p1", sequence_id: 2 },
+};
+const REMOTE: TPeekableIssue = { id: "i9", project_id: "p1", sequence_id: 9 };
 
 const makeBinding = () => {
   const show = vi.fn<(peek: TPeekIssue | undefined) => void>();
-  const binding: TPeekBinding = {
-    toRef: (peek) =>
-      peek.isArchived || !SEQUENCES[peek.issueId]
-        ? undefined
-        : { projectIdentifier: "WEB", sequenceId: SEQUENCES[peek.issueId] },
-    resolve: async ({ sequenceId }) => {
-      const issueId = Object.keys(SEQUENCES).find((id) => SEQUENCES[id] === sequenceId);
-      return issueId ? peekOf(issueId) : undefined;
-    },
+  const notFound = vi.fn();
+  const lookupIssue = vi.fn(async ({ sequenceId }: { sequenceId: number }) =>
+    sequenceId === REMOTE.sequence_id ? REMOTE : undefined
+  );
+  const binding = createPeekBinding("w", {
+    getIssue: (issueId) => LOADED[issueId],
+    findIssueId: (ref) => findIssueIdByRef(Object.values(LOADED), () => "web", ref),
+    getProjectIdentifier: () => "web",
+    lookupIssue,
     show,
-  };
-  return { binding, show };
+    notFound,
+  });
+  return { binding, show, notFound, lookupIssue };
 };
 
-const renderRoute = (url: string, binding: TPeekBinding) => {
+const renderRoute = (url: string, binding: ReturnType<typeof makeBinding>["binding"]) => {
   function Page() {
     usePeekRoute(binding);
     return null;
@@ -65,14 +70,30 @@ describe("peek search helpers", () => {
 });
 
 describe("usePeekRoute", () => {
-  it("shows the peek a link asks for", async () => {
-    const { binding, show } = makeBinding();
+  it("shows a loaded work item without a request", async () => {
+    const { binding, show, lookupIssue } = makeBinding();
     renderRoute("/p1/issues?l=list&peek=WEB-2", binding);
     await waitFor(() => expect(show).toHaveBeenLastCalledWith(peekOf("i2")));
+    expect(lookupIssue).not.toHaveBeenCalled();
+  });
+
+  it("looks up a work item that is not loaded", async () => {
+    const { binding, show, lookupIssue } = makeBinding();
+    renderRoute("/p1/issues?peek=WEB-9", binding);
+    await waitFor(() => expect(show).toHaveBeenLastCalledWith(peekOf("i9")));
+    expect(lookupIssue).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a work item it cannot find and drops it from the URL", async () => {
+    const { binding, show, notFound } = makeBinding();
+    const router = renderRoute("/p1/issues?l=list&peek=WEB-5", binding);
+    await waitFor(() => expect(router.state.location.search).toBe("?l=list"));
+    expect(notFound).toHaveBeenCalledTimes(1);
+    expect(show).not.toHaveBeenCalledWith(expect.objectContaining({ issueId: expect.any(String) }));
   });
 
   it("writes an opened peek to the URL with replace and keeps its details", async () => {
-    const { binding, show } = makeBinding();
+    const { binding, show, lookupIssue } = makeBinding();
     const router = renderRoute("/p1/issues?l=list", binding);
     act(() => {
       expect(getPeekRoute()?.onPeek(peekOf("i1", 2))).toBe(true);
@@ -80,6 +101,7 @@ describe("usePeekRoute", () => {
     await waitFor(() => expect(router.state.location.search).toBe("?l=list&peek=WEB-1"));
     expect(router.state.historyAction).toBe("REPLACE");
     await waitFor(() => expect(show).toHaveBeenLastCalledWith(peekOf("i1", 2)));
+    expect(lookupIssue).not.toHaveBeenCalled();
   });
 
   it("removes the peek from the URL on close", async () => {
@@ -93,10 +115,15 @@ describe("usePeekRoute", () => {
     await waitFor(() => expect(show).toHaveBeenLastCalledWith(undefined));
   });
 
-  it("leaves a peek without a URL form to the store", () => {
-    const { binding } = makeBinding();
-    renderRoute("/p1/issues", binding);
-    expect(getPeekRoute()?.onPeek({ ...peekOf("i1"), isArchived: true })).toBe(false);
+  it("leaves a peek without a URL form to the store and clears the URL peek", async () => {
+    const { binding, show } = makeBinding();
+    const router = renderRoute("/p1/issues?peek=WEB-1", binding);
+    await waitFor(() => expect(show).toHaveBeenLastCalledWith(peekOf("i1")));
+    act(() => {
+      expect(getPeekRoute()?.onPeek({ ...peekOf("i1"), isArchived: true })).toBe(false);
+    });
+    await waitFor(() => expect(router.state.location.search).toBe(""));
+    expect(show).toHaveBeenCalledTimes(1);
   });
 
   it("closes its peek and unregisters when the page goes", async () => {

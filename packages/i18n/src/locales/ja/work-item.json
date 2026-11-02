@@ -293,6 +293,10 @@
       "click_to_downvote": "クリックして反対票を投じる",
       "click_to_view_upvotes": "クリックして賛成票を表示",
       "click_to_view_downvotes": "クリックして反対票を表示"
+    },
+    "peek_not_found": {
+      "title": "作業項目を表示できません",
+      "message": "リンクされた作業項目は存在しないか、アクセス権がありません。"
     }
   },
   "sub_work_item": {

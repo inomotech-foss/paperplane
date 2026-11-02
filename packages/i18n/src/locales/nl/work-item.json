@@ -293,6 +293,10 @@
       "click_to_downvote": "Klik om omlaag te stemmen",
       "click_to_view_upvotes": "Klik om positieve stemmen te bekijken",
       "click_to_view_downvotes": "Klik om negatieve stemmen te bekijken"
+    },
+    "peek_not_found": {
+      "title": "Werkitem niet beschikbaar",
+      "message": "Het gekoppelde werkitem bestaat niet of u hebt er geen toegang toe."
     }
   },
   "sub_work_item": {

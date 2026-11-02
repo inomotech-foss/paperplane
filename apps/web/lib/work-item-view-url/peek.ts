@@ -30,6 +30,8 @@ export const getPeekRoute = (): TPeekRoute | undefined => routes.at(-1);
 
 export const parsePeekRef = (raw: string): TPeekRef | undefined => peekCodec.parse(raw)?.value;
 
+export const formatPeekRef = (peek: TPeekRef): string => peekCodec.format(peek);
+
 export const readPeekParam = (search: string): TPeekRef | undefined => {
   const raw = new URLSearchParams(search).get(PEEK_PARAM);
   return raw ? parsePeekRef(raw) : undefined;
@@ -45,4 +47,72 @@ export const withPeekParam = (search: string, peek: TPeekRef | undefined): strin
   return stringifySearch(new URLSearchParams(entries));
 };
 
-export const formatPeekRef = (peek: TPeekRef): string => peekCodec.format(peek);
+/** What a route needs to show the peek from its URL. */
+export type TPeekBinding = {
+  /** The URL form of a peek, or undefined if it has none. */
+  toRef: (peek: TPeekIssue) => TPeekRef | undefined;
+  /** The peek of a loaded work item, without a request. */
+  find: (ref: TPeekRef) => TPeekIssue | undefined;
+  /** The peek of a work item that is not loaded, or undefined if it is not found. */
+  lookup: (ref: TPeekRef) => Promise<TPeekIssue | undefined>;
+  /** Shows the peek in the store. */
+  show: (peek: TPeekIssue | undefined) => void;
+  /** Tells the person that the URL names no work item they can see. */
+  notFound: () => void;
+};
+
+export type TPeekableIssue = { id: string; project_id: string | null; sequence_id: number };
+
+/** The loaded work item a ref names. */
+export const findIssueIdByRef = (
+  issues: Iterable<TPeekableIssue>,
+  getProjectIdentifier: (projectId: string) => string | undefined,
+  { projectIdentifier, sequenceId }: TPeekRef
+): string | undefined => {
+  for (const issue of issues) {
+    if (issue.sequence_id !== sequenceId || !issue.project_id) continue;
+    if (getProjectIdentifier(issue.project_id)?.toUpperCase() === projectIdentifier) return issue.id;
+  }
+  return undefined;
+};
+
+/** What the peek binding reads from the store and the API. */
+export type TPeekSources = {
+  getIssue: (issueId: string) => TPeekableIssue | undefined;
+  /** Finds a loaded work item without a request. */
+  findIssueId: (ref: TPeekRef) => string | undefined;
+  getProjectIdentifier: (projectId: string) => string | undefined;
+  /** Looks up a work item that is not loaded. Only its id and project are used: the peek loads the rest. */
+  lookupIssue: (ref: TPeekRef) => Promise<TPeekableIssue | undefined>;
+  show: (peek: TPeekIssue | undefined) => void;
+  notFound: () => void;
+};
+
+export const createPeekBinding = (workspaceSlug: string, sources: TPeekSources): TPeekBinding => {
+  const toPeek = (issue: TPeekableIssue | undefined): TPeekIssue | undefined =>
+    issue?.project_id ? { workspaceSlug, projectId: issue.project_id, issueId: issue.id } : undefined;
+  return {
+    toRef: (peek) => {
+      if (peek.isArchived) return undefined;
+      const sequenceId = sources.getIssue(peek.issueId)?.sequence_id;
+      const projectIdentifier = sources.getProjectIdentifier(peek.projectId);
+      return sequenceId && projectIdentifier
+        ? { projectIdentifier: projectIdentifier.toUpperCase(), sequenceId }
+        : undefined;
+    },
+    find: (ref) => {
+      const issueId = sources.findIssueId(ref);
+      return issueId ? toPeek(sources.getIssue(issueId)) : undefined;
+    },
+    lookup: async (ref) => {
+      try {
+        return toPeek(await sources.lookupIssue(ref));
+      } catch (error) {
+        console.error(error);
+        return undefined;
+      }
+    },
+    show: sources.show,
+    notFound: sources.notFound,
+  };
+};

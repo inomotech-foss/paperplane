@@ -293,6 +293,10 @@
       "click_to_downvote": "Klicken zum Runterstimmen",
       "click_to_view_upvotes": "Klicken um Hochstimmen anzuzeigen",
       "click_to_view_downvotes": "Klicken um Runterstimmen anzuzeigen"
+    },
+    "peek_not_found": {
+      "title": "Arbeitselement nicht verfügbar",
+      "message": "Das verlinkte Arbeitselement existiert nicht oder Sie haben keinen Zugriff darauf."
     }
   },
   "sub_work_item": {

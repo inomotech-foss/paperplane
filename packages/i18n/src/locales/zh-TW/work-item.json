@@ -293,6 +293,10 @@
       "click_to_downvote": "點擊反對",
       "click_to_view_upvotes": "點擊查看贊成票",
       "click_to_view_downvotes": "點擊查看反對票"
+    },
+    "peek_not_found": {
+      "title": "工作項目無法使用",
+      "message": "連結的工作項目不存在，或者您沒有存取權限。"
     }
   },
   "sub_work_item": {

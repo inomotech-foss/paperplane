@@ -293,6 +293,10 @@
       "click_to_downvote": "Click to downvote",
       "click_to_view_upvotes": "Click to view upvotes",
       "click_to_view_downvotes": "Click to view downvotes"
+    },
+    "peek_not_found": {
+      "title": "სამუშაო ელემენტი მიუწვდომელია",
+      "message": "დაკავშირებული სამუშაო ელემენტი არ არსებობს ან მასზე წვდომა არ გაქვთ."
     }
   },
   "sub_work_item": {

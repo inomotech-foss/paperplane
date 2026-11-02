@@ -293,6 +293,10 @@
       "click_to_downvote": "Clic pentru a vota negativ",
       "click_to_view_upvotes": "Clic pentru a vedea voturile pozitive",
       "click_to_view_downvotes": "Clic pentru a vedea voturile negative"
+    },
+    "peek_not_found": {
+      "title": "Element de lucru indisponibil",
+      "message": "Elementul de lucru legat nu există sau nu aveți acces la el."
     }
   },
   "sub_work_item": {

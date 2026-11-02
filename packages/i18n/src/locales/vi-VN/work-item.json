@@ -293,6 +293,10 @@
       "click_to_downvote": "Nhấp để bỏ phiếu chống",
       "click_to_view_upvotes": "Nhấp để xem phiếu thuận",
       "click_to_view_downvotes": "Nhấp để xem phiếu chống"
+    },
+    "peek_not_found": {
+      "title": "Mục công việc không khả dụng",
+      "message": "Mục công việc được liên kết không tồn tại hoặc bạn không có quyền truy cập."
     }
   },
   "sub_work_item": {

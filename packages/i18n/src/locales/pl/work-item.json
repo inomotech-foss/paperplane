@@ -293,6 +293,10 @@
       "click_to_downvote": "Kliknij, aby zagłosować przeciw",
       "click_to_view_upvotes": "Kliknij, aby zobaczyć głosy za",
       "click_to_view_downvotes": "Kliknij, aby zobaczyć głosy przeciw"
+    },
+    "peek_not_found": {
+      "title": "Element pracy niedostępny",
+      "message": "Połączony element pracy nie istnieje lub nie masz do niego dostępu."
     }
   },
   "sub_work_item": {

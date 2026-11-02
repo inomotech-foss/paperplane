@@ -293,6 +293,10 @@
       "click_to_downvote": "Click to downvote",
       "click_to_view_upvotes": "Click to view upvotes",
       "click_to_view_downvotes": "Click to view downvotes"
+    },
+    "peek_not_found": {
+      "title": "Work item not available",
+      "message": "The linked work item does not exist or you do not have access to it."
     }
   },
   "sub_work_item": {

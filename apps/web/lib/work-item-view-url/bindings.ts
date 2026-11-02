@@ -6,10 +6,12 @@ import { getProjectUrl } from "@/components/project/features/features";
 import { isWorkItemsEnabled } from "@/components/settings/project/work-items-dependency";
 import { checkWorkItemQuery } from "@/components/work-item-query/check";
 import { store } from "@/lib/store-context";
+import { IssueService } from "@/services/issue";
 import { richFiltersEqual } from "./codecs";
 import { getWorkItemPage } from "./pages";
 import type { TViewBinding } from "./route";
-import type { TPeekBinding } from "./use-peek-route";
+import { createPeekBinding, findIssueIdByRef, formatPeekRef } from "./peek";
+import type { TPeekBinding } from "./peek";
 import type { TCalendarClock } from "./types";
 
 export const PROJECT_WORK_ITEMS_PAGE = getWorkItemPage(EIssuesStoreType.PROJECT);
@@ -58,23 +60,21 @@ export const getProjectWorkItemsBinding = (workspaceSlug: string, projectId: str
   };
 };
 
+const issueService = new IssueService();
+
 /** Client only: shows the peek of the project work items route from its URL. */
-export const getWorkItemPeekBinding = (workspaceSlug: string): TPeekBinding => {
+export const getWorkItemPeekBinding = (workspaceSlug: string, notFound: () => void): TPeekBinding => {
   const { issues, issueDetail } = store.issue;
-  return {
-    toRef: (peek) => {
-      if (peek.isArchived) return undefined;
-      const sequenceId = issues.getIssueById(peek.issueId)?.sequence_id;
-      const projectIdentifier = store.projectRoot.project.getProjectIdentifierById(peek.projectId);
-      return sequenceId && projectIdentifier ? { projectIdentifier, sequenceId } : undefined;
-    },
-    resolve: async ({ projectIdentifier, sequenceId }) => {
-      const issueId = issues.getIssueIdByIdentifier(`${projectIdentifier}-${sequenceId}`);
-      const issue = issueId
-        ? issues.getIssueById(issueId)
-        : await issueDetail.fetchIssueWithIdentifier(workspaceSlug, projectIdentifier, String(sequenceId));
-      return issue?.project_id ? { workspaceSlug, projectId: issue.project_id, issueId: issue.id } : undefined;
-    },
+  const getProjectIdentifier = (projectId: string) => store.projectRoot.project.getProjectIdentifierById(projectId);
+  return createPeekBinding(workspaceSlug, {
+    getIssue: (issueId) => issues.getIssueById(issueId),
+    findIssueId: (ref) =>
+      issues.getIssueIdByIdentifier(formatPeekRef(ref)) ??
+      findIssueIdByRef(Object.values(issues.issuesMap), getProjectIdentifier, ref),
+    getProjectIdentifier,
+    lookupIssue: async ({ projectIdentifier, sequenceId }) =>
+      (await issueService.retrieveWithIdentifier(workspaceSlug, projectIdentifier, String(sequenceId))).issue,
     show: (peek) => issueDetail.showPeekIssue(peek),
-  };
+    notFound,
+  });
 };

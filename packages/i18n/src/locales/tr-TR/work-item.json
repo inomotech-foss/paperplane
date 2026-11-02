@@ -293,6 +293,10 @@
       "click_to_downvote": "Olumsuz oy vermek için tıklayın",
       "click_to_view_upvotes": "Olumlu oyları görüntülemek için tıklayın",
       "click_to_view_downvotes": "Olumsuz oyları görüntülemek için tıklayın"
+    },
+    "peek_not_found": {
+      "title": "İş öğesi kullanılamıyor",
+      "message": "Bağlantılı iş öğesi mevcut değil veya ona erişiminiz yok."
     }
   },
   "sub_work_item": {

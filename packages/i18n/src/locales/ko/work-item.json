@@ -293,6 +293,10 @@
       "click_to_downvote": "클릭하여 비추천",
       "click_to_view_upvotes": "클릭하여 추천 목록 보기",
       "click_to_view_downvotes": "클릭하여 비추천 목록 보기"
+    },
+    "peek_not_found": {
+      "title": "작업 항목을 사용할 수 없습니다",
+      "message": "연결된 작업 항목이 없거나 액세스 권한이 없습니다."
     }
   },
   "sub_work_item": {

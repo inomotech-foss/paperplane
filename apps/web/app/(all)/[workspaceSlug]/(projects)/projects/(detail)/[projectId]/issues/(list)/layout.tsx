@@ -4,8 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Outlet } from "react-router";
+import { setToast } from "@plane/blocks/toast";
+import { useTranslation } from "@plane/i18n";
 // components
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
@@ -30,7 +32,23 @@ export const shouldRevalidate = shouldRevalidateView;
 
 export default function ProjectIssuesLayout({ params, loaderData }: Route.ComponentProps) {
   useWorkItemViewRoute(loaderData, PROJECT_WORK_ITEMS_PAGE, params.projectId);
-  const peekBinding = useMemo(() => getWorkItemPeekBinding(params.workspaceSlug), [params.workspaceSlug]);
+  const { t } = useTranslation();
+  // t changes on every render, the binding must not
+  const translate = useRef(t);
+  useEffect(() => {
+    translate.current = t;
+  });
+  const peekBinding = useMemo(
+    () =>
+      getWorkItemPeekBinding(params.workspaceSlug, () =>
+        setToast({
+          type: "error",
+          title: translate.current("issue.peek_not_found.title"),
+          message: translate.current("issue.peek_not_found.message"),
+        })
+      ),
+    [params.workspaceSlug]
+  );
   usePeekRoute(peekBinding);
   return (
     <ProjectFeatureGuard feature="work_items" workspaceSlug={params.workspaceSlug} projectId={params.projectId}>
