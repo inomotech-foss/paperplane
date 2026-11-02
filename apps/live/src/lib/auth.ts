@@ -5,11 +5,14 @@
  */
 
 // plane imports
-import type { IncomingHttpHeaders } from "http";
+import type { IncomingHttpHeaders, IncomingMessage } from "http";
+import type { ConnectionConfiguration } from "@hocuspocus/server";
 import { z } from "zod";
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
+import { isAccessDenied } from "@/lib/page-access";
 // services
+import { PageAccessService, type TPageAccessTarget } from "@/services/page-access.service";
 import { UserService } from "@/services/user.service";
 // types
 import type { HocusPocusServerContext, TDocumentTypes } from "@/types";
@@ -33,11 +36,17 @@ export const onAuthenticate = async ({
   requestParameters,
   context,
   token,
+  documentName,
+  connectionConfig,
+  request,
 }: {
   requestHeaders: IncomingHttpHeaders;
   context: HocusPocusServerContext;
   requestParameters: URLSearchParams;
   token: string;
+  documentName: string;
+  connectionConfig: ConnectionConfiguration;
+  request: IncomingMessage;
 }) => {
   let cookie: string | undefined = undefined;
   let userId: string | undefined = undefined;
@@ -77,10 +86,47 @@ export const onAuthenticate = async ({
   context.userId = userId;
   context.workspaceSlug = requestParameters.get("workspaceSlug");
 
-  return await handleAuthentication({
-    cookie: context.cookie,
-    userId: context.userId,
-  });
+  try {
+    const authentication = await handleAuthentication({
+      cookie: context.cookie,
+      userId: context.userId,
+    });
+
+    // Hocuspocus shares a loaded document with every connection to the same name, so each one needs its own check.
+    const access = await checkPageAccess({
+      cookie: context.cookie,
+      workspaceSlug: context.workspaceSlug,
+      projectId: context.projectId,
+      pageId: documentName,
+    });
+    connectionConfig.readOnly = access === "read";
+
+    return authentication;
+  } catch (error) {
+    // permission-denied is final for the client. Dropping the socket instead makes it retry with backoff.
+    if (!isRefused(error)) request.socket.destroy();
+    throw error;
+  }
+};
+
+const isRefused = (error: unknown) =>
+  error instanceof AppError && (isAccessDenied(error) || error.code === "AUTH_USER_MISMATCH");
+
+const logFailure = (message: string, error: AppError) => {
+  if (isRefused(error)) logger.warn(message, error);
+  else logger.error(message, error);
+};
+
+const checkPageAccess = async (target: TPageAccessTarget) => {
+  try {
+    return await new PageAccessService().fetchAccess(target);
+  } catch (error) {
+    const appError = new AppError(error, {
+      context: { operation: "checkPageAccess" },
+    });
+    logFailure("Page access check failed", appError);
+    throw new AppError("Page access denied", { code: appError.code, statusCode: appError.statusCode });
+  }
 };
 
 export const handleAuthentication = async ({ cookie, userId }: { cookie: string; userId: string }) => {
@@ -102,7 +148,7 @@ export const handleAuthentication = async ({ cookie, userId }: { cookie: string;
     const appError = new AppError(error, {
       context: { operation: "handleAuthentication" },
     });
-    logger.error("Authentication failed", appError);
-    throw new AppError("Authentication unsuccessful", { code: appError.code });
+    logFailure("Authentication failed", appError);
+    throw new AppError("Authentication unsuccessful", { code: appError.code, statusCode: appError.statusCode });
   }
 };

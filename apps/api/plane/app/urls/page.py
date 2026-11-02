@@ -17,6 +17,7 @@ from plane.app.views import (
     PageDuplicateEndpoint,
     PageCommentViewSet,
     PageCommentReactionViewSet,
+    PageLiveAccessEndpoint,
 )
 
 urlpatterns = [
@@ -73,6 +74,11 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/description/",
         PagesDescriptionViewSet.as_view({"get": "retrieve", "patch": "partial_update"}),
         name="page-description",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/live-access/",
+        PageLiveAccessEndpoint.as_view(),
+        name="page-live-access",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/mentions/",

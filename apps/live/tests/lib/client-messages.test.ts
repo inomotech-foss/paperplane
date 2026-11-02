@@ -9,6 +9,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { beforeHandleMessage, readClientMessageType } from "@/lib/client-messages";
 import { onStateless } from "@/lib/stateless";
 
+vi.mock("@/lib/page-access", () => ({
+  recheckConnectionAccess: () => Promise.resolve(true),
+  recheckDocumentAccess: () => Promise.resolve(),
+}));
+
 const ascii = (text: string) => [text.length, ...Array.from(text, (char) => char.charCodeAt(0))];
 const frame = (name: string, type: number, payload: string) =>
   new Uint8Array([...ascii(name), type, ...ascii(payload)]);

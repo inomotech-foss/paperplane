@@ -85,3 +85,7 @@ class PageMentionUserSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     display_name = serializers.CharField()
     avatar_url = serializers.CharField(allow_null=True)
+
+
+class PageLiveAccessSerializer(serializers.Serializer):
+    access = serializers.ChoiceField(choices=["edit", "read"])

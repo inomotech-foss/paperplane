@@ -25,6 +25,12 @@ class ProjectPagePermission(BasePermission):
         """
         Check basic project-level permissions before checking object-level permissions.
         """
+        return self.has_page_access(request, view, request.method)
+
+    def has_page_access(self, request, view, method):
+        """
+        Check access as if the request used `method`.
+        """
         if request.user.is_anonymous:
             return False
 
@@ -68,7 +74,7 @@ class ProjectPagePermission(BasePermission):
                 return self._has_private_page_action_access(request, slug, page, project_id)
 
         # Handle public page access
-        return self._has_public_page_action_access(request, role)
+        return self._has_public_page_action_access(request, role, method)
 
     def _check_project_member_access(self, request, slug, project_id):
         """
@@ -102,9 +108,7 @@ class ProjectPagePermission(BasePermission):
         # Base implementation: only owner can access private pages
         return False
 
-    def _check_project_action_access(self, request, role):
-        method = request.method
-
+    def _check_project_action_access(self, request, role, method):
         # Only admins can create (POST) pages
         if method == "POST":
             if role in [ADMIN, MEMBER]:
@@ -132,12 +136,12 @@ class ProjectPagePermission(BasePermission):
         # Deny by default
         return False
 
-    def _has_public_page_action_access(self, request, role):
+    def _has_public_page_action_access(self, request, role, method):
         """
         Check if the user has permission to access a public page
         and can perform operations on the page.
         """
-        project_member_exists = self._check_project_action_access(request, role)
+        project_member_exists = self._check_project_action_access(request, role, method)
         if not project_member_exists:
             return False
         return True
@@ -150,5 +154,5 @@ class ProjectPageCommentPermission(ProjectPagePermission):
     in the view, mirroring issue comments. Private-page access is inherited
     unchanged (only the owner in CE)."""
 
-    def _check_project_action_access(self, request, role):
+    def _check_project_action_access(self, request, role, method):
         return role in [ADMIN, MEMBER, GUEST]
