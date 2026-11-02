@@ -94,10 +94,11 @@ def test_plane_type_icons_become_material_icons():
     code = icon_of(workspace, "Build", {"in_use": "icon", "icon": {"name": "Code", "background_color": "#4C49F8"}})
     task = icon_of(workspace, "Task", {"in_use": "icon", "icon": {"color": "#ffffff", "background_color": "#6695FF"}})
     bare = icon_of(workspace, "Task", {})
+    bare_epic = icon_of(workspace, "Epic", {})
     emoji = icon_of(workspace, "Bug", {"in_use": "emoji", "emoji": {"value": "128027"}})
 
     with connection.cursor() as cursor:
-        assert material_type_icons(cursor) == 4
+        assert material_type_icons(cursor) == 5
 
     def logo(issue_type):
         issue_type.refresh_from_db()
@@ -107,4 +108,5 @@ def test_plane_type_icons_become_material_icons():
     assert logo(code) == {"in_use": "icon", "icon": {"name": "code", "color": "#4C49F8"}}
     assert logo(task) == {"in_use": "icon", "icon": {"name": "task_alt", "color": "#6695FF"}}
     assert logo(bare) == {"in_use": "icon", "icon": {"name": "task_alt", "color": "#6b7280"}}
+    assert logo(bare_epic) == {"in_use": "icon", "icon": {"name": "stacks", "color": "#6b7280"}}
     assert logo(emoji) == {"in_use": "emoji", "emoji": {"value": "128027"}}
