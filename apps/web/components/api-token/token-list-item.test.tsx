@@ -29,6 +29,7 @@ describe("ApiTokenListItem", () => {
         }}
       />
     );
-    expect(screen.getByRole("button", { name: "Delete token" })).toBeTruthy();
+    const button = screen.getByRole("button", { name: "Delete access token" });
+    expect(button.className).not.toMatch(/\bhidden\b/);
   });
 });
