@@ -20,7 +20,7 @@ from django.db.models.functions import (
 from django.utils import timezone
 
 # Module imports
-from plane.db.models import Issue, Project
+from plane.db.models import Issue, Project, StateGroup
 
 VALID_ANALYTICS_FIELDS = [
     "state_id",
@@ -121,145 +121,54 @@ def build_graph_plot(queryset, x_axis, y_axis, segment=None):
 
 
 def burndown_plot(queryset, slug, project_id, plot_type, cycle_id=None, module_id=None):
-    # Total Issues in Cycle or Module
-    total_issues = queryset.total_issues
-    # check whether the estimate is a point or not
-    estimate_type = Project.objects.filter(
-        workspace__slug=slug,
-        pk=project_id,
-        estimate__isnull=False,
-        estimate__type="points",
-    ).exists()
-    if estimate_type and plot_type == "points" and cycle_id:
-        issue_estimates = Issue.issue_objects.filter(
-            workspace__slug=slug,
-            project_id=project_id,
-            issue_cycle__cycle_id=cycle_id,
-            issue_cycle__deleted_at__isnull=True,
-            estimate_point__isnull=False,
-        ).values_list("estimate_point__value", flat=True)
-
-        issue_estimates = [float(value) for value in issue_estimates]
-        total_estimate_points = sum(issue_estimates)
-
-    if estimate_type and plot_type == "points" and module_id:
-        issue_estimates = Issue.issue_objects.filter(
-            workspace__slug=slug,
-            project_id=project_id,
-            issue_module__module_id=module_id,
-            issue_module__deleted_at__isnull=True,
-            estimate_point__isnull=False,
-        ).values_list("estimate_point__value", flat=True)
-
-        issue_estimates = [float(value) for value in issue_estimates]
-        total_estimate_points = sum(issue_estimates)
-
+    """Remaining scope per day. Cancelled work items are not part of the scope."""
+    issues = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id).exclude(
+        state__group=StateGroup.CANCELLED.value
+    )
     if cycle_id:
+        issues = issues.filter(issue_cycle__cycle_id=cycle_id, issue_cycle__deleted_at__isnull=True)
         if queryset.end_date and queryset.start_date:
-            # Get all dates between the two dates
             date_range = [
                 (queryset.start_date + timedelta(days=x)).date()
                 for x in range((queryset.end_date.date() - queryset.start_date.date()).days + 1)
             ]
         else:
             date_range = []
-
-        chart_data = {str(date): 0 for date in date_range}
-
-        if plot_type == "points":
-            completed_issues_estimate_point_distribution = (
-                Issue.issue_objects.filter(
-                    workspace__slug=slug,
-                    project_id=project_id,
-                    issue_cycle__cycle_id=cycle_id,
-                    issue_cycle__deleted_at__isnull=True,
-                    estimate_point__isnull=False,
-                )
-                .annotate(date=TruncDate("completed_at"))
-                .values("date")
-                .values("date", "estimate_point__value")
-                .order_by("date")
-            )
-        else:
-            completed_issues_distribution = (
-                Issue.issue_objects.filter(
-                    workspace__slug=slug,
-                    project_id=project_id,
-                    issue_cycle__cycle_id=cycle_id,
-                    issue_cycle__deleted_at__isnull=True,
-                )
-                .annotate(date=TruncDate("completed_at"))
-                .values("date")
-                .annotate(total_completed=Count("id"))
-                .values("date", "total_completed")
-                .order_by("date")
-            )
-
-    if module_id:
-        # Get all dates between the two dates
+    elif module_id:
+        issues = issues.filter(issue_module__module_id=module_id, issue_module__deleted_at__isnull=True)
         date_range = [
             (queryset.start_date + timedelta(days=x))
             for x in range((queryset.target_date - queryset.start_date).days + 1)
         ]
-
-        chart_data = {str(date): 0 for date in date_range}
-
-        if plot_type == "points":
-            completed_issues_estimate_point_distribution = (
-                Issue.issue_objects.filter(
-                    workspace__slug=slug,
-                    project_id=project_id,
-                    issue_module__module_id=module_id,
-                    issue_module__deleted_at__isnull=True,
-                    estimate_point__isnull=False,
-                )
-                .annotate(date=TruncDate("completed_at"))
-                .values("date")
-                .values("date", "estimate_point__value")
-                .order_by("date")
-            )
-        else:
-            completed_issues_distribution = (
-                Issue.issue_objects.filter(
-                    workspace__slug=slug,
-                    project_id=project_id,
-                    issue_module__module_id=module_id,
-                    issue_module__deleted_at__isnull=True,
-                )
-                .annotate(date=TruncDate("completed_at"))
-                .values("date")
-                .annotate(total_completed=Count("id"))
-                .values("date", "total_completed")
-                .order_by("date")
-            )
+    else:
+        return {}
 
     if plot_type == "points":
-        for date in date_range:
-            cumulative_pending_issues = total_estimate_points
-            total_completed = 0
-            total_completed = sum(
-                float(item["estimate_point__value"])
-                for item in completed_issues_estimate_point_distribution
-                if item["date"] is not None and item["date"] <= date
-            )
-            cumulative_pending_issues -= total_completed
-            if date > timezone.now().date():
-                chart_data[str(date)] = None
-            else:
-                chart_data[str(date)] = cumulative_pending_issues
+        is_point_estimate = Project.objects.filter(
+            workspace__slug=slug,
+            pk=project_id,
+            estimate__isnull=False,
+            estimate__type="points",
+        ).exists()
+        estimated = issues.filter(estimate_point__isnull=False)
+        rows = (
+            [
+                (item["date"], float(item["estimate_point__value"]))
+                for item in estimated.annotate(date=TruncDate("completed_at")).values("date", "estimate_point__value")
+            ]
+            if is_point_estimate
+            else []
+        )
     else:
-        for date in date_range:
-            cumulative_pending_issues = total_issues
-            total_completed = 0
-            total_completed = sum(
-                item["total_completed"]
-                for item in completed_issues_distribution
-                if item["date"] is not None and item["date"] <= date
-            )
-            cumulative_pending_issues -= total_completed
-            if date > timezone.now().date():
-                chart_data[str(date)] = None
-            else:
-                chart_data[str(date)] = cumulative_pending_issues
+        rows = [(item["date"], 1) for item in issues.annotate(date=TruncDate("completed_at")).values("date")]
 
+    scope = sum(value for _, value in rows)
+    today = timezone.now().date()
+    chart_data = {}
+    for date in date_range:
+        if date > today:
+            chart_data[str(date)] = None
+            continue
+        completed = sum(value for done, value in rows if done is not None and done <= date)
+        chart_data[str(date)] = scope - completed
     return chart_data
