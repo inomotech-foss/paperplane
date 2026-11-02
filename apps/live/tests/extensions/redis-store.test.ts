@@ -43,9 +43,15 @@ describe("Redis store lock", () => {
     socketId: "server",
   };
 
-  const rejectLock = (vote: Error) => {
-    const votesAgainst = new Map([[redis.pub, vote]]);
-    const stats = { membershipSize: 1, quorumSize: 1, votesFor: new Set<RedisClient>(), votesAgainst };
+  const rejectLock = (...votes: Error[]) => {
+    // one Redis client per vote, as redlock counts one vote per client
+    const votesAgainst = new Map(votes.map((vote) => [new RedisClient({ lazyConnect: true, port: 1 }), vote]));
+    const stats = {
+      membershipSize: votes.length,
+      quorumSize: votes.length,
+      votesFor: new Set<RedisClient>(),
+      votesAgainst,
+    };
     vi.spyOn(redis.redlock, "acquire").mockRejectedValue(new ExecutionError(QUORUM, [Promise.resolve(stats)]));
   };
 
@@ -68,6 +74,12 @@ describe("Redis store lock", () => {
 
   it("still stores the document on an unexpected lock error", async () => {
     vi.spyOn(redis.redlock, "acquire").mockRejectedValue(new Error("Connection is closed."));
+    await server.hooks("onStoreDocument", payload);
+    expect(stored).toEqual(["page"]);
+  });
+
+  it("still stores the document when only some votes report a held lock", async () => {
+    rejectLock(new ResourceLockedError("locked"), new Error("Connection is closed."));
     await server.hooks("onStoreDocument", payload);
     expect(stored).toEqual(["page"]);
   });
