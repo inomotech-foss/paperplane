@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { Hocuspocus } from "@hocuspocus/server";
+import type { Hocuspocus } from "@hocuspocus/server";
 import { v4 as uuidv4 } from "uuid";
 // env
 import { env } from "@/env";
@@ -13,6 +13,7 @@ import { getExtensions } from "@/extensions";
 // lib
 import { onAuthenticate } from "@/lib/auth";
 import { onStateless } from "@/lib/stateless";
+import { TimedLoadHocuspocus } from "@/lib/timed-load-hocuspocus";
 
 export class HocusPocusServerManager {
   private static instance: HocusPocusServerManager | null = null;
@@ -42,13 +43,16 @@ export class HocusPocusServerManager {
       return this.server;
     }
 
-    this.server = new Hocuspocus({
-      name: this.serverName,
-      onAuthenticate,
-      onStateless,
-      extensions: getExtensions(),
-      debounce: 10000,
-    });
+    this.server = new TimedLoadHocuspocus(
+      {
+        name: this.serverName,
+        onAuthenticate,
+        onStateless,
+        extensions: getExtensions(),
+        debounce: 10000,
+      },
+      env.DOCUMENT_LOAD_TIMEOUT_MS
+    );
 
     return this.server;
   }

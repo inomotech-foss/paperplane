@@ -35,6 +35,9 @@ type UseYjsSetupArgs = {
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_SYNC_TIMEOUT_MS = 15_000;
 
+// Sent by the live server when it gives up loading the document
+const DOCUMENT_LOAD_TIMEOUT_REASON = "document-load-timeout";
+
 const isSyncTimeout = (stage: CollabStage) => stage.kind === "disconnected" && stage.error.type === "sync-timeout";
 
 // The live server announces a forced close with a stateless message, then sends a
@@ -92,18 +95,19 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
 
     // The server can authenticate a socket and then never sync it, for example when the document load hangs.
     // Report that as disconnected so the page falls back to HTTP, and drop the socket so the provider retries.
+    const reportSyncTimeout = (message: string) => {
+      stopSyncWatchdog();
+      if (!isSyncTimeout(stageRef.current))
+        setStageTo({ kind: "disconnected", error: { type: "sync-timeout", message } });
+      provider.configuration.websocketProvider.webSocket?.close();
+    };
+
     const startSyncWatchdog = () => {
       stopSyncWatchdog();
       syncTimer = setTimeout(() => {
         syncTimer = undefined;
         if (isDisposedRef.current || stageRef.current.kind === "synced") return;
-        if (!isSyncTimeout(stageRef.current)) {
-          setStageTo({
-            kind: "disconnected",
-            error: { type: "sync-timeout", message: `Not synced within ${syncTimeoutMs} ms` },
-          });
-        }
-        provider.configuration.websocketProvider.webSocket?.close();
+        reportSyncTimeout(`Not synced within ${syncTimeoutMs} ms`);
       }, syncTimeoutMs);
     };
 
@@ -117,8 +121,12 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
       name: docId,
       token: authToken,
       url: serverUrl,
-      onAuthenticationFailed: () => {
+      onAuthenticationFailed: ({ reason }) => {
         if (isDisposedRef.current) return;
+        if (reason === DOCUMENT_LOAD_TIMEOUT_REASON) {
+          reportSyncTimeout("The server could not load the document");
+          return;
+        }
         stopSyncWatchdog();
         const error: CollaborationError = { type: "auth-failed", message: "Authentication failed" };
         const newStage = { kind: "disconnected" as const, error };

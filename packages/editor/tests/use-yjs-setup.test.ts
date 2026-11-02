@@ -13,6 +13,7 @@ import type { CollaborationState } from "@/types/collaboration";
 
 type TCloseHandler = (event: { event?: { code?: number } }) => void;
 type TConfig = {
+  onAuthenticationFailed?: (data: { reason: string }) => void;
   onConnect?: () => void;
   onStateless?: (data: { payload: string }) => void;
   onSynced?: () => void;
@@ -170,6 +171,40 @@ describe("useYjsSetup sync watchdog", () => {
 
     act(() => vi.advanceTimersByTime(60_000));
     expect(lastStage()).toEqual({ kind: "synced" });
+  });
+
+  it("keeps reconnecting when the server gives up loading the document", () => {
+    act(() => {
+      config.onConnect?.();
+      config.onAuthenticationFailed?.({ reason: "document-load-timeout" });
+    });
+
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "sync-timeout", message: "The server could not load the document" },
+    });
+    expect(socket.close).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      dropSocket();
+      config.onConnect?.();
+      config.onSynced?.();
+    });
+    expect(lastStage()).toEqual({ kind: "synced" });
+  });
+
+  it("stops on a real authentication failure", () => {
+    act(() => {
+      config.onConnect?.();
+      config.onAuthenticationFailed?.({ reason: "permission-denied" });
+    });
+    act(() => vi.advanceTimersByTime(60_000));
+
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "auth-failed", message: "Authentication failed" },
+    });
+    expect(socket.close).not.toHaveBeenCalled();
   });
 
   it("does not time out once synced", () => {
