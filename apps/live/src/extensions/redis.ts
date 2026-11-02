@@ -7,8 +7,9 @@
 import { Redis as HocuspocusRedis } from "@hocuspocus/extension-redis";
 import { ExecutionError, Redlock, ResourceLockedError } from "@sesamecare-oss/redlock";
 import { OutgoingMessage } from "@hocuspocus/server";
-import type { onConfigurePayload, onStoreDocumentPayload } from "@hocuspocus/server";
+import type { afterLoadDocumentPayload, onConfigurePayload, onStoreDocumentPayload } from "@hocuspocus/server";
 import { logger } from "@plane/logger";
+import { DocumentLoadTimeoutError } from "@/lib/document-load-timeout";
 import { AppError } from "@/lib/errors";
 import { waitForRedisReady } from "@/lib/wait-for-redis";
 import { redisManager } from "@/redis";
@@ -37,8 +38,28 @@ export class Redis extends HocuspocusRedis {
   private adminHandlers = new Map<AdminCommand, AdminCommandHandler>();
   private readonly ADMIN_CHANNEL = "hocuspocus:admin";
 
-  constructor() {
+  constructor(private readonly subscribeTimeoutMs = 10_000) {
     super({ redis: getRedisClient() });
+  }
+
+  /**
+   * The upstream subscribe waits for Redis without a limit, which would leave the load and its clients hanging.
+   * Failing here stops the hook chain before the document is registered. A late subscribe only adds a
+   * subscription that ignores documents this instance does not hold.
+   */
+  async afterLoadDocument(payload: afterLoadDocumentPayload) {
+    let timer: NodeJS.Timeout | undefined;
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => {
+        const message = `Subscribing to ${payload.documentName} took over ${this.subscribeTimeoutMs} ms`;
+        reject(new DocumentLoadTimeoutError(message));
+      }, this.subscribeTimeoutMs);
+    });
+    try {
+      await Promise.race([super.afterLoadDocument(payload), timeout]);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   async onConfigure(payload: onConfigurePayload) {

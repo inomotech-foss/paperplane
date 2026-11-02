@@ -78,3 +78,29 @@ describe("Redis store lock", () => {
     expect(stored).toEqual([]);
   });
 });
+
+describe("Redis subscribe on load", () => {
+  it("fails the load when the subscribe never answers", async () => {
+    const redis = new Redis(50);
+    // never calls back, like a subscribe queued while Redis is unreachable
+    vi.spyOn(redis.sub, "subscribe").mockReturnValue(new Promise<never>(() => {}));
+    const server = new Hocuspocus({ quiet: true });
+    const document = new Document("page");
+
+    await expect(
+      redis.afterLoadDocument({
+        context: {},
+        document,
+        documentName: "page",
+        instance: server,
+        requestHeaders: {},
+        requestParameters: new URLSearchParams(),
+        socketId: "socket",
+        connectionConfig: { readOnly: false, isAuthenticated: true },
+      })
+    ).rejects.toMatchObject({ reason: "document-load-timeout" });
+
+    redis.pub.disconnect();
+    redis.sub.disconnect();
+  });
+});

@@ -13,6 +13,7 @@ import {
 import type { TDocumentPayload } from "@plane/types";
 import { logger } from "@plane/logger";
 // lib
+import { DocumentLoadTimeoutError } from "@/lib/document-load-timeout";
 import { AppError } from "@/lib/errors";
 // services
 import { getPageService } from "@/services/page/handler";
@@ -23,42 +24,63 @@ import { broadcastError } from "@/utils/broadcast-error";
 // force close utility
 import { forceCloseDocumentAcrossServers } from "./force-close-handler";
 
-const fetchDocument = async ({ context, documentName: pageId, instance }: FetchPayloadWithContext) => {
+const DEFAULT_LOAD_TIMEOUT_MS = 30_000;
+
+type TPageService = ReturnType<typeof getPageService>;
+
+const fetchBinary = async (service: TPageService, pageId: string, signal: AbortSignal) => {
+  const response = await service.fetchDescriptionBinary(pageId, signal);
+  const binaryData = new Uint8Array(response);
+  if (binaryData.byteLength > 0) return binaryData;
+
+  // if binary data is empty, convert HTML to binary data
+  const pageDetails = await service.fetchDetails(pageId, signal);
+  const convertedBinaryData = getBinaryDataFromDocumentEditorHTMLString(
+    pageDetails.description_html ?? "<p></p>",
+    pageDetails.name
+  );
+  if (!convertedBinaryData) return binaryData;
+  // save the converted binary data back to the database
+  try {
+    const { contentBinaryEncoded, contentHTML, contentJSON } = getAllDocumentFormatsFromDocumentEditorBinaryData(
+      convertedBinaryData,
+      true
+    );
+    const payload: TDocumentPayload = {
+      description_binary: contentBinaryEncoded,
+      description_html: contentHTML,
+      description_json: contentJSON,
+    };
+    await service.updateDescriptionBinary(pageId, payload, signal);
+  } catch (e) {
+    const error = new AppError(e);
+    logger.error("Failed to save binary after first conversion from html:", error);
+  }
+  return convertedBinaryData;
+};
+
+const fetchDocument = async (
+  { context, documentName: pageId, instance }: FetchPayloadWithContext,
+  loadTimeoutMs: number
+) => {
+  // One deadline for the whole fetch. The load then fails while it is still the pending one, so no
+  // replacement document exists that a late result could disturb.
+  const signal = AbortSignal.timeout(loadTimeoutMs);
+  const deadline = new Promise<never>((_resolve, reject) => {
+    signal.addEventListener(
+      "abort",
+      () => reject(new DocumentLoadTimeoutError(`Loading ${pageId} took over ${loadTimeoutMs} ms`)),
+      { once: true }
+    );
+  });
   try {
     const service = getPageService(context.documentType, context);
-    // fetch details
-    const response = await service.fetchDescriptionBinary(pageId);
-    const binaryData = new Uint8Array(response);
-    // if binary data is empty, convert HTML to binary data
-    if (binaryData.byteLength === 0) {
-      const pageDetails = await service.fetchDetails(pageId);
-      const convertedBinaryData = getBinaryDataFromDocumentEditorHTMLString(
-        pageDetails.description_html ?? "<p></p>",
-        pageDetails.name
-      );
-      if (convertedBinaryData) {
-        // save the converted binary data back to the database
-        try {
-          const { contentBinaryEncoded, contentHTML, contentJSON } = getAllDocumentFormatsFromDocumentEditorBinaryData(
-            convertedBinaryData,
-            true
-          );
-          const payload: TDocumentPayload = {
-            description_binary: contentBinaryEncoded,
-            description_html: contentHTML,
-            description_json: contentJSON,
-          };
-          await service.updateDescriptionBinary(pageId, payload);
-        } catch (e) {
-          const error = new AppError(e);
-          logger.error("Failed to save binary after first conversion from html:", error);
-        }
-        return convertedBinaryData;
-      }
-    }
-    // return binary data
-    return binaryData;
+    return await Promise.race([fetchBinary(service, pageId, signal), deadline]);
   } catch (error) {
+    if (error instanceof DocumentLoadTimeoutError) {
+      logger.error("Error in fetching document", new AppError(error, { context: { pageId } }));
+      throw error;
+    }
     const appError = new AppError(error, { context: { pageId } });
     logger.error("Error in fetching document", appError);
 
@@ -133,7 +155,7 @@ const storeDocument = async (data: StorePayloadWithContext) => {
 };
 
 export class Database extends HocuspocusDatabase {
-  constructor() {
-    super({ fetch: fetchDocument, store: storeDocument });
+  constructor({ loadTimeoutMs = DEFAULT_LOAD_TIMEOUT_MS }: { loadTimeoutMs?: number } = {}) {
+    super({ fetch: (data: FetchPayloadWithContext) => fetchDocument(data, loadTimeoutMs), store: storeDocument });
   }
 }
