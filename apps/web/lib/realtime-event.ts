@@ -49,9 +49,8 @@ export const parseRealtimePageEvent = (payload: unknown): TRealtimePageEvent | n
   const affectedPages = readField(message, "affectedPages");
   const currentPage = readString(affectedPages, "currentPage");
   const descendants = readField(affectedPages, "descendantPages");
-  const pageIds = [currentPage, ...(Array.isArray(descendants) ? descendants : [])].filter(
-    (id): id is string => typeof id === "string" && id !== ""
-  );
+  const descendantIds: unknown[] = Array.isArray(descendants) ? descendants.map((id: unknown) => id) : [];
+  const pageIds = [currentPage, ...descendantIds].filter((id): id is string => typeof id === "string" && id !== "");
   const data = readField(message, "data");
   if (pageIds.length === 0 || !isRecord(data)) return null;
 
