@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import sanitizeHtml from "sanitize-html";
 import type { Content, JSONContent } from "@plane/types";
+import { hasNoHtmlContent, htmlToEscapedText } from "./html-text";
 
 /**
  * @description Adds space between camelCase words
@@ -144,10 +144,7 @@ export const capitalizeFirstLetter = (str: string) => str.charAt(0).toUpperCase(
 const text = stripHTML(html);
 console.log(text); // Some text
  */
-export const sanitizeHTML = (htmlString: string) => {
-  const sanitizedText = sanitizeHtml(htmlString, { allowedTags: [] }); // sanitize the string to remove all HTML tags
-  return sanitizedText.trim(); // trim the string to remove leading and trailing whitespaces
-};
+export const sanitizeHTML = (htmlString: string) => htmlToEscapedText(htmlString).trim();
 
 /**
  * @description: This function will remove all the HTML tags from the string and truncate the string to the specified length
@@ -179,12 +176,8 @@ export const checkEmailValidity = (email: string): boolean => {
   return isEmailValid;
 };
 
-export const isEmptyHtmlString = (htmlString: string, allowedHTMLTags: string[] = []) => {
-  // Remove HTML tags using sanitize-html
-  const cleanText = sanitizeHtml(htmlString, { allowedTags: allowedHTMLTags });
-  // Trim the string and check if it's empty
-  return cleanText.trim() === "";
-};
+export const isEmptyHtmlString = (htmlString: string, allowedHTMLTags: string[] = []) =>
+  hasNoHtmlContent(htmlString, allowedHTMLTags);
 
 /**
  * @description

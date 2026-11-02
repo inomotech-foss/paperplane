@@ -149,6 +149,7 @@ export class CycleStore implements ICycleStore {
       currentProjectActiveCycle: computed,
 
       // actions
+      setPlotType: action,
       setEstimateType: action,
       fetchWorkspaceCycles: action,
       fetchAllCycles: action,
@@ -445,7 +446,9 @@ export class CycleStore implements ICycleStore {
         return response;
       });
     } catch {
-      this.loader = false;
+      runInAction(() => {
+        this.loader = false;
+      });
       return undefined;
     }
   };
@@ -471,7 +474,9 @@ export class CycleStore implements ICycleStore {
         return response;
       })
       .catch(() => {
-        this.loader = false;
+        runInAction(() => {
+          this.loader = false;
+        });
         return undefined;
       });
   };

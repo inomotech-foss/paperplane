@@ -131,11 +131,13 @@ export class InstanceStore implements IInstanceStore {
       return instanceInfo;
     } catch (error) {
       console.error("Error fetching the instance info");
-      this.isLoading = false;
-      this.error = { message: "Failed to fetch the instance info" };
-      this.instanceStatus = {
-        status: EInstanceStatus.ERROR,
-      };
+      runInAction(() => {
+        this.isLoading = false;
+        this.error = { message: "Failed to fetch the instance info" };
+        this.instanceStatus = {
+          status: EInstanceStatus.ERROR,
+        };
+      });
       throw error;
     }
   };
@@ -225,7 +227,9 @@ export class InstanceStore implements IInstanceStore {
       await this.instanceService.disableEmail();
     } catch (_error) {
       console.error("Error disabling the email");
-      this.instanceConfigurations = instanceConfigurations;
+      runInAction(() => {
+        this.instanceConfigurations = instanceConfigurations;
+      });
     }
   };
 }

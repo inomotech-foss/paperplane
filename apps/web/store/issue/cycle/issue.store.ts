@@ -343,12 +343,14 @@ export class CycleIssues extends BaseIssuesStore implements ICycleIssues {
     const activeIssueIds = Array.isArray(allIssueIds) ? allIssueIds : [];
 
     // store the processed data in the current store
-    set(this.activeCycleIds, [cycleId], {
-      issueIds: activeIssueIds,
-      issueCount: response.total_count,
-      nextCursor: response.next_cursor,
-      nextPageResults: response.next_page_results,
-      perPageCount: perPageCount,
+    runInAction(() => {
+      set(this.activeCycleIds, [cycleId], {
+        issueIds: activeIssueIds,
+        issueCount: response.total_count,
+        nextCursor: response.next_cursor,
+        nextPageResults: response.next_page_results,
+        perPageCount: perPageCount,
+      });
     });
 
     return response;
@@ -388,13 +390,14 @@ export class CycleIssues extends BaseIssuesStore implements ICycleIssues {
     const activeIssueIds = Array.isArray(allIssueIds) ? allIssueIds : [];
 
     // store the processed data for subsequent pages
-    set(this.activeCycleIds, [cycleId, "issueCount"], response.total_count);
-    set(this.activeCycleIds, [cycleId, "nextCursor"], response.next_cursor);
-    set(this.activeCycleIds, [cycleId, "nextPageResults"], response.next_page_results);
-    set(this.activeCycleIds, [cycleId, "issueCount"], response.total_count);
-    update(this.activeCycleIds, [cycleId, "issueIds"], (issueIds: string[] = []) =>
-      this.issuesSortWithOrderBy(uniq(concat(issueIds, activeIssueIds)), this.orderBy)
-    );
+    runInAction(() => {
+      set(this.activeCycleIds, [cycleId, "issueCount"], response.total_count);
+      set(this.activeCycleIds, [cycleId, "nextCursor"], response.next_cursor);
+      set(this.activeCycleIds, [cycleId, "nextPageResults"], response.next_page_results);
+      update(this.activeCycleIds, [cycleId, "issueIds"], (issueIds: string[] = []) =>
+        this.issuesSortWithOrderBy(uniq(concat(issueIds, activeIssueIds)), this.orderBy)
+      );
+    });
 
     return response;
   };
