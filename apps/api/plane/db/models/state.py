@@ -2,9 +2,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-# Python imports
-from itertools import count
-
 # Django imports
 from django.db import IntegrityError, models, transaction
 from django.template.defaultfilters import slugify
@@ -13,6 +10,9 @@ from django.db.models import Q
 # Module imports
 from .project import ProjectBaseModel
 from plane.db.mixins import SoftDeletionManager
+
+
+MAX_TRIAGE_NAME_ATTEMPTS = 100
 
 
 class StateGroup(models.TextChoices):
@@ -107,7 +107,7 @@ class State(ProjectBaseModel):
     @classmethod
     def get_or_create_triage(cls, project, created_by_id=None):
         """A regular state may already be called "Triage", so the new one takes the next free "Triage N"."""
-        for suffix in count(1):
+        for suffix in range(1, MAX_TRIAGE_NAME_ATTEMPTS + 1):
             triage_state = cls.triage_objects.filter(project_id=project.id).first()
             if triage_state is not None:
                 return triage_state
@@ -131,6 +131,7 @@ class State(ProjectBaseModel):
                 ).exists()
                 if not name_taken:
                     raise
+        raise RuntimeError(f"No free triage state name in project {project.id}")
 
     class Meta:
         unique_together = ["name", "project", "deleted_at"]
