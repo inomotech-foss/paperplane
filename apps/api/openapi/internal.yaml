@@ -20080,6 +20080,11 @@ components:
           items:
             $ref: '#/components/schemas/BulkLabelRequest'
           description: Labels with a taken name are skipped
+    BurndownScopeEnum:
+      enum:
+      - excludes_cancelled
+      type: string
+      description: '* `excludes_cancelled` - excludes_cancelled'
     CSRFToken:
       type: object
       properties:
@@ -31582,6 +31587,13 @@ components:
         backlog_estimate_points:
           type: number
           format: double
+        burndown_scope:
+          allOf:
+          - $ref: '#/components/schemas/BurndownScopeEnum'
+          description: |-
+            Set when the completion charts leave out cancelled work items. Older snapshots include them.
+
+            * `excludes_cancelled` - excludes_cancelled
         distribution:
           $ref: '#/components/schemas/Distribution'
         estimate_distribution:

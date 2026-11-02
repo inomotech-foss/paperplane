@@ -5864,6 +5864,11 @@ export interface components {
             /** @description Labels with a taken name are skipped */
             label_data?: components["schemas"]["BulkLabelRequest"][];
         };
+        /**
+         * @description * `excludes_cancelled` - excludes_cancelled
+         * @enum {string}
+         */
+        BurndownScopeEnum: "excludes_cancelled";
         CSRFToken: {
             csrf_token: string;
         };
@@ -10654,6 +10659,12 @@ export interface components {
             unstarted_estimate_points?: number;
             /** Format: double */
             backlog_estimate_points?: number;
+            /**
+             * @description Set when the completion charts leave out cancelled work items. Older snapshots include them.
+             *
+             *     * `excludes_cancelled` - excludes_cancelled
+             */
+            burndown_scope?: components["schemas"]["BurndownScopeEnum"];
             distribution?: components["schemas"]["Distribution"];
             estimate_distribution?: components["schemas"]["EstimateDistribution"];
         };
@@ -27554,6 +27565,7 @@ export const automationTriggerGroupEnumValues: ReadonlyArray<FlattenedDeepRequir
 export const automationTriggerTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationTriggerTypeEnum"]> = ["work_item.created", "work_item.updated", "work_item.deleted", "work_item.state_changed", "work_item.priority_changed", "work_item.assignees_changed", "work_item.labels_changed", "work_item.target_date_changed", "work_item.parent_changed", "work_item.comment_created", "work_item.added_to_cycle", "work_item.added_to_module", "schedule"];
 export const automationValueSourceEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AutomationValueSourceEnum"]> = ["states", "state_groups", "priorities", "members", "labels", "modules", "cycles", "projects", "work_item_types", "estimate_points"];
 export const blankEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["BlankEnum"]> = [""];
+export const burndownScopeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["BurndownScopeEnum"]> = ["excludes_cancelled"];
 export const cycleStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["CycleStatusEnum"]> = ["CURRENT", "UPCOMING", "COMPLETED", "DRAFT"];
 export const dashboardChartTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardChartTypeEnum"]> = ["number", "bar", "line", "area", "pie", "donut", "table"];
 export const dashboardDateBucketEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DashboardDateBucketEnum"]> = ["day", "week", "month", "quarter", "year"];

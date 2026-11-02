@@ -71,6 +71,7 @@ def test_transfer_snapshot_keeps_estimate_points(session_client, workspace, proj
     assert snapshot["total_estimate_points"] == 8
     assert snapshot["completed_estimate_points"] == 3
     assert snapshot["unstarted_estimate_points"] == 5
+    assert snapshot["burndown_scope"] == "excludes_cancelled"
 
     with patch("plane.app.views.cycle.base.cycle_estimate_points") as live_points:
         progress = session_client.get(f"{base}/progress/")

@@ -39,6 +39,9 @@ VALID_ANALYTICS_FIELDS = [
 
 VALID_YAXIS = ["issue_count", "estimate"]
 
+# Marks stored burndown charts whose scope leaves out cancelled work items.
+BURNDOWN_SCOPE = "excludes_cancelled"
+
 
 def annotate_with_monthly_dimension(queryset, field_name, attribute):
     # Get the year and the months
