@@ -95,6 +95,7 @@ const setup = (customRealtimeEventHandlers?: TCustomEventHandlers) => {
         customRealtimeEventHandlers,
       });
       useRealtimeServerEvents(editorRef, page.id, updatePageProperties);
+      return updatePageProperties;
     },
     { initialProps: { editorRef: first.editorRef } }
   );
@@ -123,6 +124,27 @@ describe("useRealtimeServerEvents", () => {
     expect(other.name).toBe("page-2");
     first.emit(childRenamed("page-2", "page-1", "Renamed child"));
     expect(other.name).toBe("Renamed child");
+  });
+
+  it("shows the open page's typed title without saving it from the web", () => {
+    vi.useFakeTimers();
+    try {
+      const { page, hook } = setup();
+      const update = vi.spyOn(page.services, "update").mockResolvedValue({});
+      // what the title editor reports on every change
+      act(() => hook.result.current("page-1", "property_updated", { name: "Typed title" }));
+      vi.advanceTimersByTime(5000);
+      expect(page.name).toBe("Typed title");
+      expect(update).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("ignores a broadcast name for the open page", () => {
+    const { page, first } = setup();
+    first.emit(childRenamed("page-1", "page-0", "Stale"));
+    expect(page.name).toBe("page-1");
   });
 
   it("does not save a child page's name it got from the server", () => {

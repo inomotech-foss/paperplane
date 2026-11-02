@@ -145,8 +145,8 @@ export const useRealtimePageEvents = ({
             const pageItem = getPageById(pageId);
             if (!pageItem) return;
             pageItem.mutateProperties(data, false);
-            // the open page's name belongs to its title editor
-            if (data.name !== undefined && pageId !== page.id) pageItem.applySavedName(data.name);
+            // live saves titles, so a name from the title editor or a child rename must not be saved again
+            if (data.name !== undefined) pageItem.applySavedName(data.name);
           });
           // a save went through, so the next failure is news again
           if (data.updated_at) saveErrorShownRef.current = false;

@@ -24,8 +24,11 @@ export const useRealtimeServerEvents = (
       const event = parseRealtimePageEvent(message.payload);
       if (!event) return;
       if (event.pageId === pageId) {
-        if (event.action === "property_updated") updatePageProperties(pageId, event.action, event.data);
-        else updatePageProperties(pageId, event.action, event.data);
+        // the open page's name comes from its title editor, never from a possibly stale broadcast
+        if (event.action === "property_updated") {
+          const { name: _name, ...saveDetails } = event.data;
+          updatePageProperties(pageId, event.action, saveDetails);
+        } else updatePageProperties(pageId, event.action, event.data);
         return;
       }
       if (event.parentPageId === pageId && event.action === "property_updated" && event.data.name !== undefined)
