@@ -49,10 +49,7 @@ class IdMap:
     def remapped(self):
         """Every id that changed on the way in, as strings, across models."""
         return {
-            str(source): str(target)
-            for ids in self._ids.values()
-            for source, target in ids.items()
-            if source != target
+            str(source): str(target) for ids in self._ids.values() for source, target in ids.items() if source != target
         }
 
 
