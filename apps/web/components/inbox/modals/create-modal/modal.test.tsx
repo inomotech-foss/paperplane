@@ -9,7 +9,7 @@ import { InboxIssueCreateModalRoot } from "./modal";
 vi.mock("./create-root", () => ({
   InboxIssueCreateRoot: ({ titleRef }: { titleRef?: Ref<HTMLInputElement> }) => (
     <div>
-      <div tabIndex={0}>body</div>
+      <button type="button">First</button>
       <input aria-label="Title" ref={titleRef} />
     </div>
   ),
