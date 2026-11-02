@@ -7,7 +7,7 @@
 import type { onStatelessPayload } from "@hocuspocus/server";
 import { DocumentCollaborativeEvents } from "@plane/editor/lib";
 import { isKeyOf } from "@/lib/is-key-of";
-import { refreshConnectionAccess } from "@/lib/page-access";
+import { recheckConnectionAccess, recheckDocumentAccess } from "@/lib/page-access";
 
 // Events after which a viewer's access to the page may differ.
 const ACCESS_EVENTS = new Set<keyof typeof DocumentCollaborativeEvents>([
@@ -26,11 +26,9 @@ const ACCESS_EVENTS = new Set<keyof typeof DocumentCollaborativeEvents>([
  */
 export const onStateless = async ({ payload, document, connection }: onStatelessPayload) => {
   if (!isKeyOf(DocumentCollaborativeEvents, payload)) return;
-  if (connection.readOnly && !(await refreshConnectionAccess(connection))) return;
+  if (connection.readOnly && !(await recheckConnectionAccess(connection))) return;
 
   document.broadcastStateless(DocumentCollaborativeEvents[payload].client);
 
-  if (ACCESS_EVENTS.has(payload)) {
-    await Promise.all(document.getConnections().map(refreshConnectionAccess));
-  }
+  if (ACCESS_EVENTS.has(payload)) await recheckDocumentAccess(document);
 };
