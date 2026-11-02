@@ -82,7 +82,7 @@ dependencies = [
     # OpenAPI Specification
     "drf-spectacular==0.30.0",
     # html sanitizer
-    "nh3==0.2.18",
+    "nh3==0.2.22",
     # markdown renderer
     "mistune==3.4.0",
 ]
