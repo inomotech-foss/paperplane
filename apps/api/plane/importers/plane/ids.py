@@ -76,10 +76,10 @@ def plan_users(rows, wanted_ids, rules=None):
     """Which source users to create and which the target already has.
 
     Matching is the Atlassian importers' (``importers.users``): by address,
-    rewritten by ``--email-domain`` and overridden by ``--user-map``, then by
-    display name. That lets the import run on an instance where the admin
-    signed up first. Each target account is claimed once, and a source address
-    that matches exactly goes first, so two source accounts never become one.
+    rewritten by ``--email-domain`` and overridden by ``--user-map``, but not
+    by display name. That lets the import run on an instance where the admin
+    signed up first. Each target account is claimed once, by a user-map entry
+    first and an exact address next, so two source accounts never become one.
     Anyone else is created with their Plane id; a username the target or an
     earlier row already uses gets a numeric suffix rather than stopping the run.
     """
@@ -87,12 +87,18 @@ def plan_users(rows, wanted_ids, rules=None):
     rows = [row for row in rows if _uuid(row["id"]) in wanted]
     users = list(User.objects.all())
     exact = {user.email for user in users if user.email}
-    matcher = UserMatcher(users, rules)
+    # Matched by address and the user map only: the import creates logins, so
+    # a shared display name must not make two people one account.
+    matcher = UserMatcher(users, rules, names=False)
     taken = {user.username for user in users}
     plan = UserPlan()
 
     claimed = set()
-    for row in sorted(rows, key=lambda row: row.get("email") not in exact):
+    def order(row):
+        # An explicit --user-map entry claims its account first, then exact addresses.
+        return (not matcher.rules.overridden(_account(row)), row.get("email") not in exact)
+
+    for row in sorted(rows, key=order):
         target = matcher.match(_account(row))
         if target is not None and target.id not in claimed:
             plan.matched[row["id"]] = target.id

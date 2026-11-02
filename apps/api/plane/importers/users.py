@@ -59,10 +59,15 @@ class UserRules:
 
 
 class UserMatcher:
-    """Matches backup accounts to Plane users: by address, then by display name."""
+    """Matches backup accounts to Plane users: by address, then by display name.
 
-    def __init__(self, users, rules=None):
+    ``names=False`` leaves the display-name fallback out, for an import that
+    creates logins and must not merge two people who share a name.
+    """
+
+    def __init__(self, users, rules=None, names=True):
         self.rules = rules or UserRules()
+        self.names = names
         self.by_email, self.by_name = {}, {}
         for user in users:
             if user.email:
@@ -74,7 +79,7 @@ class UserMatcher:
         for email in self.rules.emails(account):
             if email in self.by_email:
                 return self.by_email[email]
-        if account.display_name and not self.rules.overridden(account):
+        if self.names and account.display_name and not self.rules.overridden(account):
             return self.by_name.get(account.display_name.casefold())
         return None
 

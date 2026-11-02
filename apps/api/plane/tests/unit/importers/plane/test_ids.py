@@ -111,3 +111,22 @@ def test_user_map_wins_over_the_address():
     row = user_row("bob@example.test")
     plan = plan_users([row], {row["id"]}, UserRules(overrides={str(row["id"]): "robert@example.test"}))
     assert plan.matched == {row["id"]: target.id}
+
+
+@pytest.mark.django_db
+def test_display_name_alone_does_not_match():
+    User.objects.create(email="ada@example.test", username="ada", display_name="Ada")
+    row = {**user_row("someone@else.test"), "display_name": "Ada"}
+    plan = plan_users([row], {row["id"]})
+    assert plan.matched == {}
+    assert [r["id"] for r in plan.create] == [row["id"]]
+
+
+@pytest.mark.django_db
+def test_user_map_claims_before_an_exact_address():
+    target = User.objects.create(email="robert@example.test", username="robert")
+    exact, mapped = user_row("robert@example.test"), user_row("bob@example.test")
+    rules = UserRules(overrides={str(mapped["id"]): "robert@example.test"})
+    plan = plan_users([exact, mapped], {exact["id"], mapped["id"]}, rules)
+    assert plan.matched == {mapped["id"]: target.id}
+    assert [r["id"] for r in plan.create] == [exact["id"]]
