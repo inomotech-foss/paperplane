@@ -101,6 +101,21 @@ class State(ProjectBaseModel):
         """Return name of the state"""
         return f"{self.name} <{self.project.name}>"
 
+    @classmethod
+    def get_or_create_triage(cls, project):
+        triage_state = cls.triage_objects.filter(project_id=project.id).first()
+        if triage_state is None:
+            triage_state = cls.objects.create(
+                name="Triage",
+                group=StateGroup.TRIAGE.value,
+                project_id=project.id,
+                workspace_id=project.workspace_id,
+                color="#4E5355",
+                sequence=65000,
+                default=False,
+            )
+        return triage_state
+
     class Meta:
         unique_together = ["name", "project", "deleted_at"]
         constraints = [

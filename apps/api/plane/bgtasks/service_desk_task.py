@@ -37,7 +37,6 @@ from plane.db.models import (
     ProjectMember,
     ServiceDeskConfig,
     State,
-    StateGroup,
     User,
 )
 from plane.db.models.intake import SourceType
@@ -138,21 +137,6 @@ def _get_or_create_default_intake(project):
     return intake
 
 
-def _get_or_create_triage_state(project):
-    triage_state = State.triage_objects.filter(project_id=project.id).first()
-    if triage_state is None:
-        triage_state = State.objects.create(
-            name="Triage",
-            group=StateGroup.TRIAGE.value,
-            project_id=project.id,
-            workspace_id=project.workspace_id,
-            color="#4E5355",
-            sequence=65000,
-            default=False,
-        )
-    return triage_state
-
-
 def _resolve_notify_user_ids(config):
     """Members to notify (and auto-subscribe) when a new ticket arrives."""
     members = ProjectMember.objects.filter(project_id=config.project_id, is_active=True, member__is_bot=False)
@@ -173,7 +157,7 @@ def _create_ticket(config, bot, mailbox, message, sender, sender_name, to_emails
     body_text = _message_body_text(message)
 
     intake = _get_or_create_default_intake(project)
-    triage_state = _get_or_create_triage_state(project)
+    triage_state = State.get_or_create_triage(project)
 
     issue = Issue.objects.create(
         name=subject[:255] or "(no subject)",
