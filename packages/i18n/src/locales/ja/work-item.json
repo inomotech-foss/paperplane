@@ -293,6 +293,10 @@
       "click_to_downvote": "クリックして反対票を投じる",
       "click_to_view_upvotes": "クリックして賛成票を表示",
       "click_to_view_downvotes": "クリックして反対票を表示"
+    },
+    "peek_not_found": {
+      "title": "作業項目を表示できません",
+      "message": "リンクされた作業項目は存在しないか、アクセス権がありません。"
     }
   },
   "sub_work_item": {
@@ -354,9 +358,19 @@
         "message": "一部の作業項目では状態の変更が許可されていません。状態の変更が許可されていることを確認してください。"
       }
     },
-    "upgrade_banner": {
-      "message": "複数の作業項目の状態や優先度などを一括で変更できます。1回の操作につき平均3分を節約できます。",
-      "cta": "One にアップグレード"
+    "toolbar_label": "一括操作",
+    "selected": "選択済み：{count}",
+    "clear_selection": "選択を解除",
+    "toast": {
+      "updated": "更新された作業項目：{count}",
+      "update_failed_title": "一部の作業項目は更新されませんでした",
+      "update_failed": "更新されなかった作業項目：{count}。もう一度お試しください。",
+      "archived": "アーカイブされた作業項目：{count}",
+      "deleted": "削除された作業項目：{count}"
+    },
+    "delete": {
+      "title": "作業項目を削除",
+      "content": "選択した作業項目（{count}）を削除してもよろしいですか？完全に削除されるまでは、プロジェクトのアーカイブから復元できます。"
     }
   },
   "recurring_work_items": {

@@ -26,7 +26,6 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { useIssuesTimeLineChart, useTimeLineChart } from "@/hooks/use-timeline-chart";
-import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
 // local imports
 import { IssueLayoutHOC } from "../issue-layout-HOC";
 import { GanttQuickAddIssueButton } from "../quick-add/button/gantt";
@@ -115,8 +114,6 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   const [fetchedParentIds, setFetchedParentIds] = useState<Set<string>>(() => new Set());
   const [loadingParentIds, setLoadingParentIds] = useState<Set<string>>(() => new Set());
 
-  // plane web hooks
-  const isBulkOperationsEnabled = useBulkOperationStatus();
   // derived values
   const targetDate = new Date();
   targetDate.setDate(targetDate.getDate() + 1);
@@ -276,7 +273,6 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
               enableBlockMove={isAllowed}
               enableReorder={isAllowed}
               enableAddBlock={isAllowed}
-              enableSelection={isBulkOperationsEnabled && isAllowed}
               quickAdd={quickAdd}
               loadMoreBlocks={loadMoreIssues}
               canLoadMoreBlocks={nextPageResults}

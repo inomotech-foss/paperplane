@@ -4,6 +4,9 @@
  * See the LICENSE file for details.
  */
 
+import type { ComponentType, SVGProps } from "react";
+import { BulletedListOutline, ChatOutline, ImageOutline, InfoOutline, PagesOutline } from "@makeplane/propel/icons";
+
 export type TPageNavigationPaneTab = "outline" | "comments" | "sub_pages" | "info" | "assets";
 
 export const PAGE_NAVIGATION_PANE_TABS_LIST: Record<
@@ -11,34 +14,37 @@ export const PAGE_NAVIGATION_PANE_TABS_LIST: Record<
   {
     key: TPageNavigationPaneTab;
     i18n_label: string;
+    icon: ComponentType<SVGProps<SVGSVGElement>>;
   }
 > = {
   outline: {
     key: "outline",
     i18n_label: "page_navigation_pane.tabs.outline.label",
+    icon: BulletedListOutline,
   },
   comments: {
     key: "comments",
     i18n_label: "page_navigation_pane.tabs.comments.label",
+    icon: ChatOutline,
   },
   sub_pages: {
     key: "sub_pages",
     i18n_label: "page_navigation_pane.tabs.sub_pages.label",
+    icon: PagesOutline,
   },
   info: {
     key: "info",
     i18n_label: "page_navigation_pane.tabs.info.label",
+    icon: InfoOutline,
   },
   assets: {
     key: "assets",
     i18n_label: "page_navigation_pane.tabs.assets.label",
+    icon: ImageOutline,
   },
 };
 
-export const ORDERED_PAGE_NAVIGATION_TABS_LIST: {
-  key: TPageNavigationPaneTab;
-  i18n_label: string;
-}[] = [
+export const ORDERED_PAGE_NAVIGATION_TABS_LIST = [
   PAGE_NAVIGATION_PANE_TABS_LIST.outline,
   PAGE_NAVIGATION_PANE_TABS_LIST.comments,
   PAGE_NAVIGATION_PANE_TABS_LIST.sub_pages,

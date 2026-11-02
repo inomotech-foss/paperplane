@@ -19,7 +19,6 @@ import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 import { GanttChartRowList } from "@/components/gantt-chart/blocks/block-row-list";
 import { GanttChartBlocksList } from "@/components/gantt-chart/blocks/blocks-list";
 import { IssueBulkOperationsRoot } from "@/components/issues/bulk-operations";
-import { useBulkOperationStatus } from "@/hooks/use-bulk-operation-status";
 // local imports
 import {
   DEFAULT_BLOCK_WIDTH,
@@ -86,8 +85,6 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
   const ganttContainerRef = useRef<HTMLDivElement>(null);
   // chart hook
   const { currentView, currentViewData } = useTimeLineChartStore();
-  // plane web hooks
-  const isBulkOperationsEnabled = useBulkOperationStatus();
 
   // Enable Auto Scroll for Ganttlist
   useEffect(() => {
@@ -164,7 +161,7 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
         entities={{
           [GANTT_SELECT_GROUP]: blockIds ?? [],
         }}
-        disabled={!isBulkOperationsEnabled}
+        disabled={!enableSelection}
       >
         {(helpers) => (
           <>

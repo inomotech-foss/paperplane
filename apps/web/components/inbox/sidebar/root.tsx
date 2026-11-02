@@ -25,6 +25,7 @@ import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { FiltersRoot } from "../inbox-filter";
 import { InboxIssueAppliedFilters } from "../inbox-filter/applied-filters/root";
 import { InboxIssueList } from "./inbox-list";
+import { InboxSidebarOpenEmptyState } from "./open-empty-state";
 
 type IInboxSidebarProps = {
   workspaceSlug: string;
@@ -152,20 +153,7 @@ export const InboxSidebar = observer(function InboxSidebar(props: IInboxSidebarP
                     rootClassName="px-page-x"
                   />
                 ) : currentTab === EInboxIssueCurrentTab.OPEN ? (
-                  <EmptyStateDetailed
-                    assetKey="inbox"
-                    title={t("project_empty_state.intake_sidebar.title")}
-                    description={t("project_empty_state.intake_sidebar.description")}
-                    assetClassName="size-20"
-                    actions={[
-                      {
-                        label: t("project_empty_state.intake_sidebar.cta_primary"),
-                        onClick: () => router.push(`/${workspaceSlug}/projects/${projectId}/intake`),
-                        variant: "primary",
-                      },
-                    ]}
-                    rootClassName="px-page-x"
-                  />
+                  <InboxSidebarOpenEmptyState workspaceSlug={workspaceSlug} projectId={projectId} />
                 ) : (
                   <EmptyStateDetailed
                     assetKey="inbox"

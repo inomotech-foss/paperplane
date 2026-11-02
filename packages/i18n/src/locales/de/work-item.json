@@ -293,6 +293,10 @@
       "click_to_downvote": "Klicken zum Runterstimmen",
       "click_to_view_upvotes": "Klicken um Hochstimmen anzuzeigen",
       "click_to_view_downvotes": "Klicken um Runterstimmen anzuzeigen"
+    },
+    "peek_not_found": {
+      "title": "Arbeitselement nicht verfügbar",
+      "message": "Das verlinkte Arbeitselement existiert nicht oder Sie haben keinen Zugriff darauf."
     }
   },
   "sub_work_item": {
@@ -354,9 +358,19 @@
         "message": "Statusänderung ist für einige Arbeitsaufgaben nicht erlaubt. Stellen Sie sicher, dass die Statusänderung zulässig ist."
       }
     },
-    "upgrade_banner": {
-      "message": "Status, Priorität und mehr für mehrere Arbeitselemente gleichzeitig ändern. Im Schnitt drei Minuten pro Vorgang sparen.",
-      "cta": "Upgrade auf One"
+    "toolbar_label": "Massenaktionen",
+    "selected": "Ausgewählt: {count}",
+    "clear_selection": "Auswahl aufheben",
+    "toast": {
+      "updated": "Arbeitselemente aktualisiert: {count}",
+      "update_failed_title": "Einige Arbeitselemente wurden nicht aktualisiert",
+      "update_failed": "Nicht aktualisierte Arbeitselemente: {count}. Bitte erneut versuchen.",
+      "archived": "Arbeitselemente archiviert: {count}",
+      "deleted": "Arbeitselemente gelöscht: {count}"
+    },
+    "delete": {
+      "title": "Arbeitselemente löschen",
+      "content": "Möchten Sie die ausgewählten Arbeitselemente ({count}) wirklich löschen? Sie können sie aus den Projektarchiven wiederherstellen, bis sie endgültig entfernt werden."
     }
   },
   "recurring_work_items": {

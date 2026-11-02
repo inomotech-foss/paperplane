@@ -293,6 +293,10 @@
       "click_to_downvote": "点击反对",
       "click_to_view_upvotes": "点击查看赞成票",
       "click_to_view_downvotes": "点击查看反对票"
+    },
+    "peek_not_found": {
+      "title": "工作项不可用",
+      "message": "链接的工作项不存在，或者您没有访问权限。"
     }
   },
   "sub_work_item": {
@@ -354,9 +358,19 @@
         "message": "某些工作项的状态更改不被允许。请确保状态更改是被允许的。"
       }
     },
-    "upgrade_banner": {
-      "message": "一次性更改多个工作项的状态、优先级等。平均每次操作可节省三分钟。",
-      "cta": "升级到 One"
+    "toolbar_label": "批量操作",
+    "selected": "已选择：{count}",
+    "clear_selection": "清除选择",
+    "toast": {
+      "updated": "已更新的工作项：{count}",
+      "update_failed_title": "部分工作项未更新",
+      "update_failed": "未更新的工作项：{count}。请重试。",
+      "archived": "已归档的工作项：{count}",
+      "deleted": "已删除的工作项：{count}"
+    },
+    "delete": {
+      "title": "删除工作项",
+      "content": "确定要删除所选工作项（{count}）吗？在被永久删除之前，您可以从项目归档中恢复它们。"
     }
   },
   "recurring_work_items": {

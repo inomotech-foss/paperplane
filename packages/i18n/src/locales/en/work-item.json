@@ -293,6 +293,10 @@
       "click_to_downvote": "Click to downvote",
       "click_to_view_upvotes": "Click to view upvotes",
       "click_to_view_downvotes": "Click to view downvotes"
+    },
+    "peek_not_found": {
+      "title": "Work item not available",
+      "message": "The linked work item does not exist or you do not have access to it."
     }
   },
   "sub_work_item": {
@@ -354,9 +358,19 @@
         "message": "State change is not allowed for some work items. Ensure the state change is allowed."
       }
     },
-    "upgrade_banner": {
-      "message": "Change state, priority, and more for several work items at once. Save three minutes on an average per operation.",
-      "cta": "Upgrade to One"
+    "toolbar_label": "Bulk actions",
+    "selected": "Selected: {count}",
+    "clear_selection": "Clear selection",
+    "toast": {
+      "updated": "Work items updated: {count}",
+      "update_failed_title": "Some work items were not updated",
+      "update_failed": "Work items not updated: {count}. Try again.",
+      "archived": "Work items archived: {count}",
+      "deleted": "Work items deleted: {count}"
+    },
+    "delete": {
+      "title": "Delete work items",
+      "content": "Are you sure you want to delete the selected work items ({count})? You can restore them from the project's archives until they are removed permanently."
     }
   },
   "recurring_work_items": {

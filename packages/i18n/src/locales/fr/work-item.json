@@ -293,6 +293,10 @@
       "click_to_downvote": "Cliquez pour voter contre",
       "click_to_view_upvotes": "Cliquez pour voir les votes pour",
       "click_to_view_downvotes": "Cliquez pour voir les votes contre"
+    },
+    "peek_not_found": {
+      "title": "Élément de travail indisponible",
+      "message": "L’élément de travail lié n’existe pas ou vous n’y avez pas accès."
     }
   },
   "sub_work_item": {
@@ -354,9 +358,19 @@
         "message": "Le changement d'état n'est pas autorisé pour certains éléments de travail. Assurez-vous que le changement d'état est autorisé."
       }
     },
-    "upgrade_banner": {
-      "message": "Modifiez l’état, la priorité et bien plus pour plusieurs éléments de travail à la fois. Économisez en moyenne trois minutes par opération.",
-      "cta": "Mettre à niveau vers One"
+    "toolbar_label": "Actions groupées",
+    "selected": "Sélectionnés : {count}",
+    "clear_selection": "Effacer la sélection",
+    "toast": {
+      "updated": "Éléments de travail mis à jour : {count}",
+      "update_failed_title": "Certains éléments de travail n’ont pas été mis à jour",
+      "update_failed": "Éléments de travail non mis à jour : {count}. Veuillez réessayer.",
+      "archived": "Éléments de travail archivés : {count}",
+      "deleted": "Éléments de travail supprimés : {count}"
+    },
+    "delete": {
+      "title": "Supprimer les éléments de travail",
+      "content": "Voulez-vous vraiment supprimer les éléments de travail sélectionnés ({count}) ? Vous pouvez les restaurer depuis les archives du projet jusqu’à leur suppression définitive."
     }
   },
   "recurring_work_items": {

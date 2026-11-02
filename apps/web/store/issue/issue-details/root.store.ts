@@ -17,6 +17,8 @@ import type {
   TIssueServiceType,
   TWorkItemWidgets,
 } from "@plane/types";
+import { EIssueServiceType } from "@plane/types";
+import { getPeekRoute } from "@/lib/work-item-view-url/peek";
 // plane web store
 import { IssueActivityStore } from "./activity.store";
 import type { IIssueActivityStore, IIssueActivityStoreActions, TActivityLoader } from "./activity.store";
@@ -93,7 +95,10 @@ export interface IIssueDetail
   // helper actions
   getIsIssuePeeked: (issueId: string) => boolean;
   // actions
+  /** Opens or closes the peek. A page that shows it from the URL does so through a navigation. */
   setPeekIssue: (peekIssue: TPeekIssue | undefined) => void;
+  /** Shows the peek without asking the route. Only for the route that owns the peek. */
+  showPeekIssue: (peekIssue: TPeekIssue | undefined) => void;
   setIssueLinkData: (issueLinkData: TIssueLink | null) => void;
   toggleCreateIssueModal: (value: boolean) => void;
   toggleIssueLinkModal: (value: boolean) => void;
@@ -186,6 +191,7 @@ export class IssueDetail implements IIssueDetail {
       isPeekOpen: computed,
       // action
       setPeekIssue: action,
+      showPeekIssue: action,
       setIssueLinkData: action,
       toggleCreateIssueModal: action,
       toggleIssueLinkModal: action,
@@ -241,7 +247,14 @@ export class IssueDetail implements IIssueDetail {
   // actions
   setRelationKey = (relationKey: TIssueRelationTypes | null) => (this.relationKey = relationKey);
   setIssueCrudOperationState = (state: TIssueCrudOperationState) => (this.issueCrudOperationState = state);
-  setPeekIssue = (peekIssue: TPeekIssue | undefined) => (this.peekIssue = peekIssue);
+  setPeekIssue = (peekIssue: TPeekIssue | undefined) => {
+    const route = this.serviceType === EIssueServiceType.ISSUES ? getPeekRoute() : undefined;
+    if (route?.onPeek(peekIssue)) return;
+    this.peekIssue = peekIssue;
+  };
+  showPeekIssue = (peekIssue: TPeekIssue | undefined) => {
+    this.peekIssue = peekIssue;
+  };
   toggleCreateIssueModal = (value: boolean) => (this.isCreateIssueModalOpen = value);
   toggleIssueLinkModal = (value: boolean) => (this.isIssueLinkModalOpen = value);
   toggleParentIssueModal = (issueId: string | null) => (this.isParentIssueModalOpen = issueId);

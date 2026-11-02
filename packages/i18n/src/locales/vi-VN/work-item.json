@@ -293,6 +293,10 @@
       "click_to_downvote": "Nhấp để bỏ phiếu chống",
       "click_to_view_upvotes": "Nhấp để xem phiếu thuận",
       "click_to_view_downvotes": "Nhấp để xem phiếu chống"
+    },
+    "peek_not_found": {
+      "title": "Mục công việc không khả dụng",
+      "message": "Mục công việc được liên kết không tồn tại hoặc bạn không có quyền truy cập."
     }
   },
   "sub_work_item": {
@@ -354,9 +358,19 @@
         "message": "Thay đổi trạng thái không được phép cho một số mục công việc. Đảm bảo thay đổi trạng thái được cho phép."
       }
     },
-    "upgrade_banner": {
-      "message": "Thay đổi trạng thái, mức ưu tiên và nhiều thứ khác cho nhiều mục công việc cùng lúc. Tiết kiệm trung bình ba phút cho mỗi thao tác.",
-      "cta": "Nâng cấp lên One"
+    "toolbar_label": "Thao tác hàng loạt",
+    "selected": "Đã chọn: {count}",
+    "clear_selection": "Bỏ chọn",
+    "toast": {
+      "updated": "Mục công việc đã cập nhật: {count}",
+      "update_failed_title": "Một số mục công việc chưa được cập nhật",
+      "update_failed": "Mục công việc chưa cập nhật: {count}. Vui lòng thử lại.",
+      "archived": "Mục công việc đã lưu trữ: {count}",
+      "deleted": "Mục công việc đã xóa: {count}"
+    },
+    "delete": {
+      "title": "Xóa mục công việc",
+      "content": "Bạn có chắc chắn muốn xóa các mục công việc đã chọn ({count}) không? Bạn có thể khôi phục chúng từ kho lưu trữ của dự án cho đến khi chúng bị xóa vĩnh viễn."
     }
   },
   "recurring_work_items": {

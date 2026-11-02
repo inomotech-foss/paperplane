@@ -293,6 +293,10 @@
       "click_to_downvote": "Click to downvote",
       "click_to_view_upvotes": "Click to view upvotes",
       "click_to_view_downvotes": "Click to view downvotes"
+    },
+    "peek_not_found": {
+      "title": "სამუშაო ელემენტი მიუწვდომელია",
+      "message": "დაკავშირებული სამუშაო ელემენტი არ არსებობს ან მასზე წვდომა არ გაქვთ."
     }
   },
   "sub_work_item": {
@@ -354,9 +358,19 @@
         "message": "State change is not allowed for some work items. Ensure the state change is allowed."
       }
     },
-    "upgrade_banner": {
-      "message": "შეცვალეთ მდგომარეობა, პრიორიტეტი და სხვა რამდენიმე სამუშაო ელემენტისთვის ერთდროულად. საშუალოდ დაზოგეთ სამი წუთი თითოეულ ოპერაციაზე.",
-      "cta": "განახლება One-ზე"
+    "toolbar_label": "მასობრივი მოქმედებები",
+    "selected": "არჩეულია: {count}",
+    "clear_selection": "არჩევის გასუფთავება",
+    "toast": {
+      "updated": "განახლებული სამუშაო ელემენტები: {count}",
+      "update_failed_title": "ზოგიერთი სამუშაო ელემენტი არ განახლდა",
+      "update_failed": "განუახლებელი სამუშაო ელემენტები: {count}. სცადეთ ხელახლა.",
+      "archived": "დაარქივებული სამუშაო ელემენტები: {count}",
+      "deleted": "წაშლილი სამუშაო ელემენტები: {count}"
+    },
+    "delete": {
+      "title": "სამუშაო ელემენტების წაშლა",
+      "content": "ნამდვილად გსურთ არჩეული სამუშაო ელემენტების ({count}) წაშლა? სამუდამოდ წაშლამდე შეგიძლიათ მათი აღდგენა პროექტის არქივებიდან."
     }
   },
   "recurring_work_items": {
