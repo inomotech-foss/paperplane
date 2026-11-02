@@ -6,8 +6,7 @@
 
 See https://github.com/makeplane/plane/issues/4639 -- ``?expand=updated_by``
 returned the bare UUID instead of a user object, and once the key was added to
-the mapper it returned an empty object for the (very common) case of a record
-that has never been updated.
+the mapper it returned an empty object for a record with a null updated_by.
 """
 
 from uuid import uuid4
@@ -62,7 +61,7 @@ class TestPublicAPIExpand:
             assert data[field]["display_name"] == "ada"
 
     def test_null_relation_expands_to_null_not_an_empty_object(self):
-        """updated_by is null until a record is first updated (BaseModel.save).
+        """Rows written before BaseModel.save filled updated_by on create can still have it null.
 
         Expanding it used to emit ``{}`` -- the nested serializer built from its
         own defaults -- which does not match the unexpanded response.

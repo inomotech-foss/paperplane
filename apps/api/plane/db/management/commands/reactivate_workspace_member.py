@@ -60,11 +60,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"User {email} is already an active member of workspace {slug}"))
             return
 
-        # Reactivate the membership. update_fields keeps the write to the columns that change, and
-        # disable_auto_set_user stops BaseModel.save from nulling created_by/updated_by when there
-        # is no request user, as is the case in a management command.
+        # update_fields keeps the write to the columns that change.
         workspace_member.is_active = True
-        workspace_member.save(update_fields=["is_active", "updated_at"], disable_auto_set_user=True)
+        workspace_member.save(update_fields=["is_active", "updated_at"])
 
         self.stdout.write(
             self.style.SUCCESS(

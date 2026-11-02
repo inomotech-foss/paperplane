@@ -3,13 +3,16 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.template.defaultfilters import slugify
 from django.db.models import Q
 
 # Module imports
 from .project import ProjectBaseModel
 from plane.db.mixins import SoftDeletionManager
+
+
+MAX_TRIAGE_NAME_ATTEMPTS = 100
 
 
 class StateGroup(models.TextChoices):
@@ -100,6 +103,35 @@ class State(ProjectBaseModel):
     def __str__(self):
         """Return name of the state"""
         return f"{self.name} <{self.project.name}>"
+
+    @classmethod
+    def get_or_create_triage(cls, project, created_by_id=None):
+        """A regular state may already be called "Triage", so the new one takes the next free "Triage N"."""
+        for suffix in range(1, MAX_TRIAGE_NAME_ATTEMPTS + 1):
+            triage_state = cls.triage_objects.filter(project_id=project.id).first()
+            if triage_state is not None:
+                return triage_state
+            name = "Triage" if suffix == 1 else f"Triage {suffix}"
+            triage_state = cls(
+                name=name,
+                group=StateGroup.TRIAGE.value,
+                project_id=project.id,
+                workspace_id=project.workspace_id,
+                color="#4E5355",
+                sequence=65000,
+                default=False,
+            )
+            try:
+                with transaction.atomic():
+                    triage_state.save(created_by_id=created_by_id)
+                return triage_state
+            except IntegrityError:
+                name_taken = cls.all_state_objects.filter(
+                    project_id=project.id, name=name, deleted_at__isnull=True
+                ).exists()
+                if not name_taken:
+                    raise
+        raise RuntimeError(f"No free triage state name in project {project.id}")
 
     class Meta:
         unique_together = ["name", "project", "deleted_at"]

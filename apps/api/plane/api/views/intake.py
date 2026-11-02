@@ -27,7 +27,7 @@ from plane.api.serializers import (
 )
 from plane.app.permissions import ProjectLitePermission
 from plane.bgtasks.issue_activities_task import issue_activity
-from plane.db.models import Intake, IntakeIssue, Issue, Project, ProjectMember, State, StateGroup, WorkspaceMember
+from plane.db.models import Intake, IntakeIssue, Issue, Project, ProjectMember, State, WorkspaceMember
 from plane.utils.serializers import writable_data
 from plane.utils.content_validator import validate_html_content
 from .base import BaseAPIView
@@ -176,19 +176,7 @@ class IntakeIssueListCreateAPIEndpoint(BaseAPIView):
         ]:
             return Response({"error": "Invalid priority"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # get the triage state
-        triage_state = State.triage_objects.filter(project_id=project_id, workspace__slug=slug).first()
-
-        if not triage_state:
-            triage_state = State.objects.create(
-                name="Triage",
-                group=StateGroup.TRIAGE.value,
-                project_id=project_id,
-                workspace_id=project.workspace_id,
-                color="#4E5355",
-                sequence=65000,
-                default=False,
-            )
+        triage_state = State.get_or_create_triage(project)
 
         # create an issue
         issue_data = request.data.get("issue", {})

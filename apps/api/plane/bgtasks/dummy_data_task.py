@@ -266,11 +266,11 @@ def create_page_labels(workspace, project, user_id, pages_count):
     PageLabel.objects.bulk_create(bulk_page_labels, batch_size=1000, ignore_conflicts=True)
 
 
-def create_issues(workspace, project, user_id, issue_count):
+def create_issues(workspace, project, user_id, issue_count, state_ids=None):
     fake = Faker()
     Faker.seed(0)
 
-    states = (
+    states = state_ids or (
         State.objects.filter(workspace=workspace, project=project)
         .exclude(group=StateGroup.TRIAGE.value)
         .values_list("id", flat=True)
@@ -360,23 +360,31 @@ def create_issues(workspace, project, user_id, issue_count):
 
 
 def create_intake_issues(workspace, project, user_id, intake_issue_count):
-    issues = create_issues(workspace, project, user_id, intake_issue_count)
+    triage_state = State.get_or_create_triage(project, created_by_id=user_id)
+    issues = create_issues(workspace, project, user_id, intake_issue_count, state_ids=[triage_state.id])
+    statuses = [random.choice([-2, -1, 0, 1, 2]) for _ in issues]
     intake, _ = Intake.objects.get_or_create(name="Intake", project=project, is_default=True)
     IntakeIssue.objects.bulk_create(
         [
             IntakeIssue(
                 issue=issue,
                 intake=intake,
-                status=(status := [-2, -1, 0, 1, 2][random.randint(0, 4)]),
+                status=status,
                 snoozed_till=(datetime.now() + timedelta(days=random.randint(1, 30)) if status == 0 else None),
                 source=SourceType.IN_APP,
                 workspace=workspace,
                 project=project,
             )
-            for issue in issues
+            for issue, status in zip(issues, statuses)
         ],
         batch_size=100,
     )
+
+    # Accepting an intake item moves it to the default state.
+    default_state = State.objects.filter(project=project, default=True).first()
+    if default_state is not None:
+        accepted = [issue.id for issue, status in zip(issues, statuses) if status == 1]
+        Issue.all_objects.filter(id__in=accepted).update(state=default_state)
 
 
 def create_issue_parent(workspace, project, user_id, issue_count):

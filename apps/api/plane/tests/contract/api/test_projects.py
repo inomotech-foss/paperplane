@@ -318,8 +318,7 @@ class TestProjectListExpand:
 
     Regression for https://github.com/makeplane/plane/issues/4639. ``updated_by``
     originally came back as a bare UUID because it was missing from the expansion
-    mapper. Adding it was not enough: ``BaseModel.save`` leaves ``updated_by`` NULL
-    until a record is first updated, and expanding a null relation emitted ``{}``
+    mapper. Adding it was not enough: expanding a null relation emitted ``{}``
     rather than ``null``.
     """
 
@@ -329,9 +328,8 @@ class TestProjectListExpand:
     def make_project(self, workspace, user, identifier, updated_by=None):
         """Create a project with the audit columns set explicitly.
 
-        ``BaseModel.save()`` overwrites ``created_by``/``updated_by`` from the
-        current request user (there is none here), so the values have to be
-        written with a queryset update that bypasses ``save()``.
+        ``BaseModel.save()`` fills ``updated_by`` on create, so a null value has
+        to be written with a queryset update that bypasses ``save()``.
         """
         project = Project.objects.create(
             name=f"Project {identifier}",
@@ -369,7 +367,7 @@ class TestProjectListExpand:
 
     @pytest.mark.django_db
     def test_expand_null_relation_returns_null(self, api_key_client, workspace, create_user):
-        """A project that has never been edited has updated_by = NULL.
+        """Older rows can still have updated_by = NULL.
 
         Expanding it must stay ``null`` rather than becoming an empty object.
         """
