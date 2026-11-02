@@ -42,11 +42,12 @@ class PlaneImporter:
     Idempotent on id: with ``allow_existing`` a re-run updates in place.
     """
 
-    def __init__(self, source, web_url, workspaces=None, allow_existing=False):
+    def __init__(self, source, web_url, workspaces=None, allow_existing=False, user_rules=None):
         self.source = source
         self.web_url = web_url
         self.workspaces = set(workspaces) if workspaces else None
         self.allow_existing = allow_existing
+        self.user_rules = user_rules
 
     def run(self, dry_run=False):
         report = ImportReport(dry_run=dry_run, source=source_version(self.source))
@@ -118,7 +119,7 @@ class PlaneImporter:
             for row in self.source.rows("workspace_members")
             if row.get("workspace_id") in workspace_ids
         }
-        plan = plan_users(self.source.rows("users"), wanted)
+        plan = plan_users(self.source.rows("users"), wanted, self.user_rules)
         for source_id, target_id in plan.matched.items():
             ctx.ids.add(User, source_id, target_id)
         ctx.state["create_users"] = {row["id"]: row["username"] for row in plan.create}

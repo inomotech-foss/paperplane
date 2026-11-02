@@ -3,8 +3,11 @@
 
 import uuid
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 
 from plane.db.models import User
+
+from ..users import UserMatcher
 
 
 def _uuid(value):
@@ -57,6 +60,11 @@ class IdMap:
         }
 
 
+def _account(row):
+    """A Plane user in the shape ``importers.users`` matches on."""
+    return SimpleNamespace(account_id=str(row["id"]), email=row.get("email"), display_name=row.get("display_name"))
+
+
 @dataclass
 class UserPlan:
     create: list = field(default_factory=list)
@@ -64,31 +72,31 @@ class UserPlan:
     renamed: list = field(default_factory=list)
 
 
-def plan_users(rows, wanted_ids):
+def plan_users(rows, wanted_ids, rules=None):
     """Which source users to create and which the target already has.
 
-    A source user whose address the target already knows, in any case, is that
-    user: the import must run on an instance where the admin signed up first.
+    Matching is the Atlassian importers' (``importers.users``): by address,
+    rewritten by ``--email-domain`` and overridden by ``--user-map``, then by
+    display name. That lets the import run on an instance where the admin
+    signed up first. Each target account is claimed once, and a source address
+    that matches exactly goes first, so two source accounts never become one.
     Anyone else is created with their Plane id; a username the target or an
     earlier row already uses gets a numeric suffix rather than stopping the run.
     """
     wanted = {_uuid(user_id) for user_id in wanted_ids}
     rows = [row for row in rows if _uuid(row["id"]) in wanted]
-    existing = [(user_id, email) for user_id, email in User.objects.values_list("id", "email") if email]
-    exact = {email: user_id for user_id, email in existing}
-    folded = {email.casefold(): user_id for user_id, email in existing}
-    taken = set(User.objects.values_list("username", flat=True))
+    users = list(User.objects.all())
+    exact = {user.email for user in users if user.email}
+    matcher = UserMatcher(users, rules)
+    taken = {user.username for user in users}
     plan = UserPlan()
 
-    # Each target account is claimed once, by an exact address before one that
-    # differs only in case, so two source accounts never become one.
     claimed = set()
-    for lookup, key in ((exact, lambda e: e), (folded, str.casefold)):
-        for row in rows:
-            target = lookup.get(key(row.get("email") or ""))
-            if row["id"] not in plan.matched and target is not None and target not in claimed:
-                plan.matched[row["id"]] = target
-                claimed.add(target)
+    for row in sorted(rows, key=lambda row: row.get("email") not in exact):
+        target = matcher.match(_account(row))
+        if target is not None and target.id not in claimed:
+            plan.matched[row["id"]] = target.id
+            claimed.add(target.id)
 
     for row in rows:
         if row["id"] in plan.matched:

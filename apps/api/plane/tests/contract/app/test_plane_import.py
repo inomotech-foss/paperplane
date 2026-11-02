@@ -230,3 +230,12 @@ def test_dry_run_writes_nothing(plane_db):
     output = run_import(dry_run=True)
     assert "dry run, rolled back" in output
     assert not Workspace.objects.filter(slug="acme").exists()
+
+
+def test_user_map_matches_an_existing_account(plane_db, tmp_path):
+    existing = User.objects.create(email="ada.lovelace@example.test", username="lovelace")
+    user_map = tmp_path / "users.csv"
+    user_map.write_text("ada@example.test,ada.lovelace@example.test\n")
+    output = run_import(user_map=str(user_map))
+    assert "1 matched" in output
+    assert Issue.all_objects.get(pk=plane_db["issue"]).created_by_id == existing.id

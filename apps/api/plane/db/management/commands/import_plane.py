@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from plane.importers.plane.loader import ImportConflict, ImportRefused, PlaneImporter
 from plane.importers.plane.source import PlaneSource
+from plane.importers.users import UserRules, add_user_arguments
 
 
 class Command(BaseCommand):
@@ -21,8 +22,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "--allow-existing", action="store_true", help="Import again into workspaces an earlier run created"
         )
+        add_user_arguments(parser)
 
     def handle(self, *args, **options):
+        try:
+            user_rules = UserRules.from_options(options)
+        except ValueError as error:
+            raise CommandError(str(error))
         source = PlaneSource(options["source_dsn"], schema=options["source_schema"])
         try:
             report = PlaneImporter(
@@ -30,6 +36,7 @@ class Command(BaseCommand):
                 web_url=options["web_url"],
                 workspaces=options["workspace"],
                 allow_existing=options["allow_existing"],
+                user_rules=user_rules,
             ).run(dry_run=options["dry_run"])
         except ImportRefused as error:
             raise CommandError(str(error))
@@ -48,7 +55,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"version      {warning}"))
         for table, rows in report.written.items():
             self.stdout.write(f"{table:<34} {rows}")
-        self.stdout.write(f"users        {report.matched_users} matched to existing accounts by email")
+        self.stdout.write(f"users        {report.matched_users} matched to existing accounts")
         self.stdout.write(f"types        {report.typed} work items given their project's default type")
         self.stdout.write(f"projects     {report.typed_projects} projects given the Task type")
         self.stdout.write(f"type icons   {report.type_icons} converted to Material Symbols")

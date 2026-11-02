@@ -7,6 +7,7 @@ import pytest
 
 from plane.db.models import Project, User
 from plane.importers.plane.ids import IdMap, plan_users
+from plane.importers.users import UserRules
 
 
 def user_row(email, username=None):
@@ -94,3 +95,19 @@ def test_users_outside_wanted_are_ignored():
     wanted, other = user_row("w@example.test"), user_row("o@example.test")
     plan = plan_users([wanted, other], {wanted["id"]})
     assert [r["id"] for r in plan.create] == [wanted["id"]]
+
+
+@pytest.mark.django_db
+def test_email_domain_rule_matches_a_moved_address():
+    target = User.objects.create(email="ada@new.test", username="ada-new")
+    row = user_row("ada@old.test")
+    plan = plan_users([row], {row["id"]}, UserRules(domains={"old.test": "new.test"}))
+    assert plan.matched == {row["id"]: target.id}
+
+
+@pytest.mark.django_db
+def test_user_map_wins_over_the_address():
+    target = User.objects.create(email="robert@example.test", username="robert")
+    row = user_row("bob@example.test")
+    plan = plan_users([row], {row["id"]}, UserRules(overrides={str(row["id"]): "robert@example.test"}))
+    assert plan.matched == {row["id"]: target.id}
