@@ -14,6 +14,7 @@ import type { CollaborationState } from "@/types/collaboration";
 type TCloseHandler = (event: { event?: { code?: number } }) => void;
 type TConfig = {
   onAuthenticationFailed?: (data: { reason: string }) => void;
+  onAuthenticated?: () => void;
   onConnect?: () => void;
   onStateless?: (data: { payload: string }) => void;
   onSynced?: () => void;
@@ -147,13 +148,16 @@ describe("useYjsSetup sync watchdog", () => {
     act(() => config.onConnect?.());
     expect(lastStage()).toEqual({ kind: "awaiting-sync" });
 
-    act(() => vi.advanceTimersByTime(14_999));
+    // a slow authentication restarts the clock for the load
+    act(() => vi.advanceTimersByTime(29_000));
+    act(() => config.onAuthenticated?.());
+    act(() => vi.advanceTimersByTime(44_999));
     expect(lastStage()).toEqual({ kind: "awaiting-sync" });
 
     act(() => vi.advanceTimersByTime(1));
     expect(lastStage()).toEqual({
       kind: "disconnected",
-      error: { type: "sync-timeout", message: "Not synced within 15000 ms" },
+      error: { type: "sync-timeout", message: "Not synced within 45000 ms" },
     });
     expect(socket.close).toHaveBeenCalledTimes(1);
 
@@ -171,6 +175,19 @@ describe("useYjsSetup sync watchdog", () => {
 
     act(() => vi.advanceTimersByTime(60_000));
     expect(lastStage()).toEqual({ kind: "synced" });
+  });
+
+  it("bounds an authentication that never answers", () => {
+    act(() => config.onConnect?.());
+    act(() => vi.advanceTimersByTime(29_999));
+    expect(lastStage()).toEqual({ kind: "awaiting-sync" });
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "sync-timeout", message: "Not authenticated within 30000 ms" },
+    });
+    expect(socket.close).toHaveBeenCalledTimes(1);
   });
 
   it("keeps reconnecting when the server gives up loading the document", () => {

@@ -28,12 +28,16 @@ type UseYjsSetupArgs = {
   onStateChange?: (state: CollaborationState) => void;
   options?: {
     maxConnectionAttempts?: number;
+    authTimeoutMs?: number;
     syncTimeoutMs?: number;
   };
 };
 
 const DEFAULT_MAX_RETRIES = 3;
-const DEFAULT_SYNC_TIMEOUT_MS = 15_000;
+// Both stay above the live server's own bounds, so a slow server answers before the client gives up:
+// authentication calls the API with a 20 s timeout, and a load allows 30 s for the page fetch plus 10 s for Redis.
+const DEFAULT_AUTH_TIMEOUT_MS = 30_000;
+const DEFAULT_SYNC_TIMEOUT_MS = 45_000;
 
 // Sent by the live server when it gives up loading the document
 const DOCUMENT_LOAD_TIMEOUT_REASON = "document-load-timeout";
@@ -54,6 +58,7 @@ const readForceCloseCode = (payload: string): number | null => {
 };
 
 export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, options }: UseYjsSetupArgs) => {
+  const authTimeoutMs = options?.authTimeoutMs ?? DEFAULT_AUTH_TIMEOUT_MS;
   const syncTimeoutMs = options?.syncTimeoutMs ?? DEFAULT_SYNC_TIMEOUT_MS;
   // Current collaboration stage
   const [stage, setStage] = useState<CollabStage>({ kind: "initial" });
@@ -93,8 +98,8 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
       syncTimer = undefined;
     };
 
-    // The server can authenticate a socket and then never sync it, for example when the document load hangs.
-    // Report that as disconnected so the page falls back to HTTP, and drop the socket so the provider retries.
+    // A socket that never authenticates or never syncs reports a sync timeout, and is dropped so the provider
+    // retries. A retry joins a load that is still running on the server, so a slow load is not cut off.
     const reportSyncTimeout = (message: string) => {
       stopSyncWatchdog();
       if (!isSyncTimeout(stageRef.current))
@@ -102,18 +107,18 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
       provider.configuration.websocketProvider.webSocket?.close();
     };
 
-    const startSyncWatchdog = () => {
+    const startSyncWatchdog = (timeoutMs: number, message: string) => {
       stopSyncWatchdog();
       syncTimer = setTimeout(() => {
         syncTimer = undefined;
         if (isDisposedRef.current || stageRef.current.kind === "synced") return;
-        reportSyncTimeout(`Not synced within ${syncTimeoutMs} ms`);
-      }, syncTimeoutMs);
+        reportSyncTimeout(message);
+      }, timeoutMs);
     };
 
     // During a sync timeout the page stays disconnected until a sync succeeds.
     const awaitSync = () => {
-      startSyncWatchdog();
+      startSyncWatchdog(authTimeoutMs, `Not authenticated within ${authTimeoutMs} ms`);
       if (!isSyncTimeout(stageRef.current)) setStageTo({ kind: "awaiting-sync" });
     };
 
@@ -121,6 +126,10 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
       name: docId,
       token: authToken,
       url: serverUrl,
+      onAuthenticated: () => {
+        if (isDisposedRef.current) return;
+        startSyncWatchdog(syncTimeoutMs, `Not synced within ${syncTimeoutMs} ms`);
+      },
       onAuthenticationFailed: ({ reason }) => {
         if (isDisposedRef.current) return;
         if (reason === DOCUMENT_LOAD_TIMEOUT_REASON) {
@@ -328,7 +337,7 @@ export const useYjsSetup = ({ docId, serverUrl, authToken, onStateChange, option
 
       permanentlyStopProvider();
     };
-  }, [docId, serverUrl, authToken, syncTimeoutMs]);
+  }, [docId, serverUrl, authToken, authTimeoutMs, syncTimeoutMs]);
 
   // IndexedDB persistence lifecycle
   useEffect(() => {
