@@ -55,7 +55,7 @@ afterEach(() => {
 describe("EstimateRoot", () => {
   it("shows the empty state when the workspace has no estimates", async () => {
     estimates.getWorkspaceEstimates.mockResolvedValueOnce([]);
-    estimates.getProjectEstimates.mockReturnValueOnce(new Promise(() => {}));
+    estimates.getProjectEstimates.mockResolvedValueOnce([]);
     render(
       <Wrapper>
         <WorkspaceEstimates />

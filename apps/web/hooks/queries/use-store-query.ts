@@ -2,8 +2,9 @@
 // See the LICENSE file for details.
 
 import { useCallback } from "react";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import type { EUserPermissions } from "@plane/types";
+import { isRecord } from "@plane/types";
 import { useUserPermissions } from "@/hooks/store/user";
 
 /**
@@ -15,17 +16,28 @@ export type TStoreQueryState = {
   isLoading: boolean;
   /** The query failed and has no earlier answer to fall back on. Cleared by the next successful fetch. */
   error: unknown;
-  /** Fetches again, for a retry button. */
+  /** Fetches again, for a retry button or after a change elsewhere. */
   retry: () => void;
   /** Fetches once if the query has no answer yet. Lazy queries load through this. */
   ensureLoaded: () => Promise<void>;
 };
 
+/** A wider query whose answer can contain this one, such as all workspace labels for one project's labels. */
+export type TCoveringQuery = {
+  key: string;
+  /** Whether a given answer of the wider query contains this query's answer. */
+  covers: (answer: unknown) => boolean;
+};
+
 export type TStoreQueryOptions = {
   /** Wait for `ensureLoaded` instead of fetching on mount. For controls rendered once per row. */
   lazy?: boolean;
-  /** Key of a wider query whose answer contains this one, such as all workspace labels for one project's labels. */
-  coveredBy?: string | null;
+  /**
+   * Fetch again on every mount and show the cached answer meanwhile. For data other people change often.
+   * Without it a key is fetched once per session, and again only through `retry`.
+   */
+  refreshOnMount?: boolean;
+  coveredBy?: TCoveringQuery | null;
 };
 
 type TInternalOptions = TStoreQueryOptions & {
@@ -33,28 +45,47 @@ type TInternalOptions = TStoreQueryOptions & {
   isWaiting?: boolean;
 };
 
-const SWR_OPTIONS = { revalidateIfStale: false, revalidateOnFocus: false };
-const LAZY_SWR_OPTIONS = { ...SWR_OPTIONS, revalidateOnMount: false };
+/** Covers a project query when the wider answer holds at least one item of that project. */
+export const coversProject =
+  (projectId: string, field: string) =>
+  (answer: unknown): boolean =>
+    Array.isArray(answer) && answer.some((item) => isRecord(item) && item[field] === projectId);
 
 export const useStoreQuery = <T>(
   key: string | null,
   fetcher: (() => Promise<T>) | null,
   options: TInternalOptions = {}
 ): TStoreQueryState => {
-  const { data, error, isLoading, mutate } = useSWR<T, unknown>(
-    key,
-    fetcher,
-    options.lazy ? LAZY_SWR_OPTIONS : SWR_OPTIONS
-  );
+  const { cache, mutate: mutateKey } = useSWRConfig();
+  const isCached = key !== null && cache.get(key)?.data !== undefined;
+  const { data, error, isLoading, mutate } = useSWR<T, unknown>(key, options.lazy ? null : fetcher, {
+    revalidateOnFocus: false,
+    revalidateIfStale: !!options.refreshOnMount,
+    // The app config revalidates on every mount. Here a cached key is only fetched again on request.
+    revalidateOnMount: !options.lazy && (!!options.refreshOnMount || !isCached),
+  });
   // Reads the covering query from the cache. Without a fetcher this never requests anything.
-  const { data: covering } = useSWR<unknown, unknown>(options.coveredBy ?? null, null);
-  const hasAnswer = data !== undefined || covering !== undefined;
+  const { data: covering } = useSWR<unknown, unknown>(options.coveredBy?.key ?? null, null);
+  const isCovered = covering !== undefined && !!options.coveredBy?.covers(covering);
+  const hasAnswer = data !== undefined || isCovered;
+
+  const load = useCallback(async () => {
+    if (!key || !fetcher) return;
+    if (!options.lazy) {
+      await mutate();
+      return;
+    }
+    // A lazy query has no fetcher on the hook, so it would not fetch when its key changes.
+    await mutateKey(key, fetcher()).catch(() => undefined);
+  }, [key, fetcher, options.lazy, mutate, mutateKey]);
+
   const retry = useCallback(() => {
-    void mutate();
-  }, [mutate]);
+    void load();
+  }, [load]);
   const ensureLoaded = useCallback(async () => {
-    if (!hasAnswer) await mutate();
-  }, [hasAnswer, mutate]);
+    if (!hasAnswer) await load();
+  }, [hasAnswer, load]);
+
   return {
     isLoading: !hasAnswer && (isLoading || (!!options.isWaiting && !options.lazy)),
     error: hasAnswer ? undefined : error,
@@ -66,8 +97,9 @@ export const useStoreQuery = <T>(
 type TProjectRoleKey = (projectId: string, projectRole: EUserPermissions | undefined) => string;
 
 /**
- * A project list keyed on the user's project role, so it is fetched again when the role changes. The key stays
- * empty until the role is known, which fetches the list once on a cold load.
+ * A project list keyed on the user's project role, so it is fetched again when the role changes. A query that
+ * fetches on mount waits for the workspace's project roles, so a cold load fetches the list once. A project
+ * without a role, and a lazy query asked before the roles are in, use the key without a role.
  */
 export const useProjectStoreQuery = <T>(
   workspaceSlug: string | undefined,
@@ -77,13 +109,14 @@ export const useProjectStoreQuery = <T>(
   options: TStoreQueryOptions = {}
 ): TStoreQueryState => {
   const { getProjectRoleByWorkspaceSlugAndProjectId, workspaceProjectsPermissions } = useUserPermissions();
-  const role =
-    workspaceSlug && projectId ? getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId) : undefined;
-  const key = workspaceSlug && projectId && role !== undefined ? roleKey(projectId, role) : null;
-  // Without project roles for the workspace there is no key yet. Once they are in, a missing role means no access.
-  const isWaiting = !!workspaceSlug && !!projectId && !key && !workspaceProjectsPermissions[workspaceSlug];
-  return useStoreQuery(key, workspaceSlug && projectId ? () => fetcher(workspaceSlug, projectId) : null, {
-    ...options,
-    isWaiting,
-  });
+  const hasProject = !!workspaceSlug && !!projectId;
+  const rolesLoaded = !!workspaceSlug && !!workspaceProjectsPermissions[workspaceSlug];
+  const role = hasProject ? getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId) : undefined;
+  const canKey = hasProject && (role !== undefined || rolesLoaded || !!options.lazy);
+  const key = canKey ? roleKey(projectId, role) : null;
+  const fetchProject = useCallback(
+    () => (workspaceSlug && projectId ? fetcher(workspaceSlug, projectId) : Promise.reject(new Error("No project"))),
+    [workspaceSlug, projectId, fetcher]
+  );
+  return useStoreQuery(key, hasProject ? fetchProject : null, { ...options, isWaiting: hasProject && !key });
 };

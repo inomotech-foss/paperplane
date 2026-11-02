@@ -84,6 +84,26 @@ describe("PagesListView", () => {
     await waitFor(() => expect(screen.getByTestId("empty")).toBeTruthy());
   });
 
+  it("shows the cached list and fetches it again when the user comes back", async () => {
+    pages.fetchPagesList.mockResolvedValue([]);
+    const cache = new Map();
+    const view = (
+      <SWRConfig value={{ ...WEB_SWR_CONFIG, provider: () => cache, dedupingInterval: 0 }}>
+        <PagesListView pageType="public" projectId="p1" storeType={EPageStoreType.PROJECT} workspaceSlug="ws">
+          <span>pages</span>
+        </PagesListView>
+      </SWRConfig>
+    );
+    const first = render(view);
+    await waitFor(() => expect(screen.getByTestId("empty")).toBeTruthy());
+    first.unmount();
+
+    render(view);
+
+    expect(screen.queryByTestId("skeleton")).toBeNull();
+    await waitFor(() => expect(pages.fetchPagesList).toHaveBeenCalledTimes(2));
+  });
+
   it("keeps the list on screen while a page is being created", async () => {
     pages.fetchPagesList.mockResolvedValueOnce([]);
     pages.createPage.mockReturnValueOnce(new Promise(() => {}));

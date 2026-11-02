@@ -57,8 +57,8 @@ describe("useProjectStates", () => {
     await waitFor(() => expect(result.current.error).toBeUndefined());
   });
 
-  it("counts the workspace states as an answer for the project", async () => {
-    api.fetchWorkspaceStates.mockResolvedValueOnce([]);
+  it("counts the workspace states as an answer for a project they hold", async () => {
+    api.fetchWorkspaceStates.mockResolvedValueOnce([{ id: "s1", project_id: "p1" }]);
     const { result } = renderHook(
       () => ({ workspace: useWorkspaceStates("ws"), project: useProjectStates("ws", "p1", { lazy: true }) }),
       { wrapper: Wrapper }
@@ -71,8 +71,22 @@ describe("useProjectStates", () => {
     expect(api.fetchProjectStates).not.toHaveBeenCalled();
   });
 
+  it("fetches a project the workspace states do not hold yet", async () => {
+    api.fetchWorkspaceStates.mockResolvedValueOnce([{ id: "s1", project_id: "other" }]);
+    api.fetchProjectStates.mockResolvedValueOnce([]);
+    const { result } = renderHook(
+      () => ({ workspace: useWorkspaceStates("ws"), project: useProjectStates("ws", "p1", { lazy: true }) }),
+      { wrapper: Wrapper }
+    );
+
+    await waitFor(() => expect(result.current.workspace.isLoading).toBe(false));
+    await act(() => result.current.project.ensureLoaded());
+
+    expect(api.fetchProjectStates).toHaveBeenCalledWith("ws", "p1");
+  });
+
   it("still answers from the workspace states when the project fetch fails", async () => {
-    api.fetchWorkspaceStates.mockResolvedValueOnce([]);
+    api.fetchWorkspaceStates.mockResolvedValueOnce([{ id: "s1", project_id: "p1" }]);
     api.fetchProjectStates.mockRejectedValueOnce(new StatusError(403));
     const { result } = renderHook(
       () => ({ workspace: useWorkspaceStates("ws"), project: useProjectStates("ws", "p1") }),

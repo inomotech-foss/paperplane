@@ -29,6 +29,7 @@ import { IconButton } from "@makeplane/propel/components/icon-button";
 import { useTranslation } from "@plane/i18n";
 import { setToast } from "@plane/blocks/toast";
 import { EIssuesStoreType, readString } from "@plane/types";
+import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssues } from "@/hooks/store/use-issues";
 
@@ -52,6 +53,7 @@ export const TransferIssuesModal = observer(function TransferIssuesModal(props: 
   } = useIssues(EIssuesStoreType.CYCLE);
 
   const { workspaceSlug, projectId } = useParams();
+  const { isLoading } = useProjectCycles(workspaceSlug?.toString(), projectId?.toString());
 
   const transferIssue = async (payload: { new_cycle_id: string }) => {
     if (!workspaceSlug || !projectId || !cycleId) return;
@@ -132,7 +134,9 @@ export const TransferIssuesModal = observer(function TransferIssuesModal(props: 
           </div>
           <DialogBody tabIndex={0}>
             <div className="flex w-full flex-col items-start gap-2">
-              {filteredOptions.length > 0 ? (
+              {isLoading ? (
+                <p className="text-center text-secondary">{t("common.loading")}</p>
+              ) : filteredOptions.length > 0 ? (
                 filteredOptions.map((optionId) => {
                   const cycleDetails = getCycleById(optionId);
 

@@ -161,12 +161,47 @@ describe("useProjectCycles", () => {
     expect(api.getCyclesWithParams).not.toHaveBeenCalled();
   });
 
-  it("stops loading when the user has no role in the project", () => {
+  it("fetches without a role once the roles are in and the user has none in the project", async () => {
     permissions.roles = { ws: {} };
+    api.getCyclesWithParams.mockResolvedValueOnce([cycle("c1", "p1")]);
     const { result } = renderHook(() => useProjectCycles("ws", "p1"), { wrapper: Wrapper });
 
-    expect(result.current.isLoading).toBe(false);
-    expect(api.getCyclesWithParams).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(api.getCyclesWithParams).toHaveBeenCalledOnce();
+  });
+
+  it("does not fetch again when a second component mounts with the answer cached", async () => {
+    member("p1");
+    api.getCyclesWithParams.mockResolvedValue([cycle("c1", "p1")]);
+    const cache = new Map();
+    function SharedCache({ children }: { children: ReactNode }) {
+      return <SWRConfig value={{ ...WEB_SWR_CONFIG, provider: () => cache }}>{children}</SWRConfig>;
+    }
+    const first = renderHook(() => useProjectCycles("ws", "p1"), { wrapper: SharedCache });
+    await waitFor(() => expect(first.result.current.isLoading).toBe(false));
+    first.unmount();
+    // past the dedupe window, which alone would not stop a mount revalidation
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    const second = renderHook(() => useProjectCycles("ws", "p1"), {
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <SWRConfig value={{ ...WEB_SWR_CONFIG, provider: () => cache, dedupingInterval: 0 }}>{children}</SWRConfig>
+      ),
+    });
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    expect(second.result.current.isLoading).toBe(false);
+    expect(api.getCyclesWithParams).toHaveBeenCalledOnce();
+  });
+
+  it("fetches a lazy query that is asked before the roles are in", async () => {
+    api.getCyclesWithParams.mockResolvedValueOnce([cycle("c1", "p1")]);
+    const { result } = renderHook(() => useProjectCycles("ws", "p1", { lazy: true }), { wrapper: Wrapper });
+
+    await act(() => result.current.ensureLoaded());
+
+    expect(api.getCyclesWithParams).toHaveBeenCalledOnce();
+    expect(store.getProjectCycleIds("p1")).toEqual(["c1"]);
   });
 
   it("fetches a lazy query only once it is asked to", async () => {

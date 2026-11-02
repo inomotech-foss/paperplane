@@ -4,9 +4,9 @@
 import { PROJECT_LABELS, WORKSPACE_LABELS } from "@plane/constants";
 import { useLabel } from "@/hooks/store/use-label";
 import type { TStoreQueryOptions, TStoreQueryState } from "./use-store-query";
-import { useProjectStoreQuery, useStoreQuery } from "./use-store-query";
+import { coversProject, useProjectStoreQuery, useStoreQuery } from "./use-store-query";
 
-/** Loads the labels of a project. The workspace list holds every project's labels, so it answers this too. */
+/** Loads the labels of a project. The workspace list answers this too once it holds labels of the project. */
 export const useProjectLabels = (
   workspaceSlug: string | undefined,
   projectId: string | null | undefined,
@@ -15,7 +15,10 @@ export const useProjectLabels = (
   const { fetchProjectLabels } = useLabel();
   return useProjectStoreQuery(workspaceSlug, projectId, PROJECT_LABELS, fetchProjectLabels, {
     ...options,
-    coveredBy: workspaceSlug ? WORKSPACE_LABELS(workspaceSlug) : null,
+    coveredBy:
+      workspaceSlug && projectId
+        ? { key: WORKSPACE_LABELS(workspaceSlug), covers: coversProject(projectId, "project_id") }
+        : null,
   });
 };
 

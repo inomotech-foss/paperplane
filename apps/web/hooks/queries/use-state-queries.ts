@@ -4,9 +4,9 @@
 import { PROJECT_STATES, WORKSPACE_STATES } from "@plane/constants";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import type { TStoreQueryOptions, TStoreQueryState } from "./use-store-query";
-import { useProjectStoreQuery, useStoreQuery } from "./use-store-query";
+import { coversProject, useProjectStoreQuery, useStoreQuery } from "./use-store-query";
 
-/** Loads the states of a project. The workspace list holds every project's states, so it answers this too. */
+/** Loads the states of a project. The workspace list answers this too once it holds states of the project. */
 export const useProjectStates = (
   workspaceSlug: string | undefined,
   projectId: string | null | undefined,
@@ -15,7 +15,10 @@ export const useProjectStates = (
   const { fetchProjectStates } = useProjectState();
   return useProjectStoreQuery(workspaceSlug, projectId, PROJECT_STATES, fetchProjectStates, {
     ...options,
-    coveredBy: workspaceSlug ? WORKSPACE_STATES(workspaceSlug) : null,
+    coveredBy:
+      workspaceSlug && projectId
+        ? { key: WORKSPACE_STATES(workspaceSlug), covers: coversProject(projectId, "project_id") }
+        : null,
   });
 };
 

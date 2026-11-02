@@ -4,9 +4,9 @@
 import { PROJECT_ESTIMATES, WORKSPACE_ESTIMATES } from "@plane/constants";
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import type { TStoreQueryOptions, TStoreQueryState } from "./use-store-query";
-import { useProjectStoreQuery, useStoreQuery } from "./use-store-query";
+import { coversProject, useProjectStoreQuery, useStoreQuery } from "./use-store-query";
 
-/** Loads the estimates of a project. The workspace list holds every project's estimates, so it answers this too. */
+/** Loads the estimates of a project. The workspace list answers this too once it holds estimates of the project. */
 export const useProjectEstimatesQuery = (
   workspaceSlug: string | undefined,
   projectId: string | null | undefined,
@@ -15,7 +15,10 @@ export const useProjectEstimatesQuery = (
   const { getProjectEstimates } = useProjectEstimates();
   return useProjectStoreQuery(workspaceSlug, projectId, PROJECT_ESTIMATES, getProjectEstimates, {
     ...options,
-    coveredBy: workspaceSlug ? WORKSPACE_ESTIMATES(workspaceSlug) : null,
+    coveredBy:
+      workspaceSlug && projectId
+        ? { key: WORKSPACE_ESTIMATES(workspaceSlug), covers: coversProject(projectId, "project") }
+        : null,
   });
 };
 

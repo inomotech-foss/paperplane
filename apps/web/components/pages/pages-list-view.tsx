@@ -30,7 +30,9 @@ export const PagesListView = observer(function PagesListView(props: TPageView) {
     workspaceSlug && projectId && pageType ? `PROJECT_PAGES_${projectId}` : null,
     workspaceSlug && projectId && pageType
       ? async () => (await fetchPagesList(workspaceSlug, projectId, pageType)) ?? []
-      : null
+      : null,
+    // pages are collaborative, so coming back shows the cached list and picks up other people's pages
+    { refreshOnMount: true }
   );
 
   // pages loader
