@@ -22,6 +22,14 @@ def test_idmap_defaults_to_same_id():
     assert ids.get(Project, None) is None
 
 
+def test_targets_lists_target_ids():
+    ids, same, moved, target = IdMap(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    ids.add(User, same)
+    ids.add(User, moved, target)
+    assert ids.targets(User) == {same, target}
+    assert ids.targets(Project) == set()
+
+
 def test_remapped_lists_only_changed():
     ids, same, moved, target = IdMap(), uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
     ids.add(User, same)

@@ -34,6 +34,10 @@ class IdMap:
             return None
         return self._ids.get(model, {}).get(_uuid(source_id))
 
+    def targets(self, model):
+        """The target ids written or matched for `model`."""
+        return set(self._ids.get(model, {}).values())
+
     def exclude(self, model, source_id):
         self._excluded.setdefault(model, set()).add(_uuid(source_id))
 
