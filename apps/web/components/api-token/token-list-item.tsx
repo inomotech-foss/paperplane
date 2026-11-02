@@ -32,8 +32,10 @@ export function ApiTokenListItem(props: Props) {
       <div className="group relative flex flex-col justify-center border-b border-subtle py-3">
         <Tooltip label="Delete token" disabled={isMobile}>
           <button
+            type="button"
+            aria-label="Delete token"
             onClick={() => setDeleteModalOpen(true)}
-            className="absolute right-4 hidden place-items-center group-hover:grid"
+            className="absolute right-4 hidden place-items-center group-hover:grid focus-visible:grid"
           >
             <CloseCircleOutline className="h-4 w-4 text-danger-primary" />
           </button>
