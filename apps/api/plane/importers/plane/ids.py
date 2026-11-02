@@ -94,6 +94,7 @@ def plan_users(rows, wanted_ids, rules=None):
     plan = UserPlan()
 
     claimed = set()
+
     def order(row):
         # An explicit --user-map entry claims its account first, then exact addresses.
         return (not matcher.rules.overridden(_account(row)), row.get("email") not in exact)
