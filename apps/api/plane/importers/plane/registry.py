@@ -131,9 +131,9 @@ ENTITIES = (
     Entity(m.WorkspaceUserPreference),
     Entity(m.WorkspaceUserLink),
     Entity(m.IssueType, keep=_note_default_type, convert={"logo_props": material_icon}),
-    Entity(m.Label),
     # Projects
     Entity(m.Project),
+    Entity(m.Label),
     Entity(m.ProjectIdentifier, after=_project_identifiers),
     Entity(m.ProjectMember),
     Entity(m.ProjectMemberInvite),
