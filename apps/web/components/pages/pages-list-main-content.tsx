@@ -79,72 +79,34 @@ export const PagesListMainContent = observer(function PagesListMainContent(props
 
   if (query.isLoading) return <PageLoader />;
   if (query.error) return <LoadErrorState onRetry={query.retry} />;
-  // if no pages exist in the active page type
-  if (!isAnyPageAvailable || pageIds?.length === 0) {
-    if (!isAnyPageAvailable) {
-      return (
-        <EmptyStateDetailed
-          assetKey="page"
-          title={t("project_empty_state.pages.title")}
-          description={t("project_empty_state.pages.description")}
-          actions={[
-            {
-              label: t("project_empty_state.pages.cta_primary"),
-              onClick: () => {
-                handleCreatePage();
-              },
-              variant: "primary",
-              disabled: !canPerformEmptyStateActions || isCreatingPage,
+  const isTabEmpty = pageIds?.length === 0;
+  // no pages at all, or none in the public or private tab
+  if (!isAnyPageAvailable || (isTabEmpty && pageType !== "archived"))
+    return (
+      <EmptyStateDetailed
+        assetKey="page"
+        title={t("project_empty_state.pages.title")}
+        description={t("project_empty_state.pages.description")}
+        actions={[
+          {
+            label: t("project_empty_state.pages.cta_primary"),
+            onClick: () => {
+              handleCreatePage();
             },
-          ]}
-        />
-      );
-    }
-    if (pageType === "public")
-      return (
-        <EmptyStateDetailed
-          assetKey="page"
-          title={t("project_empty_state.pages.title")}
-          description={t("project_empty_state.pages.description")}
-          actions={[
-            {
-              label: t("project_empty_state.pages.cta_primary"),
-              onClick: () => {
-                handleCreatePage();
-              },
-              variant: "primary",
-              disabled: !canPerformEmptyStateActions || isCreatingPage,
-            },
-          ]}
-        />
-      );
-    if (pageType === "private")
-      return (
-        <EmptyStateDetailed
-          assetKey="page"
-          title={t("project_empty_state.pages.title")}
-          description={t("project_empty_state.pages.description")}
-          actions={[
-            {
-              label: t("project_empty_state.pages.cta_primary"),
-              onClick: () => {
-                handleCreatePage();
-              },
-              variant: "primary",
-              disabled: !canPerformEmptyStateActions || isCreatingPage,
-            },
-          ]}
-        />
-      );
-    if (pageType === "archived")
-      return (
-        <EmptyStateDetailed
-          assetKey="page"
-          title={t("project_empty_state.archive_pages.title")}
-          description={t("project_empty_state.archive_pages.description")}
-        />
-      );
-  }
+            variant: "primary",
+            disabled: !canPerformEmptyStateActions || isCreatingPage,
+          },
+        ]}
+      />
+    );
+  if (isTabEmpty)
+    return (
+      <EmptyStateDetailed
+        assetKey="page"
+        title={t("project_empty_state.archive_pages.title")}
+        description={t("project_empty_state.archive_pages.description")}
+      />
+    );
   // if no pages match the filter criteria
   if (filteredPageIds?.length === 0)
     return (

@@ -91,11 +91,12 @@ export class StateStore implements IStateStore {
   /**
    * Returns the stateMap belongs to a specific workspace
    */
-  get workspaceStates() {
-    return sortStates(Object.values(this.stateMap));
+  get workspaceStates(): IState[] {
+    // sortStates answers an empty list with undefined
+    return sortStates(Object.values(this.stateMap)) ?? [];
   }
 
-  get projectStates() {
+  get projectStates(): IState[] {
     return this.getProjectStates(this.router.projectId);
   }
 
@@ -133,15 +134,10 @@ export class StateStore implements IStateStore {
     return this.intakeStateMap[intakeStateId] ?? undefined;
   });
 
-  /**
-   * Returns the stateMap belongs to a project by projectId
-   * @param projectId
-   * @returns IState[]
-   */
   /** States of a project. Whether the list is complete is the query's concern, see `useProjectStates`. */
-  getProjectStates = computedFn((projectId: string | null | undefined) => {
+  getProjectStates = computedFn((projectId: string | null | undefined): IState[] => {
     if (!projectId) return [];
-    return sortStates(Object.values(this.stateMap).filter((state) => state.project_id === projectId));
+    return sortStates(Object.values(this.stateMap).filter((state) => state.project_id === projectId)) ?? [];
   });
 
   getProjectIntakeState = computedFn((projectId: string | null | undefined) => {

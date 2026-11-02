@@ -36,6 +36,23 @@ type Props = {
   showQuickActions: boolean;
 };
 
+const ModuleLead = observer(function ModuleLead({ leadId }: { leadId: string | null }) {
+  const { getUserDetails } = useMember();
+  const lead = leadId ? getUserDetails(leadId) : undefined;
+
+  if (!lead)
+    return (
+      <Tooltip label="No lead">
+        <UserAltOutline className="h-4 w-4 text-tertiary" />
+      </Tooltip>
+    );
+  return (
+    <span className="cursor-default">
+      <ButtonAvatars showTooltip={false} userIds={lead.id} />
+    </span>
+  );
+});
+
 export const ModuleListItemAction = observer(function ModuleListItemAction(props: Props) {
   const { moduleId, moduleDetails, parentRef, showQuickActions } = props;
   // router
@@ -43,7 +60,6 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
   //   store hooks
   const { allowPermissions } = useUserPermissions();
   const { addModuleToFavorites, removeModuleFromFavorites, updateModuleDetails } = useModule();
-  const { getUserDetails } = useMember();
   const { data: userProfile } = useUserProfile();
 
   const { t } = useTranslation();
@@ -57,7 +73,7 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
     EUserPermissionsLevel.PROJECT
   );
-  const isDisabled = !isEditingAllowed || !!moduleDetails?.archived_at;
+  const isDisabled = !isEditingAllowed || !!moduleDetails.archived_at;
   const renderIcon = Boolean(moduleDetails.start_date) || Boolean(moduleDetails.target_date);
 
   // handlers
@@ -130,8 +146,6 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
       });
   };
 
-  const moduleLeadDetails = moduleDetails.lead_id ? getUserDetails(moduleDetails.lead_id) : undefined;
-
   return (
     <>
       <DateRangeSelect
@@ -164,15 +178,7 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
         />
       )}
 
-      {moduleLeadDetails ? (
-        <span className="cursor-default">
-          <ButtonAvatars showTooltip={false} userIds={moduleLeadDetails?.id} />
-        </span>
-      ) : (
-        <Tooltip label="No lead">
-          <UserAltOutline className="h-4 w-4 text-tertiary" />
-        </Tooltip>
-      )}
+      <ModuleLead leadId={moduleDetails.lead_id} />
 
       {isEditingAllowed && !moduleDetails.archived_at && (
         <FavoriteStar
