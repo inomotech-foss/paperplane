@@ -62,6 +62,13 @@ export class WorkspaceStore implements IWorkspaceStore {
     this.instanceWorkspaceService = new InstanceWorkspaceService();
   }
 
+  /** An action's scope ends at its first await, so a write after one needs its own. */
+  private markLoaded = () => {
+    runInAction(() => {
+      this.loader = "loaded";
+    });
+  };
+
   // computed
   get workspaceIds() {
     return Object.keys(this.workspaces);
@@ -108,7 +115,7 @@ export class WorkspaceStore implements IWorkspaceStore {
       console.error("Error fetching workspaces", error);
       throw error;
     } finally {
-      this.loader = "loaded";
+      this.markLoaded();
     }
   };
 
@@ -133,7 +140,7 @@ export class WorkspaceStore implements IWorkspaceStore {
       console.error("Error fetching next workspaces", error);
       throw error;
     } finally {
-      this.loader = "loaded";
+      this.markLoaded();
     }
   };
 
@@ -155,7 +162,7 @@ export class WorkspaceStore implements IWorkspaceStore {
       console.error("Error creating workspace", error);
       throw error;
     } finally {
-      this.loader = "loaded";
+      this.markLoaded();
     }
   };
 

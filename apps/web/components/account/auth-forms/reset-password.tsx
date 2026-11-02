@@ -118,7 +118,7 @@ export const ResetPasswordForm = observer(function ResetPasswordForm() {
         method="POST"
         action={`${API_BASE_URL}/auth/reset-password/${uidb64?.toString()}/${token?.toString()}/`}
       >
-        <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
+        <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken ?? ""} />
         <div className="space-y-1">
           <label className="text-13 font-medium text-tertiary" htmlFor="email">
             {t("auth.common.email.label")}

@@ -82,7 +82,7 @@ export const AdminSidebarDropdown = observer(function AdminSidebarDropdown() {
         action={`${API_BASE_URL}/api/instances/admins/sign-out/`}
         onSubmit={handleSignOut}
       >
-        <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
+        <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken ?? ""} />
       </form>
       <div className="h-full w-full truncate">
         <div

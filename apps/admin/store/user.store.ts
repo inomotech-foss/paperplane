@@ -80,19 +80,14 @@ export class UserStore implements IUserStore {
       }
       return currentUser;
     } catch (error) {
-      this.isLoading = false;
-      this.isUserLoggedIn = false;
       const message = isApiError(error) ? (error.detail ?? error.error ?? "") : "";
-      if (isApiError(error) && error.status === 403)
-        this.userStatus = {
-          status: EUserStatus.AUTHENTICATION_NOT_DONE,
-          message,
-        };
-      else
-        this.userStatus = {
-          status: EUserStatus.ERROR,
-          message,
-        };
+      const status =
+        isApiError(error) && error.status === 403 ? EUserStatus.AUTHENTICATION_NOT_DONE : EUserStatus.ERROR;
+      runInAction(() => {
+        this.isLoading = false;
+        this.isUserLoggedIn = false;
+        this.userStatus = { status, message };
+      });
       throw error;
     }
   };
