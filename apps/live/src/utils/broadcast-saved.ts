@@ -21,7 +21,7 @@ export const broadcastSaved = (
       action: "property_updated",
       page_id: pageId,
       descendants_ids: [],
-      data: { updated_by: context.userId, updated_at: new Date().toISOString(), user_id: context.userId },
+      data: { updated_by: context.userId, updated_at: new Date().toISOString() },
       workspace_slug: context.workspaceSlug || "",
       project_id: context.projectId || undefined,
       user_id: context.userId,

@@ -40,6 +40,7 @@ import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
 // plane web imports
 import type { TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
 import { useRealtimePageEvents } from "@/hooks/use-realtime-page-events";
+import { useRealtimeServerEvents } from "@/hooks/use-realtime-server-events";
 import type { TExtendedEditorExtensionsConfig } from "@/hooks/pages";
 import type { EPageStoreType } from "@/hooks/store";
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
@@ -247,6 +248,7 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
     getUserDetails,
     handlers,
   });
+  useRealtimeServerEvents(editorRef, updatePageProperties);
 
   // Set syncing status when page changes and reset collaboration state
   useEffect(() => {

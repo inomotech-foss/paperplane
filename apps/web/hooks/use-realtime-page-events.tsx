@@ -134,7 +134,7 @@ export const useRealtimePageEvents = ({
           pageIds.forEach((pageId) => {
             const pageInstance = getPageById(pageId);
             const { name: updatedName, ...rest } = data;
-            if (updatedName != null) pageInstance?.updateTitle(updatedName);
+            if (updatedName != null) pageInstance?.applyRemoteName(updatedName);
             pageInstance?.mutateProperties(rest);
           });
         },

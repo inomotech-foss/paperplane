@@ -42,6 +42,7 @@ export type TBasePage = TPage & {
   removePageFromFavorites: () => Promise<void>;
   duplicate: () => Promise<TPage | undefined>;
   mutateProperties: (data: Partial<TPage>, shouldUpdateName?: boolean) => void;
+  applyRemoteName: (name: string) => void;
   setSyncingStatus: (status: "syncing" | "synced" | "error") => void;
   // sub-store
   editor: PageEditorInstance;
@@ -105,6 +106,8 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
   updated_at: string | undefined;
   // helpers
   oldName: string = "";
+  // a name another client already saved, which this one must not save again
+  private remoteName: string | undefined = undefined;
   // services
   services: TBasePageServices;
   // reactions
@@ -190,6 +193,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       removePageFromFavorites: action,
       duplicate: action,
       mutateProperties: action,
+      applyRemoteName: action,
     });
 
     // init
@@ -200,6 +204,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     const titleDisposer = reaction(
       () => this.name,
       (name) => {
+        if (name === this.remoteName) return;
         this.isSubmitting = "submitting";
         this.services
           .update({
@@ -544,6 +549,12 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       if (key === "name" && !shouldUpdateName) return;
       set(this, key, value);
     });
+  };
+
+  applyRemoteName = (name: string) => {
+    this.remoteName = name;
+    this.oldName = name;
+    this.name = name;
   };
 
   setSyncingStatus = (status: "syncing" | "synced" | "error") => {
