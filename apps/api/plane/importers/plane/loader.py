@@ -11,6 +11,7 @@ from .entities import Context, Entity, load, resolve_pending
 from .ids import IdMap, plan_users
 from .registry import ENTITIES, IMPORTED
 from .report import ImportReport
+from .version import source_version
 
 
 class ImportRefused(Exception):
@@ -48,7 +49,7 @@ class PlaneImporter:
         self.allow_existing = allow_existing
 
     def run(self, dry_run=False):
-        report = ImportReport(dry_run=dry_run)
+        report = ImportReport(dry_run=dry_run, source=source_version(self.source))
         selected = self._preflight()
         ctx = Context(
             ids=IdMap(),

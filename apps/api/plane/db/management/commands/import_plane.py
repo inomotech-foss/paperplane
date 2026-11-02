@@ -40,6 +40,12 @@ class Command(BaseCommand):
         self._report(report)
 
     def _report(self, report):
+        source = report.source
+        if source.db_head is not None:
+            label = f" {source.label}" if source.label else ""
+            self.stdout.write(f"source       Plane {source.edition}{label} (db/{source.db_head:04d})")
+        for warning in source.warnings:
+            self.stdout.write(self.style.WARNING(f"version      {warning}"))
         for table, rows in report.written.items():
             self.stdout.write(f"{table:<34} {rows}")
         self.stdout.write(f"users        {report.matched_users} matched to existing accounts by email")

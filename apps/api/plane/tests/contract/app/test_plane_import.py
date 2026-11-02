@@ -214,6 +214,7 @@ def test_imports_a_drifted_plane_schema(plane_db):
     assert "sessions" in output and "shiny_new_feature" in output
     assert "script" not in issue.description_html
     assert "sanitized    issues: 1" in output
+    assert "cannot tell which Plane version" in output
 
 
 def test_refuses_then_reruns_with_allow_existing(plane_db):

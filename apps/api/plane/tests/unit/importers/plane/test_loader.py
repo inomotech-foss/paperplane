@@ -229,3 +229,12 @@ def test_login_tokens_are_not_copied():
     user = User.objects.get(pk=ada["id"])
     assert user.password == "pbkdf2_sha256$hash"
     assert user.token != "old-session-token"
+
+
+@pytest.mark.django_db
+def test_report_carries_source_version():
+    tables, _ = plane()
+    tables["django_migrations"] = [{"app": "db", "name": "0190_future"}, {"app": "ee", "name": "0001_initial"}]
+    report = run(tables)
+    assert report.source.edition == "Commercial"
+    assert "newer" in report.source.warnings[0]
