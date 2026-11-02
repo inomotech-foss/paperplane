@@ -39,22 +39,39 @@ const isAffected = (connection: Connection, event: TAccessEvent): boolean => {
   return true;
 };
 
+/** A project-wide event would otherwise send one API request per open connection at once. */
+const MAX_CONCURRENT_CHECKS = 10;
+
+const recheckAll = async (connections: Connection[], limit: number): Promise<void> => {
+  const pending = connections.values();
+  const worker = async () => {
+    for (const connection of pending) {
+      await recheckConnectionAccess(connection).catch((error: unknown) => {
+        logger.error("Access event re-check failed", error);
+      });
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, connections.length) }, worker));
+};
+
 /**
  * Re-checks the open connections that match every id in the event. The event only selects connections, the API
  * decides their access.
  */
-export const recheckAffectedConnections = async (documents: Map<string, Document>, message: string): Promise<void> => {
+export const recheckAffectedConnections = async (
+  documents: Map<string, Document>,
+  message: string,
+  limit = MAX_CONCURRENT_CHECKS
+): Promise<void> => {
   const event = parseEvent(message);
   if (!event) {
     logger.warn(`Ignoring a malformed access event: ${message.slice(0, 200)}`);
     return;
   }
-  const checks: Promise<boolean>[] = [];
+  const affected: Connection[] = [];
   for (const document of documents.values()) {
     if (event.page !== undefined && document.name.toLowerCase() !== event.page) continue;
-    for (const connection of document.getConnections()) {
-      if (isAffected(connection, event)) checks.push(recheckConnectionAccess(connection));
-    }
+    affected.push(...document.getConnections().filter((connection) => isAffected(connection, event)));
   }
-  await Promise.allSettled(checks);
+  await recheckAll(affected, limit);
 };

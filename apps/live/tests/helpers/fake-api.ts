@@ -23,6 +23,8 @@ export type FakeApi = {
   accessUsers: string[];
   /** Delays every access response, with the access read when the request arrives. */
   delayMs: number;
+  /** The most access requests that were open at the same time. */
+  maxConcurrentAccess: number;
   close: () => Promise<void>;
 };
 
@@ -30,6 +32,7 @@ const LIVE_ACCESS = /^\/api\/workspaces\/([^/]+)\/projects\/([^/]+)\/pages\/([^/
 
 /** Answers `users/me` and the page live-access endpoint the way the API does for each cookie. */
 export const startFakeApi = async (): Promise<FakeApi> => {
+  let openAccess = 0;
   const server: Server = createServer((req, res) => {
     const user = api.users.get(req.headers.cookie ?? "");
     const reply = (status: number, body: unknown) => {
@@ -46,6 +49,9 @@ export const startFakeApi = async (): Promise<FakeApi> => {
     api.accessUsers.push(user.id);
     const [, slug, project, page] = match;
     const access = slug === WORKSPACE && project === PROJECT && page === PAGE ? user.access : 403;
+    openAccess++;
+    api.maxConcurrentAccess = Math.max(api.maxConcurrentAccess, openAccess);
+    res.on("close", () => openAccess--);
     setTimeout(() => {
       if (access === "drop") return req.socket.destroy();
       if (access === "malformed") return reply(200, { access: "admin" });
@@ -62,6 +68,7 @@ export const startFakeApi = async (): Promise<FakeApi> => {
     accessRequests: [],
     accessUsers: [],
     delayMs: 0,
+    maxConcurrentAccess: 0,
     close: () => new Promise<void>((resolve) => server.close(() => resolve())),
   };
   return api;

@@ -14,6 +14,7 @@ from plane.db.models import (
     Project,
     ProjectUserProperty,
 )
+from plane.utils.live_access import notify_live_access_changed
 
 
 class Command(BaseCommand):
@@ -54,6 +55,7 @@ class Command(BaseCommand):
             if ProjectMember.objects.filter(project=project, member=user).exists():
                 # Update the project member
                 ProjectMember.objects.filter(project=project, member=user).update(is_active=True, role=role)
+                notify_live_access_changed(project=project.id, user=user.id)
             else:
                 # Create the project member
                 ProjectMember.objects.create(project=project, member=user, role=role)

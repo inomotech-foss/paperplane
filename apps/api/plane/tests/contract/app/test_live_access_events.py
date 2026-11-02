@@ -3,11 +3,14 @@
 
 import json
 import uuid
+from io import StringIO
 from unittest import mock
 
 import pytest
+from django.core.management import call_command
 from django.db import transaction
 from django.utils import timezone
+from rest_framework.test import APIClient
 
 from plane.db.models import Page, Project, ProjectMember, ProjectPage, User, WorkspaceMember
 from plane.utils import live_access
@@ -230,3 +233,47 @@ def test_guest_visibility_change_publishes_the_project(django_capture_on_commit_
         project.save()
 
     assert published() == [{"project": str(project.id)}]
+
+
+def test_project_deletion_publishes_the_project(django_capture_on_commit_callbacks, published, project):
+    with django_capture_on_commit_callbacks(execute=True):
+        project.deleted_at = timezone.now()
+        project.save()
+
+    assert published() == [{"project": str(project.id)}]
+
+
+def test_deleted_project_denies_live_access_before_the_cascade(workspace, project, member, page):
+    client = APIClient()
+    client.force_authenticate(user=member)
+    assert client.get(page_url(workspace, project, page, "live-access")).data == {"access": "edit"}
+
+    # Only the project row, as the membership and page link cascade runs later in a task.
+    Project.objects.filter(pk=project.pk).update(deleted_at=timezone.now())
+
+    assert client.get(page_url(workspace, project, page, "live-access")).status_code == 403
+
+
+def test_workspace_demotion_to_guest_publishes_the_user(
+    django_capture_on_commit_callbacks, published, session_client, workspace, member
+):
+    workspace_member = WorkspaceMember.objects.get(workspace=workspace, member=member)
+
+    with django_capture_on_commit_callbacks(execute=True):
+        response = session_client.patch(
+            f"/api/workspaces/{workspace.slug}/members/{workspace_member.id}/", {"role": GUEST}, format="json"
+        )
+
+    assert response.status_code == 200
+    assert ProjectMember.objects.get(member=member).role == GUEST
+    assert published() == [{"user": str(member.id)}]
+
+
+def test_member_command_role_change_publishes(django_capture_on_commit_callbacks, published, project, member):
+    with django_capture_on_commit_callbacks(execute=True):
+        call_command(
+            "create_project_member", project_id=str(project.id), user_email=member.email, role=GUEST, stdout=StringIO()
+        )
+
+    assert ProjectMember.objects.get(project=project, member=member).role == GUEST
+    assert published() == [{"project": str(project.id), "user": str(member.id)}]

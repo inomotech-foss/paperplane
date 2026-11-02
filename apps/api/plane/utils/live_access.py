@@ -27,7 +27,8 @@ def notify_live_access_changed(*, page=None, project=None, user=None):
 
 @cache
 def _redis():
-    return redis_instance()
+    # A hung Redis must not hold up the response that published the event.
+    return redis_instance(socket_timeout=2, socket_connect_timeout=2)
 
 
 def _publish(scope):

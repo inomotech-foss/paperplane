@@ -9,6 +9,7 @@ from plane.db.models import Project, ProjectMember, ProjectPage, User, Workspace
 from plane.importers.confluence.backup import ConfluenceBackup, space_keys
 from plane.importers.confluence.loader import ConfluenceLoader
 from plane.importers.users import UserMatcher, UserRules, add_user_arguments
+from plane.utils.live_access import notify_live_access_changed
 
 EXTERNAL_SOURCE = ConfluenceLoader.EXTERNAL_SOURCE
 ADMIN_ROLE = 20
@@ -141,6 +142,8 @@ class Command(BaseCommand):
         project_ids = [project_id for project_id, _ in rows]
         ProjectPage.objects.filter(project_id__in=project_ids).delete()
         Project.objects.filter(id__in=project_ids).delete()
+        for project_id in project_ids:
+            notify_live_access_changed(project=project_id)
 
     def _make_secret(self, scope):
         queryset = scope.exclude(network=0)

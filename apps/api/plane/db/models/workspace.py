@@ -200,7 +200,7 @@ class WorkspaceBaseModel(BaseModel):
 
 
 class WorkspaceMember(ChangeTrackerMixin, BaseModel):
-    TRACKED_FIELDS = ["is_active", "deleted_at"]
+    TRACKED_FIELDS = ["role", "is_active", "deleted_at"]
 
     workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="workspace_member")
     member = models.ForeignKey(

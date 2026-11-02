@@ -313,6 +313,19 @@ describe("page access on the collaboration server", () => {
       expect(connections()).toBe(2);
     });
 
+    it("limits how many connections it re-checks at once", async () => {
+      const editors = [connect("editor1", "edit"), connect("editor2", "edit"), connect("editor3", "edit")];
+      await synced(...editors);
+      resetRequests();
+      api.maxConcurrentAccess = 0;
+      api.delayMs = 100;
+
+      await recheckAffectedConnections(server.documents, JSON.stringify({ project: PROJECT }), 2);
+
+      expect(api.accessRequests).toHaveLength(3);
+      expect(api.maxConcurrentAccess).toBe(2);
+    });
+
     it.each([{ page: OTHER }, { project: OTHER }, { user: "someone-else" }, { project: PROJECT, user: "nobody" }])(
       "leaves connections outside the scope %j alone",
       async (event) => {

@@ -86,6 +86,7 @@ class ProjectPagePermission(BasePermission):
                 workspace__slug=slug,
                 is_active=True,
                 project_id=project_id,
+                project__deleted_at__isnull=True,
             )
             .values_list("role", flat=True)
             .first()
