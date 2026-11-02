@@ -131,6 +131,38 @@ describe("usePageFallback", () => {
     expect(editor.setProviderDocument).toHaveBeenCalledWith(new Uint8Array(4));
   });
 
+  it("merges the server state before saving after a sync timeout", async () => {
+    const order: string[] = [];
+    const fetchPageDescription = vi.fn(async () => new ArrayBuffer(4));
+    const updatePageDescription = vi.fn(async (_data: TDocumentPayload) => {
+      order.push("save");
+    });
+    const { editor, props, rerender } = setup({ fetchPageDescription, updatePageDescription });
+    editor.setProviderDocument.mockImplementation(() => {
+      order.push("merge");
+    });
+    rerender(props(connected));
+    await flush();
+    order.length = 0;
+    updatePageDescription.mockClear();
+
+    rerender(
+      props({
+        stage: { kind: "disconnected", error: { type: "sync-timeout", message: "slow" } },
+        isServerSynced: false,
+        isServerDisconnected: true,
+      })
+    );
+    await flush();
+
+    expect(editor.setProviderDocument).toHaveBeenLastCalledWith(new Uint8Array(4));
+    expect(order).toEqual(["merge", "save"]);
+
+    rerender(props(connected));
+    await act(() => vi.advanceTimersByTimeAsync(AUTO_SAVE_MS * 2));
+    expect(updatePageDescription).toHaveBeenCalledTimes(1);
+  });
+
   it("never overlaps runs", async () => {
     const fetchPageDescription = vi.fn(() => new Promise<ArrayBuffer>(() => {}));
     setup({ fetchPageDescription });

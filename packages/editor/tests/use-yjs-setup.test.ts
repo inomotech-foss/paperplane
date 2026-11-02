@@ -12,9 +12,13 @@ import { useYjsSetup } from "@/hooks/use-yjs-setup";
 import type { CollaborationState } from "@/types/collaboration";
 
 type TCloseHandler = (event: { event?: { code?: number } }) => void;
-type TConfig = { onStateless?: (data: { payload: string }) => void };
+type TConfig = {
+  onConnect?: () => void;
+  onStateless?: (data: { payload: string }) => void;
+  onSynced?: () => void;
+};
 
-const socket = { readyState: WebSocket.OPEN, close: vi.fn() };
+const socket: { readyState: number; close: () => void } = { readyState: WebSocket.OPEN, close: vi.fn() };
 const websocketProvider = {
   shouldConnect: true,
   webSocket: socket,
@@ -58,6 +62,11 @@ const Harness = () => {
 
 const lastStage = () => states[states.length - 1]?.stage;
 
+const dropSocket = () => {
+  socket.readyState = WebSocket.CLOSED;
+  closeHandler?.({ event: { code: 1006 } });
+};
+
 describe("useYjsSetup server close", () => {
   let root: ReturnType<typeof createRoot>;
 
@@ -65,6 +74,7 @@ describe("useYjsSetup server close", () => {
     Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
     states = [];
     websocketProvider.shouldConnect = true;
+    socket.readyState = WebSocket.OPEN;
     vi.clearAllMocks();
     root = createRoot(document.createElement("div"));
     await act(async () => root.render(createElement(Harness)));
@@ -110,5 +120,81 @@ describe("useYjsSetup server close", () => {
 
     expect(socket.close).toHaveBeenCalled();
     expect(lastStage()?.kind).not.toBe("disconnected");
+  });
+});
+
+describe("useYjsSetup sync watchdog", () => {
+  let root: ReturnType<typeof createRoot>;
+
+  beforeEach(async () => {
+    vi.useFakeTimers();
+    Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+    states = [];
+    websocketProvider.shouldConnect = true;
+    socket.readyState = WebSocket.OPEN;
+    vi.clearAllMocks();
+    root = createRoot(document.createElement("div"));
+    await act(async () => root.render(createElement(Harness)));
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    vi.useRealTimers();
+  });
+
+  it("reports a sync timeout and keeps reconnecting until a sync succeeds", () => {
+    act(() => config.onConnect?.());
+    expect(lastStage()).toEqual({ kind: "awaiting-sync" });
+
+    act(() => vi.advanceTimersByTime(14_999));
+    expect(lastStage()).toEqual({ kind: "awaiting-sync" });
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "sync-timeout", message: "Not synced within 15000 ms" },
+    });
+    expect(socket.close).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      for (let i = 0; i < 5; i++) {
+        dropSocket();
+        config.onConnect?.();
+      }
+    });
+    expect(lastStage()?.kind).toBe("disconnected");
+    expect(websocketProvider.disconnect).not.toHaveBeenCalled();
+
+    act(() => config.onSynced?.());
+    expect(lastStage()).toEqual({ kind: "synced" });
+
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(lastStage()).toEqual({ kind: "synced" });
+  });
+
+  it("does not time out once synced", () => {
+    act(() => {
+      config.onConnect?.();
+      config.onSynced?.();
+    });
+    act(() => vi.advanceTimersByTime(60_000));
+
+    expect(lastStage()).toEqual({ kind: "synced" });
+    expect(socket.close).not.toHaveBeenCalled();
+  });
+
+  it("gives up after repeated connections that never sync", () => {
+    act(() => {
+      for (let i = 0; i < 3; i++) {
+        config.onConnect?.();
+        dropSocket();
+      }
+    });
+
+    expect(lastStage()).toEqual({
+      kind: "disconnected",
+      error: { type: "max-retries", message: "Failed to connect after 3 attempts" },
+    });
+    expect(websocketProvider.disconnect).toHaveBeenCalled();
   });
 });
