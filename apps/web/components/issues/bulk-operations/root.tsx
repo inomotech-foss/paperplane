@@ -239,6 +239,7 @@ const IssueBulkOperationsBar = observer(function IssueBulkOperationsBar(props: T
                 <Button
                   variant="secondary"
                   size="sm"
+                  stretch="auto"
                   label={t("common.archive")}
                   icon={<ArchiveOutline />}
                   disabled={!isArchivable || isBusy}
@@ -250,6 +251,7 @@ const IssueBulkOperationsBar = observer(function IssueBulkOperationsBar(props: T
           <Button
             variant="danger-outline"
             size="sm"
+            stretch="auto"
             label={t("common.delete")}
             icon={<DeleteOutline />}
             disabled={isBusy}
