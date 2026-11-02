@@ -99,12 +99,7 @@ type TArgs = {
   name?: string;
 };
 
-/**
- * Sanitizes a string by escaping HTML entities to prevent XSS attacks
- * @param str - The string to sanitize
- * @returns The sanitized string with escaped HTML entities
- */
-function sanitizeHTML(str: string): string {
+function escapeHTML(str: string): string {
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -118,8 +113,7 @@ export function convertHTMLToMarkdown(args: TArgs): string {
 
   let updatedDescriptionHtml = description_html;
   if (name) {
-    const sanitizedName = sanitizeHTML(name);
-    updatedDescriptionHtml = `<h1>${sanitizedName}</h1>\n\n${description_html}`;
+    updatedDescriptionHtml = `<h1>${escapeHTML(name)}</h1>\n\n${description_html}`;
   }
 
   const result = unified()
