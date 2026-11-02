@@ -46,18 +46,24 @@ export type TNotificationContentMap = {
 };
 
 const relationContent =
-  (relation: string): TNotificationContentHandler =>
+  (added: string, removed: string): TNotificationContentHandler =>
   ({ verb, newValue, oldValue }) =>
     verb === "deleted"
-      ? { action: `marked that this work item is no longer ${relation}`, value: oldValue, showConnector: false }
-      : { action: `marked that this work item is ${relation}`, value: newValue, showConnector: false };
+      ? { action: `marked that this work item ${removed}`, value: oldValue, showConnector: false }
+      : { action: `marked that this work item ${added}`, value: newValue, showConnector: false };
 
 // Base notification content map for core fields
 export const BASE_NOTIFICATION_CONTENT_MAP: TNotificationContentMap = {
-  relates_to: relationContent("related to"),
-  blocking: relationContent("blocking"),
-  blocked_by: relationContent("blocked by"),
-  duplicate: relationContent("a duplicate of"),
+  relates_to: relationContent("is related to", "is no longer related to"),
+  blocking: relationContent("is blocking", "is no longer blocking"),
+  blocked_by: relationContent("is blocked by", "is no longer blocked by"),
+  duplicate: relationContent("is a duplicate of", "is no longer a duplicate of"),
+  start_before: relationContent("starts before", "no longer starts before"),
+  start_after: relationContent("starts after", "no longer starts after"),
+  finish_before: relationContent("finishes before", "no longer finishes before"),
+  finish_after: relationContent("finishes after", "no longer finishes after"),
+  implemented_by: relationContent("is implemented by", "is no longer implemented by"),
+  implements: relationContent("implements", "no longer implements"),
   assignees: ({ newValue, oldValue }) => ({
     action: newValue !== "" ? "added assignee" : "removed assignee",
     value: newValue !== "" ? newValue : oldValue,
@@ -83,27 +89,30 @@ export const BASE_NOTIFICATION_CONTENT_MAP: TNotificationContentMap = {
     value: newValue !== "" ? newValue : oldValue,
     showConnector: false,
   }),
-  comment: ({ newValue }, renderCommentBox?: boolean) => ({
-    action: "commented",
-    value: renderCommentBox ? null : sanitizeCommentForNotification(newValue),
-    showConnector: false,
-  }),
+  comment: ({ newValue, verb }, renderCommentBox?: boolean) =>
+    verb === "deleted"
+      ? { action: "deleted a comment", value: null, showConnector: false }
+      : {
+          action: verb === "updated" ? "edited a comment" : "commented",
+          value: renderCommentBox ? null : sanitizeCommentForNotification(newValue),
+          showConnector: false,
+        },
   archived_at: ({ newValue }) => ({
     action: newValue === "restore" ? "restored the work item" : "archived the work item",
     value: null,
     showConnector: false,
   }),
   None: () => ({
-    action: null,
-    value: "the work item and assigned it to you.",
+    action: "created",
+    value: "the work item and assigned it to you",
+    showConnector: false,
+  }),
+  attachment: ({ verb }) => ({
+    action: verb === "deleted" ? "removed an attachment from the work item" : "added an attachment to the work item",
+    value: null,
     showConnector: false,
   }),
   // Fields below only define value - action falls through to default handler
-  attachment: () => ({
-    action: null,
-    value: "the work item",
-    showConnector: true,
-  }),
   description: ({ newValue }) => ({
     value: stripAndTruncateHTML(newValue || "", 55),
     showConnector: true,

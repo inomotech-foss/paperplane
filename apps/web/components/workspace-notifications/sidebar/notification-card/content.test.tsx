@@ -69,4 +69,23 @@ describe("NotificationContent", () => {
   it("keeps the connector before a value", () => {
     expect(text(notification("priority", "updated", "medium"))).toBe("Member updated priority to medium.");
   });
+
+  it("covers every relation type the backend sends", () => {
+    expect(text(notification("start_before", "updated", "DEMO-6"))).toBe(
+      "Member marked that this work item starts before DEMO-6."
+    );
+    expect(text(notification("implements", "deleted", "", "DEMO-7"))).toBe(
+      "Member marked that this work item no longer implements DEMO-7."
+    );
+  });
+
+  it("describes attachments and deleted comments", () => {
+    expect(text(notification("attachment", "created"))).toBe("Member added an attachment to the work item.");
+    expect(text(notification("attachment", "deleted"))).toBe("Member removed an attachment from the work item.");
+    expect(text(notification("comment", "deleted"))).toBe("Member deleted a comment.");
+  });
+
+  it("ends a new assigned work item with one period", () => {
+    expect(text(notification("None", "created"))).toBe("Member created the work item and assigned it to you.");
+  });
 });
