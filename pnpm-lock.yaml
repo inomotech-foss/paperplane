@@ -533,8 +533,8 @@ overrides:
   picomatch: 2.3.2
   yaml@1: 1.10.3
   yaml@2: 2.8.3
-  path-to-regexp: 0.1.13
-  router>path-to-regexp: ^8.4.2
+  path-to-regexp@0: 0.1.13
+  path-to-regexp@8: ^8.4.2
   defu: 6.1.5
   postcss: 8.5.25
   postcss-selector-parser: 7.1.6
@@ -7177,6 +7177,9 @@ packages:
   path-to-regexp@0.1.13:
     resolution: {integrity: sha512-A/AGNMFN3c8bOlvV9RreMdrv7jsmF9XIfDeCd87+I8RNg6s78BhJxMu69NEMHBSJFxKidViTEdruRwEk/WIKqA==}
 
+  path-to-regexp@3.3.0:
+    resolution: {integrity: sha512-qyCH421YQPS2WFDxDjftfc1ZR5WKQzVzqsp4n9M2kQhVOo/ByahFoUNJfl58kOcEGfQ//7weFTDhm+ss8Ecxgw==}
+
   path-to-regexp@8.4.2:
     resolution: {integrity: sha512-qRcuIdP69NPm4qbACK+aDogI5CBDMi1jKe0ry5rSQJz8JVLsC7jV8XpiJjGRLLol3N+R5ihGYcrPLTno6pAdBA==}
 
@@ -13590,6 +13593,8 @@ snapshots:
 
   path-to-regexp@0.1.13: {}
 
+  path-to-regexp@3.3.0: {}
+
   path-to-regexp@8.4.2: {}
 
   pathe@2.0.3: {}
@@ -14236,7 +14241,7 @@ snapshots:
       mime-types: 2.1.18
       minimatch: 3.1.4
       path-is-inside: 1.0.2
-      path-to-regexp: 0.1.13
+      path-to-regexp: 3.3.0
       range-parser: 1.2.0
 
   serve-static@1.16.2:
