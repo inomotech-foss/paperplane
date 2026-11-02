@@ -28,7 +28,7 @@ export const PageNavigationPaneInfoTabActorsInfo = observer(function PageNavigat
   const { getUserDetails } = useMember();
   // derived values
   const { owned_by, updated_by } = page;
-  // A page nobody has edited since it was created has no updated_by yet
+  // Pages created before updated_by was set on create can lack it
   const editorId = updated_by ?? page.created_by ?? owned_by;
   const editorInformation = editorId ? getUserDetails(editorId) : undefined;
   const creatorInformation = owned_by ? getUserDetails(owned_by) : undefined;
