@@ -114,7 +114,10 @@ class Counts:
 
 
 class Command(BaseCommand):
-    help = "Sanitize stored user HTML (dry run unless --apply is given)"
+    help = (
+        "Sanitize stored user HTML (dry run unless --apply is given). "
+        "Run it in a separate one-off pod or job, not inside a serving API pod."
+    )
 
     def add_arguments(self, parser):
         mode = parser.add_mutually_exclusive_group()
@@ -126,56 +129,79 @@ class Command(BaseCommand):
             choices=sorted(TARGETS),
             help="Model to sanitize, can be repeated (default: all)",
         )
-        parser.add_argument("--batch-size", type=int, default=500, help="Rows read and written per batch")
+        parser.add_argument("--batch-size", type=int, default=10, help="Rows fetched per query")
+        parser.add_argument("--max-rows", type=int, help="Stop each model after scanning this many rows")
+        parser.add_argument("--start-after", help="Resume after this id (needs a single --model)")
 
     def handle(self, *args, **options):
         batch_size = options["batch_size"]
         if batch_size < 1:
             raise CommandError("--batch-size must be at least 1")
+        max_rows = options["max_rows"]
+        if max_rows is not None and max_rows < 1:
+            raise CommandError("--max-rows must be at least 1")
+        names = options["model"] or list(TARGETS)
+        start_after = options["start_after"]
+        if start_after and len(names) != 1:
+            raise CommandError("--start-after needs exactly one --model")
 
         apply = options["apply"]
         totals = Counts()
-        for name in options["model"] or TARGETS:
-            totals.add(self._sanitize(name, TARGETS[name], apply, batch_size))
+        for name in names:
+            totals.add(self._sanitize(name, TARGETS[name], apply, batch_size, max_rows, start_after))
         self.stdout.write(totals.summary("done", apply))
 
-    def _sanitize(self, name, target, apply, batch_size):
+    def _sanitize(self, name, target, apply, batch_size, max_rows, start_after):
         counts = Counts()
-        pending = []
+        last_id = None
 
-        for row in target.rows().iterator(chunk_size=batch_size):
+        for row in _rows(target.rows(), batch_size, start_after):
             counts.scanned += 1
-            html = target.html_of(row)
-            if html:
-                is_valid, error, clean = validate_html_content(html)
-                if not is_valid:
-                    counts.failed += 1
-                    self.stderr.write(f"rejected {name} {row.id}: {error}")
-                elif clean != html:
-                    pending.append((row, clean))
-
-            if len(pending) >= batch_size:
-                self._flush(name, target, pending, apply, counts)
-                pending = []
-            if counts.scanned % batch_size == 0:
+            last_id = row.pk
+            self._sanitize_row(name, target, row, apply, counts)
+            del row
+            if counts.scanned % 500 == 0:
                 self.stdout.write(counts.summary(name, apply))
+            if counts.scanned == max_rows:
+                self.stdout.write(f"{name}: stopped at --max-rows, resume with --start-after {last_id}")
+                break
 
-        self._flush(name, target, pending, apply, counts)
         self.stdout.write(counts.summary(name, apply))
         return counts
 
-    def _flush(self, name, target, pending, apply, counts):
+    def _sanitize_row(self, name, target, row, apply, counts):
+        html = target.html_of(row)
+        if not html:
+            return
+        is_valid, error, clean = validate_html_content(html)
+        if not is_valid:
+            counts.failed += 1
+            self.stderr.write(f"rejected {name} {row.pk}: {error}")
+            return
+        if clean == html:
+            return
         if not apply:
-            for row, _clean in pending:
-                counts.changed += 1
-                self.stdout.write(f"would change {name} {row.id}")
+            counts.changed += 1
+            self.stdout.write(f"would change {name} {row.pk}")
             return
         with transaction.atomic():
-            results = [(row, target.write(row, clean)) for row, clean in pending]
-        for row, written in results:
-            if written:
-                counts.changed += 1
-                self.stdout.write(f"changed {name} {row.id}")
-            else:
-                counts.skipped += 1
-                self.stdout.write(f"skipped {name} {row.id}: changed during run")
+            written = target.write(row, clean)
+        if written:
+            counts.changed += 1
+            self.stdout.write(f"changed {name} {row.pk}")
+        else:
+            counts.skipped += 1
+            self.stdout.write(f"skipped {name} {row.pk}: changed during run")
+
+
+def _rows(queryset, batch_size, start_after):
+    """Yields rows by keyset pagination on id, holding at most one batch and dropping each row once yielded."""
+    last_id = start_after
+    while True:
+        batch = list((queryset.filter(id__gt=last_id) if last_id else queryset)[:batch_size])
+        if not batch:
+            return
+        last_id = batch[-1].pk
+        batch.reverse()
+        while batch:
+            yield batch.pop()

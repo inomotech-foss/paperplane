@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import gc
+import tracemalloc
 from io import StringIO
 from unittest import mock
 
@@ -117,18 +119,54 @@ class TestSanitizeStoredHtml:
         assert Page.all_objects.get(pk=rejected.pk).description_html == oversized
         assert Page.all_objects.get(pk=unsafe.pk).description_html == SAFE
 
-    def test_batches(self, workspace, create_user):
+    def test_batches_and_writes_each_row_in_its_own_transaction(self, workspace, create_user):
         pages = [_page(workspace, create_user, UNSAFE if i % 2 == 0 else SAFE) for i in range(5)]
 
         with mock.patch.object(command.transaction, "atomic", wraps=command.transaction.atomic) as atomic:
             out, _ = _run("--apply", "--batch-size", "2", "--model", "page")
 
-        assert atomic.call_count == 2
-        assert "page: scanned 2," in out
-        assert "page: scanned 4," in out
+        assert atomic.call_count == 3
         assert "page: scanned 5, changed 3, skipped (changed during run) 0, failed 0" in out
         for page in pages:
             assert Page.all_objects.get(pk=page.pk).description_html == SAFE
+
+    def test_max_rows_and_start_after_resume_a_run(self, workspace, create_user):
+        pages = sorted((_page(workspace, create_user, UNSAFE) for _ in range(3)), key=lambda page: page.pk)
+
+        out, _ = _run("--apply", "--model", "page", "--batch-size", "1", "--max-rows", "2")
+
+        assert f"resume with --start-after {pages[1].pk}" in out
+        assert Page.all_objects.get(pk=pages[2].pk).description_html == UNSAFE
+
+        out, _ = _run("--apply", "--model", "page", "--start-after", str(pages[1].pk))
+
+        assert "page: scanned 1, changed 1" in out
+        assert Page.all_objects.get(pk=pages[2].pk).description_html == SAFE
+
+    def test_start_after_needs_a_single_model(self):
+        with pytest.raises(CommandError, match="start-after"):
+            _run("--start-after", "00000000-0000-0000-0000-000000000000")
+
+    @pytest.mark.parametrize("mode", [(), ("--apply",)])
+    def test_memory_does_not_grow_with_the_number_of_rows(self, workspace, create_user, mode):
+        html = UNSAFE + "".join(f"<p>{i} {'x' * 2000}</p>" for i in range(100))
+
+        def peak_for(rows):
+            Page.all_objects.all().delete()
+            for _ in range(rows):
+                _page(workspace, create_user, html)
+            gc.collect()
+            tracemalloc.start()
+            try:
+                _run(*mode, "--model", "page", "--batch-size", "2")
+                return tracemalloc.get_traced_memory()[1]
+            finally:
+                tracemalloc.stop()
+
+        small, large = peak_for(4), peak_for(16)
+
+        assert large < small * 1.25
+        assert large < 40 * len(html)
 
     def test_model_limits_the_run(self, workspace, create_user, issue):
         page = _page(workspace, create_user, UNSAFE)
