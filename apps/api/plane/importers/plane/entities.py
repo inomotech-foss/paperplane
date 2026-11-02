@@ -18,7 +18,7 @@ from itertools import islice
 from django.db import models
 
 from plane.db.management.commands.sanitize_stored_html import TARGETS, HtmlField
-from plane.db.models import Workspace
+from plane.db.models import Module, Project, Sticky, Workspace
 from plane.utils.content_validator import validate_html_content
 from plane.utils.html_processor import strip_tags
 
@@ -30,8 +30,16 @@ OUTSIDE_SELECTION = "outside selection"
 
 _TEXT_FIELDS = (models.TextField, models.CharField, models.JSONField)
 
-# The user HTML that `sanitize_stored_html` cleans, by model.
+# The user HTML that `sanitize_stored_html` cleans, by model, plus the HTML
+# an import also brings in that the app never sanitized at rest.
 _HTML_FIELDS = {target.model: target for target in TARGETS.values() if isinstance(target, HtmlField)}
+_HTML_FIELDS.update(
+    {
+        Sticky: HtmlField(Sticky),
+        Project: HtmlField(Project, stripped=None),
+        Module: HtmlField(Module, stripped=None),
+    }
+)
 
 
 @dataclass
@@ -145,10 +153,6 @@ def _build(entity, row, ctx, rewrite):
             _drop(ctx, model, table, row, MISSING_PARENT)
             return None
 
-    if rewrite and "description_binary" in values and values.get("description_html") != row.get("description_html"):
-        # The live server rebuilds the binary from the HTML when it is empty.
-        values["description_binary"] = None
-
     obj = model(**values)
     for f, value in deferred:
         ctx.pending[(model, f)].append((obj.pk, value))
@@ -159,17 +163,19 @@ def _sanitize(entity, objs, ctx):
     """Clean imported HTML the way PaperPlane cleans what users save.
 
     Plane's sanitizer is not PaperPlane's, so a body it stored can still carry
-    markup PaperPlane would refuse. The editor's binary copy holds the same
-    content, so it is cleared whenever the HTML changes and the live server
-    rebuilds it from the clean HTML.
+    markup PaperPlane would refuse. The editor's binary copy is never taken
+    from the source, since it can hold what the HTML does not: it is cleared,
+    and the live server rebuilds it from the clean HTML.
     """
     target = _HTML_FIELDS.get(entity.model)
     if target is None:
         return
     has_binary = any(f.attname == "description_binary" for f in entity.model._meta.concrete_fields)
     for obj in objs:
+        if has_binary:
+            obj.description_binary = None
         html = getattr(obj, target.html)
-        if not html:
+        if not html or not isinstance(html, str):
             continue
         is_valid, _, clean = validate_html_content(html)
         if not is_valid:
@@ -178,9 +184,8 @@ def _sanitize(entity, objs, ctx):
         if clean == html:
             continue
         setattr(obj, target.html, clean)
-        setattr(obj, target.stripped, strip_tags(clean) if clean else target.empty_stripped)
-        if has_binary:
-            obj.description_binary = None
+        if target.stripped:
+            setattr(obj, target.stripped, strip_tags(clean) if clean else target.empty_stripped)
         if is_valid:
             ctx.report.sanitized[entity.table] += 1
 

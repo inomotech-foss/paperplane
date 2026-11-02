@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from plane.db.models import Issue, IssueActivity, IssueComment, IssueType, Project, State, User, Workspace
+from plane.db.models import Issue, IssueActivity, IssueComment, IssueType, Project, State, Sticky, User, Workspace
 from plane.importers.plane.entities import Context, Entity, load
 from plane.importers.plane.ids import IdMap
 from plane.importers.plane.report import ImportReport
@@ -282,11 +282,41 @@ def test_imported_html_is_sanitized(ctx, base):
 
 
 @pytest.mark.django_db
-def test_clean_html_and_its_binary_are_kept(ctx, base):
+def test_imported_binary_is_always_cleared(ctx, base):
+    """A source binary may hold what its HTML does not; only the clean HTML is trusted."""
     row = issue_row(base, description_html="<p>hi</p>", description_binary=b"\x01")
     load_issues(ctx, row)
-    assert bytes(Issue.all_objects.get(pk=row["id"]).description_binary) == b"\x01"
+    issue = Issue.all_objects.get(pk=row["id"])
+    assert (issue.description_html, issue.description_binary) == ("<p>hi</p>", None)
     assert "issues" not in ctx.report.sanitized
+
+
+@pytest.mark.django_db
+def test_sticky_html_is_sanitized(ctx, base):
+    sticky = stamped(
+        workspace_id=base["workspace"]["id"],
+        owner_id=base["user"]["id"],
+        description_html="<p>note</p><script>x</script>",
+        description_binary=b"\x01",
+    )
+    load(Entity(Sticky), FakeSource({"stickies": [sticky]}), ctx)
+    saved = Sticky.all_objects.get(pk=sticky["id"])
+    assert "script" not in saved.description_html and saved.description_binary is None
+
+
+@pytest.mark.django_db
+def test_project_description_html_is_sanitized(ctx, base):
+    project = Project.objects.get(pk=base["project"]["id"])
+    row = {
+        "id": project.id,
+        "name": "P",
+        "identifier": "ABC",
+        "workspace_id": base["workspace"]["id"],
+        "description_html": '<p onclick="x()">about</p>',
+    }
+    ctx.allow_existing = True
+    load(Entity(Project), FakeSource({"projects": [row]}), ctx)
+    assert "onclick" not in Project.objects.get(pk=project.id).description_html
 
 
 @pytest.mark.django_db
