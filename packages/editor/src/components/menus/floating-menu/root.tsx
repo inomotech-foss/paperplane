@@ -46,7 +46,7 @@ export function FloatingMenuRoot(props: Props) {
           {/* Backdrop */}
           <FloatingOverlay
             style={{
-              zIndex: 99,
+              zIndex: "calc(var(--z-index-floating) - 1)",
             }}
             lockScroll
           />
@@ -55,7 +55,7 @@ export function FloatingMenuRoot(props: Props) {
             {...getFloatingProps()}
             style={{
               ...floatingStyles,
-              zIndex: 100,
+              zIndex: "var(--z-index-floating)",
             }}
           >
             {children}

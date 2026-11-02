@@ -220,7 +220,7 @@ export function BlockMenu(props: Props) {
           ...floatingStyles,
           animationFillMode: "forwards",
           transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)", // Expo ease out
-          zIndex: 100,
+          zIndex: "var(--z-index-floating)",
         }}
         className={cn(
           "max-h-60 min-w-[7rem] overflow-y-scroll rounded-lg border border-subtle bg-surface-1 p-1.5 shadow-raised-200",

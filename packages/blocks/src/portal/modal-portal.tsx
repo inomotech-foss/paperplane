@@ -8,7 +8,7 @@ import { useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 import { useDialogDismissal } from "@plane/hooks";
 import { cn } from "@plane/utils";
-import { PORTAL_WIDTH_CLASSES, PORTAL_POSITION_CLASSES, DEFAULT_PORTAL_ID, MODAL_Z_INDEX } from "./constants";
+import { PORTAL_WIDTH_CLASSES, PORTAL_POSITION_CLASSES, DEFAULT_PORTAL_ID } from "./constants";
 import type { PortalWidth, PortalPosition } from "./constants";
 import { PortalWrapper } from "./portal-wrapper";
 
@@ -84,11 +84,7 @@ export function ModalPortal({
   if (!isOpen) return null;
 
   const content = (
-    <div
-      className={cn("absolute inset-0 h-full w-full overflow-y-auto", className)}
-      style={{ zIndex: MODAL_Z_INDEX }}
-      role="dialog"
-    >
+    <div className={cn("absolute inset-0 z-peek h-full w-full overflow-y-auto", className)} role="dialog">
       <div
         className={cn(
           "absolute inset-0 transition-colors duration-300",
@@ -100,7 +96,7 @@ export function ModalPortal({
         aria-hidden="true"
       />
 
-      <div ref={contentRef} className={cn(modalClasses)} style={{ zIndex: MODAL_Z_INDEX + 1 }} role="document">
+      <div ref={contentRef} className={cn("z-1", modalClasses)} role="document">
         {children}
       </div>
     </div>

@@ -243,7 +243,7 @@ export function ColumnDragHandle(props: ColumnDragHandleProps) {
           {/* Backdrop */}
           <FloatingOverlay
             style={{
-              zIndex: 99,
+              zIndex: "calc(var(--z-index-floating) - 1)",
             }}
             lockScroll
           />
@@ -253,7 +253,7 @@ export function ColumnDragHandle(props: ColumnDragHandleProps) {
             {...getFloatingProps()}
             style={{
               ...floatingStyles,
-              zIndex: 100,
+              zIndex: "var(--z-index-floating)",
             }}
           >
             <ColumnOptionsDropdown editor={editor} onClose={() => context.onOpenChange(false)} />
