@@ -15,7 +15,9 @@ import { setToast } from "@plane/blocks/toast";
 import type { TPage, TPageNavigationTabs } from "@plane/types";
 import { EUserProjectRoles, isRecord, readString } from "@plane/types";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { PageLoader } from "@/components/pages/loaders/page-loader";
+import type { TStoreQueryState } from "@/hooks/queries/use-store-query";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 // plane web hooks
@@ -25,15 +27,16 @@ type Props = {
   children: React.ReactNode;
   pageType: TPageNavigationTabs;
   storeType: EPageStoreType;
+  query: TStoreQueryState;
 };
 
 export const PagesListMainContent = observer(function PagesListMainContent(props: Props) {
-  const { children, pageType, storeType } = props;
+  const { children, pageType, storeType, query } = props;
   // plane hooks
   const { t } = useTranslation();
   // store hooks
   const { currentProjectDetails } = useProject();
-  const { isAnyPageAvailable, getCurrentProjectFilteredPageIdsByTab, getCurrentProjectPageIdsByTab, loader } =
+  const { isAnyPageAvailable, getCurrentProjectFilteredPageIdsByTab, getCurrentProjectPageIdsByTab } =
     usePageStore(storeType);
   const { allowPermissions } = useUserPermissions();
   const { createPage } = usePageStore(EPageStoreType.PROJECT);
@@ -74,7 +77,8 @@ export const PagesListMainContent = observer(function PagesListMainContent(props
       .finally(() => setIsCreatingPage(false));
   };
 
-  if (loader === "init-loader") return <PageLoader />;
+  if (query.isLoading) return <PageLoader />;
+  if (query.error) return <LoadErrorState onRetry={query.retry} />;
   // if no pages exist in the active page type
   if (!isAnyPageAvailable || pageIds?.length === 0) {
     if (!isAnyPageAvailable) {

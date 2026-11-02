@@ -7,15 +7,16 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import useSWR from "swr";
 // plane imports
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import type { TIssueType } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
+import { LoadErrorState } from "@/components/common/load-error-state";
 // hooks
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
+import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
 import { useUserPermissions } from "@/hooks/store/user";
 // local imports
 import { SettingsHeading } from "../settings/heading";
@@ -33,17 +34,12 @@ export const ProjectSettingsIssueTypesList = observer(function ProjectSettingsIs
   // i18n
   const { t } = useTranslation();
   // store hooks
-  const { getProjectIssueTypes, fetchProjectIssueTypes, createIssueType, updateIssueType } = useIssueTypes();
+  const { getProjectIssueTypes, createIssueType, updateIssueType } = useIssueTypes();
+  const { isLoading, error, retry } = useProjectIssueTypes(workspaceSlug?.toString(), projectId?.toString());
   const { allowPermissions } = useUserPermissions();
   // derived values
   const isEditable = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.PROJECT);
   const issueTypes = getProjectIssueTypes(projectId?.toString());
-
-  useSWR(
-    workspaceSlug && projectId ? `PROJECT_ISSUE_TYPES_SETTINGS_${projectId}` : null,
-    workspaceSlug && projectId ? () => fetchProjectIssueTypes(workspaceSlug.toString(), projectId.toString()) : null,
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
 
   const operationsCallbacks: TIssueTypeOperationsCallbacks = {
     createIssueType: (data) => createIssueType(workspaceSlug?.toString(), projectId?.toString(), data),
@@ -80,12 +76,14 @@ export const ProjectSettingsIssueTypesList = observer(function ProjectSettingsIs
             onClose={() => setShowCreateForm(false)}
           />
         )}
-        {!issueTypes ? (
+        {isLoading ? (
           <Loader className="space-y-2">
             <Loader.Item height="42px" />
             <Loader.Item height="42px" />
             <Loader.Item height="42px" />
           </Loader>
+        ) : error ? (
+          <LoadErrorState onRetry={retry} />
         ) : issueTypes.length === 0 && !showCreateForm ? (
           <p className="py-4 text-13 text-placeholder">{t("work_item_types.empty_state.enable.description")}</p>
         ) : (

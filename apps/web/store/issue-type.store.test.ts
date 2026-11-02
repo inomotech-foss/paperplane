@@ -103,7 +103,6 @@ const makeStore = (properties: IProjectUserPropertiesResponse | null) => {
     })
   );
   store.typeMap = { task: makeType("task", 0), bug: makeType("bug", 1), old: makeType("old", 2, false) };
-  store.fetchedMap = { p1: true };
   return { store, project, issuesMap, activity };
 };
 

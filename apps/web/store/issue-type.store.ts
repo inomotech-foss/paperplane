@@ -37,13 +37,11 @@ type TIssueTypeRootStore = {
 };
 
 export interface IIssueTypeStore {
-  // loaders
-  fetchedMap: Record<string, boolean>;
   // observables
   typeMap: Record<string, TIssueType>;
   // computed actions
-  getProjectIssueTypes: (projectId: string | undefined | null) => TIssueType[] | undefined;
-  getActiveProjectIssueTypes: (projectId: string | undefined | null) => TIssueType[] | undefined;
+  getProjectIssueTypes: (projectId: string | undefined | null) => TIssueType[];
+  getActiveProjectIssueTypes: (projectId: string | undefined | null) => TIssueType[];
   getIssueTypeById: (issueTypeId: string | undefined | null) => TIssueType | null;
   getPreselectedIssueTypeId: (projectId: string | undefined | null) => string | undefined;
   // fetch actions
@@ -69,8 +67,6 @@ export interface IIssueTypeStore {
 export class IssueTypeStore implements IIssueTypeStore {
   // observables
   typeMap: Record<string, TIssueType> = {};
-  // loaders
-  fetchedMap: Record<string, boolean> = {};
   // root store
   rootStore;
   // services
@@ -80,7 +76,6 @@ export class IssueTypeStore implements IIssueTypeStore {
   constructor(_rootStore: TIssueTypeRootStore) {
     makeObservable(this, {
       typeMap: observable,
-      fetchedMap: observable,
       fetchProjectIssueTypes: action,
       createIssueType: action,
       updateIssueType: action,
@@ -94,10 +89,11 @@ export class IssueTypeStore implements IIssueTypeStore {
   }
 
   /**
-   * Returns all work item types of a project ordered by level then name.
+   * Returns all work item types of a project ordered by level then name. Whether the list is complete is the
+   * query's concern, see `useProjectIssueTypes`.
    */
   getProjectIssueTypes = computedFn((projectId: string | undefined | null) => {
-    if (!projectId || !this.fetchedMap[projectId]) return;
+    if (!projectId) return [];
     return sortBy(
       Object.values(this.typeMap).filter((type) => type.project === projectId),
       ["level", "name"]
@@ -108,7 +104,7 @@ export class IssueTypeStore implements IIssueTypeStore {
    * Returns the active work item types of a project.
    */
   getActiveProjectIssueTypes = computedFn((projectId: string | undefined | null) =>
-    this.getProjectIssueTypes(projectId)?.filter((type) => type.is_active)
+    this.getProjectIssueTypes(projectId).filter((type) => type.is_active)
   );
 
   getIssueTypeById = computedFn(
@@ -147,7 +143,6 @@ export class IssueTypeStore implements IIssueTypeStore {
           // properties are keyed by project).
           set(this.typeMap, [type.id], { ...type, project: projectId });
         });
-        set(this.fetchedMap, projectId, true);
       });
       return response;
     });

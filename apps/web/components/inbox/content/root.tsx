@@ -6,12 +6,13 @@
 
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import useSWR from "swr";
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import type { TNameDescriptionLoader } from "@plane/types";
 // components
 import { ContentWrapper } from "@plane/blocks/layout";
+import { LoadErrorState } from "@/components/common/load-error-state";
 // hooks
+import { useStoreQuery } from "@/hooks/queries/use-store-query";
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -59,17 +60,13 @@ export const InboxContentRoot = observer(function InboxContentRoot(props: TInbox
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isIssueAvailable, isNotificationEmbed]);
 
-  useSWR(
+  const { isLoading, error, retry } = useStoreQuery(
     workspaceSlug && projectId && inboxIssueId
       ? `PROJECT_INBOX_ISSUE_DETAIL_${workspaceSlug}_${projectId}_${inboxIssueId}`
       : null,
     workspaceSlug && projectId && inboxIssueId
       ? () => fetchInboxIssueById(workspaceSlug, projectId, inboxIssueId)
-      : null,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    }
+      : null
   );
 
   const isEditable =
@@ -80,7 +77,7 @@ export const InboxContentRoot = observer(function InboxContentRoot(props: TInbox
   const isOwner = inboxIssue?.issue.created_by === currentUser?.id;
   const readOnly = !isOwner && isGuest;
 
-  if (!inboxIssue) return <></>;
+  if (!inboxIssue) return error ? <LoadErrorState onRetry={retry} /> : <></>;
 
   const isIssueDisabled = [-1, 1, 2].includes(inboxIssue.status);
 
@@ -107,6 +104,7 @@ export const InboxContentRoot = observer(function InboxContentRoot(props: TInbox
             isEditable={isEditable && !isIssueDisabled && !readOnly}
             isSubmitting={isSubmitting}
             setIsSubmitting={setIsSubmitting}
+            isLoading={isLoading}
           />
         </ContentWrapper>
       </div>

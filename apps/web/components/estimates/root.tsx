@@ -6,14 +6,15 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import useSWR from "swr";
 // plane imports
 import { useTranslation } from "@plane/i18n";
 // components
+import { LoadErrorState } from "@/components/common/load-error-state";
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 import { SettingsHeading } from "@/components/settings/heading";
 // hooks
 import { EmptyStateCompact } from "@plane/blocks/empty-state";
+import { useProjectEstimatesQuery } from "@/hooks/queries/use-estimate-queries";
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useProject } from "@/hooks/store/use-project";
 // local imports
@@ -33,7 +34,8 @@ export const EstimateRoot = observer(function EstimateRoot(props: TEstimateRoot)
   const { workspaceSlug, projectId, isAdmin } = props;
   // hooks
   const { currentProjectDetails } = useProject();
-  const { loader, currentActiveEstimateId, archivedEstimateIds, getProjectEstimates } = useProjectEstimates();
+  const { currentActiveEstimateId, archivedEstimateIds } = useProjectEstimates();
+  const { isLoading, error, retry } = useProjectEstimatesQuery(workspaceSlug, projectId);
   // states
   const [isEstimateCreateModalOpen, setIsEstimateCreateModalOpen] = useState(false);
   // oxlint-disable-next-line no-unused-vars
@@ -42,14 +44,8 @@ export const EstimateRoot = observer(function EstimateRoot(props: TEstimateRoot)
 
   const { t } = useTranslation();
 
-  const { isLoading: isSWRLoading } = useSWR(
-    workspaceSlug && projectId ? `PROJECT_ESTIMATES_${workspaceSlug}_${projectId}` : null,
-    async () => workspaceSlug && projectId && getProjectEstimates(workspaceSlug, projectId)
-  );
-
-  if (loader === "init-loader" || isSWRLoading) {
-    return <EstimateLoaderScreen />;
-  }
+  if (isLoading) return <EstimateLoaderScreen />;
+  if (error) return <LoadErrorState onRetry={retry} />;
 
   return (
     <>

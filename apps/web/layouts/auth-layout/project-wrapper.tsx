@@ -18,27 +18,25 @@ import { isProjectFeatureEnabled } from "@/components/settings/project/work-item
 import {
   PROJECT_DETAILS,
   PROJECT_ME_INFORMATION,
-  PROJECT_CUSTOM_PROPERTIES,
   PROJECT_CUSTOM_PROPERTY_VALUES,
-  PROJECT_ISSUE_TYPES,
   PROJECT_MEMBERS,
   PROJECT_MEMBER_PREFERENCES,
-  PROJECT_ESTIMATES,
   PROJECT_INTAKE_STATE,
 } from "@plane/constants";
 // hooks
+import { useProjectCustomProperties } from "@/hooks/queries/use-custom-property-queries";
 import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
+import { useProjectEstimatesQuery } from "@/hooks/queries/use-estimate-queries";
 import { useProjectLabels } from "@/hooks/queries/use-label-queries";
 import { useProjectModules } from "@/hooks/queries/use-module-queries";
 import { useProjectViews } from "@/hooks/queries/use-project-view-queries";
 import { useProjectStates } from "@/hooks/queries/use-state-queries";
-import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
-import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
+import { useProjectIssueTypes } from "@/hooks/use-preselected-issue-type";
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
 
 interface IProjectAuthWrapper {
@@ -62,9 +60,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   } = useMember();
   const { fetchProjectIntakeState } = useProjectState();
   const { data: currentUserData } = useUser();
-  const { fetchProjectProperties, fetchBulkValues } = useIssueCustomProperties();
-  const { fetchProjectIssueTypes } = useIssueTypes();
-  const { getProjectEstimates } = useProjectEstimates();
+  const { fetchBulkValues } = useIssueCustomProperties();
   // derived values
   const hasPermissionToCurrentProject = allowPermissions(
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER, EUserPermissions.GUEST],
@@ -101,20 +97,13 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
   useProjectLabels(workspaceSlug, projectId);
-  // fetching project custom properties and their values on all work items
-  useSWR(roleKey(PROJECT_CUSTOM_PROPERTIES), () => fetchProjectProperties(workspaceSlug, projectId), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
+  useProjectCustomProperties(workspaceSlug, projectId);
+  // fetching the custom property values of all work items
   useSWR(roleKey(PROJECT_CUSTOM_PROPERTY_VALUES), () => fetchBulkValues(workspaceSlug, projectId), {
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
-  // fetching project work item types
-  useSWR(roleKey(PROJECT_ISSUE_TYPES), () => fetchProjectIssueTypes(workspaceSlug, projectId), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
+  useProjectIssueTypes(workspaceSlug, projectId);
   // fetching project members
   useSWR(roleKey(PROJECT_MEMBERS), () => fetchProjectMembers(workspaceSlug, projectId), {
     revalidateIfStale: false,
@@ -127,11 +116,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
     () => fetchProjectIntakeState(workspaceSlug, projectId),
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
-  // fetching project estimates
-  useSWR(roleKey(PROJECT_ESTIMATES), () => getProjectEstimates(workspaceSlug, projectId), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
+  useProjectEstimatesQuery(workspaceSlug, projectId);
   useProjectCycles(workspaceSlug, projectId);
   useProjectModules(workspaceSlug, projectId);
   useProjectViews(workspaceSlug, projectId);

@@ -24,7 +24,6 @@ import { IssueTitleInput } from "@/components/issues/title-input";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";
-import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { useUser } from "@/hooks/store/user";
 import useReloadConfirmations from "@/hooks/use-reload-confirmation";
 // services
@@ -43,16 +42,17 @@ type Props = {
   isEditable: boolean;
   isSubmitting: TNameDescriptionLoader;
   setIsSubmitting: Dispatch<SetStateAction<TNameDescriptionLoader>>;
+  /** The work item details are still loading. */
+  isLoading: boolean;
 };
 
 export const InboxIssueMainContent = observer(function InboxIssueMainContent(props: Props) {
-  const { workspaceSlug, projectId, inboxIssue, isEditable, isSubmitting, setIsSubmitting } = props;
+  const { workspaceSlug, projectId, inboxIssue, isEditable, isSubmitting, setIsSubmitting, isLoading } = props;
   // refs
   const editorRef = useRef<EditorRefApi>(null);
   // store hooks
   const { data: currentUser } = useUser();
   const { getUserDetails } = useMember();
-  const { loader } = useProjectInbox();
   const { removeIssue, archiveIssue } = useIssueDetail();
   // reload confirmation
   const { setShowAlert } = useReloadConfirmations(isSubmitting === "submitting");
@@ -137,7 +137,7 @@ export const InboxIssueMainContent = observer(function InboxIssueMainContent(pro
           value={issue.name}
         />
 
-        {loader === "issue-loading" || issue.description_html === undefined ? (
+        {isLoading || issue.description_html === undefined ? (
           <DescriptionInputLoader />
         ) : (
           <DescriptionInput

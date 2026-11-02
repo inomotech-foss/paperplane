@@ -2,21 +2,22 @@
 // See the LICENSE file for details.
 
 import useSWR from "swr";
+import { PROJECT_ISSUE_TYPES } from "@plane/constants";
 // hooks
+import type { TStoreQueryState } from "@/hooks/queries/use-store-query";
+import { useProjectStoreQuery } from "@/hooks/queries/use-store-query";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
 import { useMember } from "@/hooks/store/use-member";
 
 const SWR_OPTIONS = { revalidateIfStale: false, revalidateOnFocus: false };
 
-/** Loads the project's types for a type picker shown outside the project's own pages. */
-export const useProjectIssueTypes = (workspaceSlug: string | undefined, projectId: string | null | undefined) => {
-  const { fetchedMap, fetchProjectIssueTypes } = useIssueTypes();
-  const canLoad = !!workspaceSlug && !!projectId;
-  useSWR(
-    canLoad && !fetchedMap[projectId] ? `PROJECT_ISSUE_TYPES_PICKER_${projectId}` : null,
-    canLoad ? () => fetchProjectIssueTypes(workspaceSlug, projectId) : null,
-    SWR_OPTIONS
-  );
+/** Loads the work item types of a project into the issue type store. */
+export const useProjectIssueTypes = (
+  workspaceSlug: string | undefined,
+  projectId: string | null | undefined
+): TStoreQueryState => {
+  const { fetchProjectIssueTypes } = useIssueTypes();
+  return useProjectStoreQuery(workspaceSlug, projectId, PROJECT_ISSUE_TYPES, fetchProjectIssueTypes);
 };
 
 /**

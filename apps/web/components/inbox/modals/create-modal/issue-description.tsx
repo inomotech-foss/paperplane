@@ -12,13 +12,11 @@ import type { EditorRefApi } from "@plane/editor";
 import { useTranslation } from "@plane/i18n";
 import type { TIssue } from "@plane/types";
 import { EFileAssetType } from "@plane/types";
-import { Loader } from "@plane/blocks/skeleton";
 import { getDescriptionPlaceholderI18n, getTabIndex } from "@plane/utils";
 // components
 import { RichTextEditor } from "@/components/editor/rich-text/editor";
 // hooks
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
-import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
@@ -54,17 +52,9 @@ export const InboxIssueDescription = observer(function InboxIssueDescription(pro
   const { t } = useTranslation();
   // store hooks
   const { uploadEditorAsset, duplicateEditorAsset } = useEditorAsset();
-  const { loader } = useProjectInbox();
   const { isMobile } = usePlatformOS();
 
   const { getIndex } = getTabIndex(ETabIndices.INTAKE_ISSUE_FORM, isMobile);
-
-  if (loader === "issue-loading")
-    return (
-      <Loader className="min-h-[6rem] rounded-md border border-subtle">
-        <Loader.Item width="100%" height="140px" />
-      </Loader>
-    );
 
   return (
     <RichTextEditor

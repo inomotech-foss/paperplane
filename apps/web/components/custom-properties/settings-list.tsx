@@ -7,14 +7,15 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import useSWR from "swr";
 // plane imports
 import { EUserPermissions, EUserPermissionsLevel } from "@plane/constants";
 import { useTranslation } from "@plane/i18n";
 import { Button } from "@makeplane/propel/components/button";
 import type { TIssueCustomProperty } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
+import { LoadErrorState } from "@/components/common/load-error-state";
 // hooks
+import { useProjectCustomProperties } from "@/hooks/queries/use-custom-property-queries";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
 import { useUserPermissions } from "@/hooks/store/user";
 // local imports
@@ -34,25 +35,13 @@ export const ProjectSettingsCustomPropertiesList = observer(function ProjectSett
   // i18n
   const { t } = useTranslation();
   // store hooks
-  const {
-    getProjectProperties,
-    fetchProjectProperties,
-    createProperty,
-    updateProperty,
-    createOption,
-    updateOption,
-    deleteOption,
-  } = useIssueCustomProperties();
+  const { getProjectProperties, createProperty, updateProperty, createOption, updateOption, deleteOption } =
+    useIssueCustomProperties();
   const { allowPermissions } = useUserPermissions();
   // derived values
   const isEditable = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.PROJECT);
   const properties = getProjectProperties(projectId?.toString());
-
-  useSWR(
-    workspaceSlug && projectId ? `PROJECT_CUSTOM_PROPERTIES_SETTINGS_${projectId}` : null,
-    workspaceSlug && projectId ? () => fetchProjectProperties(workspaceSlug.toString(), projectId.toString()) : null,
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
+  const { isLoading, error, retry } = useProjectCustomProperties(workspaceSlug?.toString(), projectId?.toString());
 
   const operationsCallbacks: TCustomPropertyOperationsCallbacks = {
     createProperty: (data) => createProperty(workspaceSlug?.toString(), projectId?.toString(), data),
@@ -98,12 +87,14 @@ export const ProjectSettingsCustomPropertiesList = observer(function ProjectSett
             onClose={() => setShowCreateForm(false)}
           />
         )}
-        {!properties ? (
+        {isLoading ? (
           <Loader className="space-y-2">
             <Loader.Item height="42px" />
             <Loader.Item height="42px" />
             <Loader.Item height="42px" />
           </Loader>
+        ) : error ? (
+          <LoadErrorState onRetry={retry} />
         ) : properties.length === 0 && !showCreateForm ? (
           <p className="py-4 text-13 text-placeholder">{t("work_item_custom_properties.settings.empty_state")}</p>
         ) : (
