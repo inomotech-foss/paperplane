@@ -81,7 +81,7 @@ describe("ModuleCardItem", () => {
     renderCard();
     const card = screen.getByRole("link", { name: "Launch" }).closest(".isolate");
     expect(card).not.toBeNull();
-    const raised = screen.getByRole("button", { name: "Module details" }).closest(".z-\\[2\\]");
+    const raised = screen.getByRole("button", { name: "Module details" }).closest(".z-2");
     expect(raised).not.toBeNull();
     expect(card?.contains(raised)).toBe(true);
     if (card) {

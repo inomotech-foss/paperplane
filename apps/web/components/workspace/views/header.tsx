@@ -90,7 +90,7 @@ export const GlobalViewsHeader = observer(function GlobalViewsHeader() {
   );
 
   return (
-    <Header variant={EHeaderVariant.SECONDARY} className="z-[12] min-h-[44px] bg-surface-1">
+    <Header variant={EHeaderVariant.SECONDARY} className="z-subheader min-h-[44px] bg-surface-1">
       <CreateUpdateWorkspaceViewModal isOpen={createViewModal} onClose={() => setCreateViewModal(false)} />
       <div
         ref={containerRef}

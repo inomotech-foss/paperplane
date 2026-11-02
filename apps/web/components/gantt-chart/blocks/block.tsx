@@ -89,7 +89,7 @@ export const GanttChartBlock = observer(function GanttChartBlock(props: Props) {
 
   return (
     <div
-      className={cn("relative z-[5]", {
+      className={cn("relative z-5", {
         "transition-all": !!isMoving && currentView === "week",
         "pointer-events-none": !isBlockVisibleOnChart,
       })}

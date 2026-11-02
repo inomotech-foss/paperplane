@@ -74,7 +74,7 @@ export function IssueLinkDetail(props: TIssueLinkDetail) {
           </div>
 
           {!isNotAllowed && (
-            <div className="z-[1] flex flex-shrink-0 items-center gap-2">
+            <div className="z-1 flex flex-shrink-0 items-center gap-2">
               <button
                 type="button"
                 className="flex items-center justify-center p-1 hover:bg-layer-1"

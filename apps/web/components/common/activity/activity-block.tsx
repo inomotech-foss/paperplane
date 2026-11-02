@@ -37,7 +37,7 @@ export function ActivityBlockComponent(props: TActivityBlockComponent) {
         ends === "top" ? `pb-3` : ends === "bottom" ? `pt-3` : `py-3`
       }`}
     >
-      <div className="z-[4] mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-subtle text-secondary shadow-raised-100">
+      <div className="z-4 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-subtle text-secondary shadow-raised-100">
         {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" /> : <HierarchyOutline className="h-3.5 w-3.5 shrink-0" />}
       </div>
       <div className="w-full text-secondary">

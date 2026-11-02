@@ -31,7 +31,7 @@ function ProjectLayout({ params }: Route.ComponentProps) {
   return (
     <>
       {projectPreferences.navigationMode === "TABBED" && (
-        <div className="z-20">
+        <div className="z-header">
           <Row className="flex h-header w-full items-center gap-2 border-b border-subtle bg-surface-1">
             <div className="flex h-full w-full items-center gap-2 divide-x divide-subtle">
               <div className="flex size-full flex-1 items-center gap-2">

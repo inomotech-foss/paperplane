@@ -15,7 +15,7 @@ const element = (className: string, ...children: Element[]) => {
 
 describe("findStackingTraps", () => {
   it("accepts raised layers with plain ancestors", () => {
-    const card = element("relative isolate", element("flex", element("relative z-[2]")));
+    const card = element("relative isolate", element("flex", element("relative z-2")));
     expect(findStackingTraps(card)).toEqual([]);
   });
 
@@ -37,23 +37,20 @@ describe("findStackingTraps", () => {
     "md:sticky",
     "fixed",
   ])("reports an ancestor with %s", (className) => {
-    const card = element("relative isolate", element(`flex ${className}`, element("relative z-[2]")));
+    const card = element("relative isolate", element(`flex ${className}`, element("relative z-2")));
     expect(findStackingTraps(card)).toEqual([className]);
   });
 
-  it.each(["z-auto", "relative", "shadow-md", "opacity", "after:z-[1]", "before:absolute"])(
+  it.each(["z-auto", "relative", "shadow-md", "opacity", "after:z-1", "before:absolute"])(
     "accepts an ancestor with %s",
     (className) => {
-      const card = element("relative isolate", element(className, element("relative z-[2]")));
+      const card = element("relative isolate", element(className, element("relative z-2")));
       expect(findStackingTraps(card)).toEqual([]);
     }
   );
 
   it("ignores layers nested in a raised layer", () => {
-    const card = element(
-      "relative isolate",
-      element("relative z-[2]", element("opacity-50", element("relative z-[2]")))
-    );
+    const card = element("relative isolate", element("relative z-2", element("opacity-50", element("relative z-2"))));
     expect(findStackingTraps(card)).toEqual([]);
   });
 });

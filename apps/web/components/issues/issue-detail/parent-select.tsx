@@ -93,7 +93,7 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
           disabled={disabled}
         />
         {issue.parent_id && parentIssue ? (
-          <div className="relative z-[1] flex items-center gap-1.5">
+          <div className="relative z-1 flex items-center gap-1.5">
             <Tooltip label={`Title: ${parentIssue.name}`} layout="stacked" disabled={isMobile}>
               <Link href={workItemLink} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                 {parentIssue?.project_id && parentIssueProjectDetails && (

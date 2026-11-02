@@ -13,7 +13,7 @@ export function ProjectsLoader() {
         {range(3).map((i) => (
           <div key={i} className="flex cursor-pointer flex-col rounded-sm border border-subtle bg-surface-1">
             <div className="relative min-h-[118px] w-full rounded-t border-b border-subtle">
-              <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/20 to-transparent">
+              <div className="absolute inset-0 z-1 bg-gradient-to-t from-black/20 to-transparent">
                 <div className="absolute bottom-4 z-10 flex h-10 w-full items-center justify-between gap-3 px-4">
                   <div className="flex flex-grow items-center gap-2.5 truncate">
                     <span className="min-h-9 min-w-9 rounded-sm bg-layer-1" />

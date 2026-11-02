@@ -48,7 +48,7 @@ export function TimelineSidebarResizeHandle() {
       aria-label={t("aria_labels.resize.timeline_sidebar")}
       tabIndex={0}
       className={cn(
-        "absolute top-0 right-0 z-[20] h-full w-1 translate-x-1/2 cursor-ew-resize touch-none outline-none",
+        "absolute top-0 right-0 z-10 h-full w-1 translate-x-1/2 cursor-ew-resize touch-none outline-none",
         "transition-colors duration-200 hover:bg-surface-2 focus-visible:w-1.5 focus-visible:bg-accent-primary",
         // a wider transparent hit area around the 4px line
         "after:absolute after:inset-y-0 after:-right-1.5 after:-left-1.5 after:content-['']",

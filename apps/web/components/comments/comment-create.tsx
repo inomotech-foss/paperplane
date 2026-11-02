@@ -89,7 +89,7 @@ export const CommentCreate = observer(function CommentCreate(props: TCommentCrea
   return (
     <div
       role="presentation"
-      className={cn("sticky bottom-0 z-[4] bg-surface-1 sm:static")}
+      className={cn("sticky bottom-0 z-4 bg-surface-1 sm:static")}
       onKeyDown={(e) => {
         if (
           e.key === "Enter" &&

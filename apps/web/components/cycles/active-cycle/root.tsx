@@ -123,7 +123,7 @@ export const ActiveCycleRoot = observer(function ActiveCycleRoot(props: IActiveC
     <>
       {showHeader ? (
         <Collapsible.Root open={isExpanded} onOpenChange={setIsExpanded} className="flex flex-shrink-0 flex-col">
-          <Collapsible.Trigger className="sticky top-0 z-[2] w-full flex-shrink-0 cursor-pointer border-b border-subtle bg-layer-1">
+          <Collapsible.Trigger className="sticky top-0 z-2 w-full flex-shrink-0 cursor-pointer border-b border-subtle bg-layer-1">
             <CycleListGroupHeader
               title={t("project_cycles.active_cycle.label")}
               type="current"

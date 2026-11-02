@@ -4,6 +4,7 @@
     "typeAware": true
   },
   "plugins": ["react", "typescript", "jsx-a11y", "import", "promise", "unicorn", "oxc"],
+  "jsPlugins": ["./packages/oxlint-plugin/index.mjs"],
   "categories": {
     "correctness": "warn",
     "suspicious": "warn",
@@ -35,6 +36,7 @@
     "dist/**",
     "**/public/**",
     "packages/api-types/src/generated/**",
+    "packages/oxlint-plugin/*.test.mjs",
     "packages/pql/src/generated/**",
     "storybook-static/**"
   ],
@@ -53,6 +55,7 @@
         "ignoreRestSiblings": true
       }
     ],
+    "plane/z-index-scale": "error",
     "typescript/ban-ts-comment": "error",
     "typescript/no-explicit-any": "error",
     "typescript/no-unsafe-argument": "error",

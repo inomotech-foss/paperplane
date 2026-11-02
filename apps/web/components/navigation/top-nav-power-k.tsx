@@ -210,7 +210,7 @@ export const TopNavPowerK = observer(() => {
   return (
     <div ref={containerRef} className="relative">
       <div
-        className={cn("relative z-30 flex w-[364px] items-center transition-all duration-300 ease-in-out", {
+        className={cn("relative z-10 flex w-[364px] items-center transition-all duration-300 ease-in-out", {
           "w-[554px]": isOpen,
         })}
       >
@@ -257,7 +257,7 @@ export const TopNavPowerK = observer(() => {
       </div>
       <div
         className={cn(
-          "shadow-lg absolute -top-[6px] left-1/2 z-20 flex -translate-x-1/2 flex-col overflow-hidden rounded-md border border-subtle bg-surface-1 px-0 pt-10 transition-all duration-300 ease-in-out",
+          "shadow-lg absolute -top-[6px] left-1/2 z-5 flex -translate-x-1/2 flex-col overflow-hidden rounded-md border border-subtle bg-surface-1 px-0 pt-10 transition-all duration-300 ease-in-out",
           {
             "max-h-[80vh] w-[574px] opacity-100": isOpen,
             "h-0 w-0 opacity-0": !isOpen,

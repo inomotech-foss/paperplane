@@ -23,7 +23,7 @@ export const AppHeader = observer(function AppHeader(props: AppHeaderProps) {
   const { header, mobileHeader, className, rowClassName } = props;
 
   return (
-    <div className={cn("z-[18]", className)}>
+    <div className={cn("z-header", className)}>
       <Row className={cn("flex h-11 w-full items-center gap-2 border-b border-subtle bg-surface-1", rowClassName)}>
         <ExtendedAppHeader header={header} />
       </Row>

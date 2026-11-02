@@ -269,7 +269,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
     >
       <Row
         className={cn("w-full flex-shrink-0 border-b border-subtle bg-layer-1 py-1 pr-3 hover:bg-layer-1-hover", {
-          "sticky top-0 z-[2]": isExpanded && groupIssueCount > 0,
+          "sticky top-0 z-2": isExpanded && groupIssueCount > 0,
         })}
       >
         <HeaderGroupByCard
@@ -333,7 +333,7 @@ export const ListGroup = observer(function ListGroup(props: Props) {
             !isGroupByCreatedBy &&
             !isCompletedCycle &&
             !isWorkflowIssueCreationDisabled && (
-              <div className="sticky bottom-0 z-[1] w-full flex-shrink-0">
+              <div className="sticky bottom-0 z-1 w-full flex-shrink-0">
                 <QuickAddIssueRoot
                   layout={EIssueLayoutTypes.LIST}
                   QuickAddButton={ListQuickAddIssueButton}

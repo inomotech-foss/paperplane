@@ -40,7 +40,7 @@ export const ChartDraggable = observer(function ChartDraggable(props: Props) {
   } = props;
 
   return (
-    <div className="group relative z-[5] inline-flex h-full w-full cursor-pointer items-center font-medium transition-all">
+    <div className="group relative z-5 inline-flex h-full w-full cursor-pointer items-center font-medium transition-all">
       <LeftResizable
         enableBlockLeftResize={enableBlockLeftResize}
         handleBlockDrag={handleBlockDrag}
@@ -49,7 +49,7 @@ export const ChartDraggable = observer(function ChartDraggable(props: Props) {
       />
       <div
         role="presentation"
-        className={cn("relative z-[6] flex h-8 w-full items-center rounded-sm", {
+        className={cn("relative z-6 flex h-8 w-full items-center rounded-sm", {
           "pointer-events-none": isMoving,
         })}
         onMouseDown={(e) => enableBlockMove && handleBlockDrag(e, "move")}

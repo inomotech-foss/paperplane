@@ -57,7 +57,7 @@ export const NotificationsSidebarRoot = observer(function NotificationsSidebarRo
   return (
     <div
       className={cn(
-        "relative z-[10] h-full flex-shrink-0 border-0 border-subtle bg-surface-1 transition-all max-md:overflow-hidden md:border-r",
+        "relative z-10 h-full flex-shrink-0 border-0 border-subtle bg-surface-1 transition-all max-md:overflow-hidden md:border-r",
         currentSelectedNotificationId ? "w-0 md:w-3/12" : "w-full md:w-3/12"
       )}
     >

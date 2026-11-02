@@ -25,7 +25,7 @@ export const ViewMobileHeader = observer(function ViewMobileHeader() {
 
   return (
     <>
-      <div className="z-[13] flex justify-evenly border-b border-subtle bg-surface-1 py-2 md:hidden">
+      <div className="z-subheader flex justify-evenly border-b border-subtle bg-surface-1 py-2 md:hidden">
         <Row className="flex flex-grow items-center justify-center border-l border-subtle text-13 text-secondary">
           <ViewOrderByDropdown
             sortBy={filters.sortBy}

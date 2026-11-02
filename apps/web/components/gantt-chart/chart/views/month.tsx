@@ -36,7 +36,7 @@ export const MonthChartView = observer(function MonthChartView() {
         <div className="relative flex flex-col outline-[0.25px] outline-subtle-1">
           {/** Header Div */}
           <div
-            className="sticky top-0 z-[5] w-full flex-shrink-0 bg-surface-1"
+            className="sticky top-0 z-5 w-full flex-shrink-0 bg-surface-1"
             style={{
               height: `${HEADER_HEIGHT}px`,
             }}
@@ -49,7 +49,7 @@ export const MonthChartView = observer(function MonthChartView() {
                   className="flex outline-[0.5px] outline-subtle-1"
                   style={{ width: `${monthBlock.days * currentViewData?.data.dayWidth}px` }}
                 >
-                  <div className="sticky left-(--timeline-sidebar-size) z-[1] m-1 flex items-center bg-surface-1 px-3 py-1 text-14 font-regular whitespace-nowrap text-secondary capitalize">
+                  <div className="sticky left-(--timeline-sidebar-size) z-1 m-1 flex items-center bg-surface-1 px-3 py-1 text-14 font-regular whitespace-nowrap text-secondary capitalize">
                     {monthBlock?.title}
                     {monthBlock.today && (
                       <span className={cn("ml-2 rounded-sm bg-accent-primary px-1 text-9 font-medium text-on-color")}>

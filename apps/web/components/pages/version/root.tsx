@@ -55,7 +55,7 @@ export const PageVersionsOverlay = observer(function PageVersionsOverlay(props: 
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-0 z-[16] flex h-full overflow-hidden bg-surface-1 opacity-0 transition-opacity",
+        "pointer-events-none absolute inset-0 z-10 flex h-full overflow-hidden bg-surface-1 opacity-0 transition-opacity",
         {
           "pointer-events-auto opacity-100": isOpen,
         }

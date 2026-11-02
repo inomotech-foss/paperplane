@@ -50,7 +50,7 @@ export const CyclesList = observer(function CyclesList(props: ICyclesList) {
                 onOpenChange={setIsUpcomingExpanded}
                 className="flex flex-shrink-0 flex-col"
               >
-                <Collapsible.Trigger className="sticky top-0 z-[2] w-full flex-shrink-0 cursor-pointer border-b border-subtle bg-layer-1">
+                <Collapsible.Trigger className="sticky top-0 z-2 w-full flex-shrink-0 cursor-pointer border-b border-subtle bg-layer-1">
                   <CycleListGroupHeader
                     title={t("project_cycles.upcoming_cycle.label")}
                     type="upcoming"

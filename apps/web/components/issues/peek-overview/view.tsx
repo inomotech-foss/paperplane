@@ -118,7 +118,7 @@ export const IssueView = observer(function IssueView(props: IIssueView) {
 
   const peekOverviewIssueClassName = cn(
     !embedIssue
-      ? "absolute z-[25] flex flex-col overflow-hidden rounded-sm border border-subtle bg-surface-1 transition-all duration-300"
+      ? "absolute z-peek flex flex-col overflow-hidden rounded-sm border border-subtle bg-surface-1 transition-all duration-300"
       : `h-full w-full`,
     !embedIssue && {
       "top-0 right-0 bottom-0 w-full border-0 border-l md:w-[50%]": peekMode === "side-peek",

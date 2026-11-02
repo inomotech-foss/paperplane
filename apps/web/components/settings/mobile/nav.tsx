@@ -33,16 +33,16 @@ export const SettingsMobileNav = observer(function SettingsMobileNav(props: Prop
 
   return (
     <div className="flex items-center gap-4 border-b border-subtle px-page-x py-3 md:hidden">
-      <div ref={sidebarRef} className="relative z-50 w-fit">
+      <div ref={sidebarRef} className="relative z-popover w-fit">
         {!sidebarCollapsed && (
-          <div className="absolute top-10.5 left-0 z-50">
+          <div className="absolute top-10.5 left-0 z-10">
             <HamburgerContent className="max-h-100 rounded-lg border border-subtle pb-3" />
           </div>
         )}
         <IconButton
           variant="secondary"
           size="sm"
-          render={<button type="button" className="group z-50 shrink-0" />}
+          render={<button type="button" className="group z-10 shrink-0" />}
           icon={<Icon icon={Menu} />}
           aria-label="Toggle settings menu"
           onClick={() => toggleSidebar()}

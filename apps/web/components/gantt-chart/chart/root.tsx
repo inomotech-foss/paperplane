@@ -178,7 +178,7 @@ export const ChartViewRoot = observer(function ChartViewRoot(props: ChartViewRoo
   const content = (
     <div
       className={cn("shadow relative flex h-full flex-col rounded-xs bg-surface-1 select-none", {
-        "inset-0 z-[25] bg-surface-1": fullScreenMode,
+        "inset-0 z-peek bg-surface-1": fullScreenMode,
         "border-[0.5px] border-subtle": border,
       })}
     >

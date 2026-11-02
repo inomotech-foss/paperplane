@@ -96,7 +96,7 @@ describe("KanbanIssueBlock", () => {
     renderBlock();
     const card = screen.getByRole("link", { name: "Fix the login page" }).closest(".isolate");
     expect(card).not.toBeNull();
-    const raised = screen.getByRole("button", { name: "More actions" }).closest(".z-\\[2\\]");
+    const raised = screen.getByRole("button", { name: "More actions" }).closest(".z-2");
     expect(raised).not.toBeNull();
     expect(card?.contains(raised)).toBe(true);
     if (card) {
