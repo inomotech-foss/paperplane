@@ -58,10 +58,19 @@ def test_unmatched_user_keeps_its_id():
 @pytest.mark.django_db
 def test_email_match_ignores_case():
     target = User.objects.create(email="ada@example.test", username="ada-target")
+    row = user_row("ADA@example.test")
+    plan = plan_users([row], {row["id"]})
+    assert plan.create == []
+    assert plan.matched == {row["id"]: target.id}
+
+
+@pytest.mark.django_db
+def test_case_twins_claim_the_target_once():
+    target = User.objects.create(email="ada@example.test", username="ada-target")
     upper, lower = user_row("ADA@example.test"), user_row("ada@example.test")
     plan = plan_users([upper, lower], {upper["id"], lower["id"]})
-    assert plan.create == []
-    assert plan.matched == {upper["id"]: target.id, lower["id"]: target.id}
+    assert plan.matched == {lower["id"]: target.id}
+    assert [r["id"] for r in plan.create] == [upper["id"]]
 
 
 @pytest.mark.django_db

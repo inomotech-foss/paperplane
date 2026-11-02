@@ -10,6 +10,7 @@ A column whose meaning changed gets a converter on its entity.
 """
 
 import re
+import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
 from itertools import islice
@@ -64,7 +65,7 @@ def load(entity, source, ctx):
     rows = source.rows(entity.table)
     while batch := list(islice(rows, BATCH_SIZE)):
         objs = [obj for obj in (_build(entity, row, ctx, rewrite) for row in batch) if obj is not None]
-        _write(model, objs)
+        _write(model, objs, entity.skip)
         for obj in objs:
             ctx.ids.add(model, obj.pk)
         written += len(objs)
@@ -101,7 +102,12 @@ def _build(entity, row, ctx, rewrite):
             # A NULL Plane allows where PaperPlane does not takes the default too.
             continue
         if not f.is_relation or value is None:
-            values[name] = rewrite(value) if rewrite and isinstance(f, _TEXT_FIELDS) else value
+            if rewrite and isinstance(f, _TEXT_FIELDS):
+                value = rewrite(value)
+            elif rewrite and isinstance(f, models.UUIDField) and value is not None:
+                # Ids kept outside FKs, like an activity's old and new assignee.
+                value = uuid.UUID(rewrite(str(value)))
+            values[name] = value
             continue
 
         related = f.related_model
@@ -138,7 +144,7 @@ def _drop(ctx, model, table, row, reason):
         ctx.ids.exclude(model, row["id"])
 
 
-def _write(model, objs):
+def _write(model, objs, skip=()):
     """Upsert on id, then put back the dates ``auto_now`` overwrote on the way in."""
     if not objs:
         return
@@ -146,7 +152,8 @@ def _write(model, objs):
         f for f in model._meta.concrete_fields if getattr(f, "auto_now", False) or getattr(f, "auto_now_add", False)
     ]
     kept = [[getattr(obj, f.attname) for f in stamps] for obj in objs]
-    updatable = [f.name for f in model._meta.concrete_fields if not f.primary_key]
+    # A skipped field keeps whatever the target holds when the row already exists.
+    updatable = [f.name for f in model._meta.concrete_fields if not f.primary_key and f.attname not in skip]
     model._base_manager.bulk_create(
         objs, batch_size=BATCH_SIZE, update_conflicts=True, unique_fields=["id"], update_fields=updatable
     )

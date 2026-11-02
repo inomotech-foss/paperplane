@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from plane.db.models import Issue, IssueComment, IssueType, Project, State, User, Workspace
+from plane.db.models import Issue, IssueActivity, IssueComment, IssueType, Project, State, User, Workspace
 from plane.importers.plane.entities import Context, Entity, load
 from plane.importers.plane.ids import IdMap
 from plane.importers.plane.report import ImportReport
@@ -191,3 +191,32 @@ def test_null_into_not_null_field_takes_default(ctx):
     user = stamped(email="n@example.test", username="n", password="x", first_name=None)
     load(Entity(User), FakeSource({"users": [user]}), ctx)
     assert User.objects.get(pk=user["id"]).first_name == ""
+
+
+@pytest.mark.django_db
+def test_matched_user_id_in_uuid_field_is_rewritten(ctx, base):
+    other = User.objects.create(email="b@example.test", username="b")
+    source_user = ident()
+    ctx.ids.add(User, source_user, other.id)
+    issue = issue_row(base)
+    load_issues(ctx, issue)
+    activity = stamped(
+        issue_id=issue["id"],
+        project_id=base["project"]["id"],
+        workspace_id=base["workspace"]["id"],
+        verb="updated",
+        field="assignees",
+        new_identifier=source_user,
+    )
+    load(Entity(IssueActivity), FakeSource({"issue_activities": [activity]}), ctx)
+    assert IssueActivity.all_objects.get(pk=activity["id"]).new_identifier == other.id
+
+
+@pytest.mark.django_db
+def test_rerun_keeps_skipped_fields_of_the_target(ctx):
+    user = stamped(email="s@example.test", username="s", password="x", is_superuser=True)
+    entity = Entity(User, skip=("is_superuser",))
+    load(entity, FakeSource({"users": [user]}), ctx)
+    User.objects.filter(pk=user["id"]).update(is_superuser=True)
+    load(entity, FakeSource({"users": [{**user, "is_superuser": False}]}), ctx)
+    assert User.objects.get(pk=user["id"]).is_superuser is True

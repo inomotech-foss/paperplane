@@ -73,18 +73,26 @@ def plan_users(rows, wanted_ids):
     earlier row already uses gets a numeric suffix rather than stopping the run.
     """
     wanted = {_uuid(user_id) for user_id in wanted_ids}
-    by_email = {email.casefold(): user_id for user_id, email in User.objects.values_list("id", "email") if email}
+    rows = [row for row in rows if _uuid(row["id"]) in wanted]
+    existing = [(user_id, email) for user_id, email in User.objects.values_list("id", "email") if email]
+    exact = {email: user_id for user_id, email in existing}
+    folded = {email.casefold(): user_id for user_id, email in existing}
     taken = set(User.objects.values_list("username", flat=True))
     plan = UserPlan()
 
-    for row in rows:
-        if _uuid(row["id"]) not in wanted:
-            continue
-        email = (row.get("email") or "").casefold()
-        if email and email in by_email:
-            plan.matched[row["id"]] = by_email[email]
-            continue
+    # Each target account is claimed once, by an exact address before one that
+    # differs only in case, so two source accounts never become one.
+    claimed = set()
+    for lookup, key in ((exact, lambda e: e), (folded, str.casefold)):
+        for row in rows:
+            target = lookup.get(key(row.get("email") or ""))
+            if row["id"] not in plan.matched and target is not None and target not in claimed:
+                plan.matched[row["id"]] = target
+                claimed.add(target)
 
+    for row in rows:
+        if row["id"] in plan.matched:
+            continue
         username = row.get("username") or uuid.uuid4().hex
         unique, suffix = username, 2
         while unique in taken:
