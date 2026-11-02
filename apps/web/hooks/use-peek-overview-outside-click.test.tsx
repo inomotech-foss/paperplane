@@ -19,6 +19,7 @@ function Harness({ onOutside }: { onOutside: () => void }) {
       </div>
       <div data-issue-row="i2">
         <button type="button">Other priority</button>
+        <a href="/i2">Other title</a>
       </div>
       <table>
         <tbody>
@@ -42,6 +43,18 @@ describe("usePeekOverviewOutsideClickDetector", () => {
     fireEvent.mouseDown(screen.getByRole("button", { name: "State" }));
     expect(onOutside).not.toHaveBeenCalled();
     fireEvent.mouseDown(screen.getByRole("button", { name: "Other priority" }));
+    expect(onOutside).toHaveBeenCalledTimes(1);
+  });
+
+  it("stays open when a link is opened in a new tab", () => {
+    const onOutside = vi.fn();
+    render(<Harness onOutside={onOutside} />);
+    const link = screen.getByRole("link", { name: "Other title" });
+    fireEvent.mouseDown(link, { metaKey: true });
+    fireEvent.mouseDown(link, { ctrlKey: true });
+    fireEvent.mouseDown(link, { button: 1 });
+    expect(onOutside).not.toHaveBeenCalled();
+    fireEvent.mouseDown(link);
     expect(onOutside).toHaveBeenCalledTimes(1);
   });
 });
