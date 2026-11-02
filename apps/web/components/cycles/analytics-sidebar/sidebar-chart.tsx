@@ -8,7 +8,7 @@ import { Fragment } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { useTranslation } from "@plane/i18n";
-import type { TCycleEstimateType } from "@plane/types";
+import type { ICycle, TCycleEstimateType } from "@plane/types";
 import { Loader } from "@plane/blocks/skeleton";
 import { getDate } from "@plane/utils";
 // components
@@ -17,6 +17,11 @@ import { validateCycleSnapshot } from "@/components/cycles/analytics-sidebar/iss
 import { EstimateTypeDropdown } from "@/components/cycles/dropdowns";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
+
+const chartScope = (cycle: ICycle | null, estimateType: TCycleEstimateType) =>
+  estimateType === "points"
+    ? { total: cycle?.total_estimate_points || 0, cancelled: cycle?.cancelled_estimate_points || 0 }
+    : { total: cycle?.total_issues || 0, cancelled: cycle?.cancelled_issues || 0 };
 
 type ProgressChartProps = {
   workspaceSlug: string;
@@ -35,9 +40,8 @@ export const SidebarChart = observer(function SidebarChart(props: ProgressChartP
   const cycleDetails = validateCycleSnapshot(getCycleById(cycleId));
   const cycleStartDate = getDate(cycleDetails?.start_date);
   const cycleEndDate = getDate(cycleDetails?.end_date);
-  const totalEstimatePoints = cycleDetails?.total_estimate_points || 0;
-  const totalIssues = cycleDetails?.total_issues || 0;
   const estimateType = getEstimateTypeByCycleId(cycleId);
+  const scope = chartScope(cycleDetails, estimateType);
 
   const chartDistributionData =
     estimateType === "points" ? cycleDetails?.estimate_distribution : cycleDetails?.distribution || undefined;
@@ -74,12 +78,8 @@ export const SidebarChart = observer(function SidebarChart(props: ProgressChartP
             <Fragment>
               <ProgressChart
                 distribution={completionChartDistributionData}
-                totalIssues={estimateType === "points" ? totalEstimatePoints : totalIssues}
-                cancelledIssues={
-                  (estimateType === "points"
-                    ? cycleDetails?.cancelled_estimate_points
-                    : cycleDetails?.cancelled_issues) || 0
-                }
+                totalIssues={scope.total}
+                cancelledIssues={scope.cancelled}
                 plotTitle={estimateType === "points" ? t("points") : t("work_items")}
               />
             </Fragment>
