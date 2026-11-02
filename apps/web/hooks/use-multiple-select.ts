@@ -5,10 +5,9 @@
  */
 
 import { useCallback, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
 // hooks
 import { useMultipleSelectStore } from "@/hooks/store/use-multiple-select-store";
-//
-import useReloadConfirmations from "./use-reload-confirmation";
 
 export type TEntityDetails = {
   entityID: string;
@@ -38,8 +37,7 @@ export type TSelectionHelper = {
 
 export const useMultipleSelect = (props: Props) => {
   const { containerRef, disabled, entities } = props;
-  // router
-  // const router = useAppRouter();
+  const pathname = usePathname();
   // store hooks
   const {
     selectedEntityIds,
@@ -58,14 +56,8 @@ export const useMultipleSelect = (props: Props) => {
     getEntityDetailsFromEntityID,
   } = useMultipleSelectStore();
 
-  useReloadConfirmations(
-    selectedEntityIds && selectedEntityIds.length > 0,
-    "Are you sure you want to leave? Your current bulk operation selections will be lost.",
-    true,
-    () => {
-      clearSelection();
-    }
-  );
+  // a selection belongs to the list on screen
+  useEffect(() => () => clearSelection(), [pathname, clearSelection]);
 
   const groups = useMemo(() => Object.keys(entities), [entities]);
 
@@ -355,17 +347,6 @@ export const useMultipleSelect = (props: Props) => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [disabled, getActiveEntityDetails, entitiesList, groups, getPreviousAndNextEntities, handleActiveEntityChange]);
-
-  // clear selection on route change
-  // useEffect(() => {
-  //   const handleRouteChange = () => clearSelection();
-
-  //   router.events.on("routeChangeComplete", handleRouteChange);
-
-  //   return () => {
-  //     router.events.off("routeChangeComplete", handleRouteChange);
-  //   };
-  // }, [clearSelection, router.events]);
 
   // when entities list change, remove entityIds from the selected entities array, which are not present in the new list
   useEffect(() => {
