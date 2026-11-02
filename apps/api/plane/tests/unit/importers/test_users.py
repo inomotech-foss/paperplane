@@ -49,6 +49,11 @@ class TestUserMatcher:
     def test_matches_on_email(self):
         assert UserMatcher([ALICE]).match(account("ALICE@new.example")) is ALICE
 
+    def test_names_can_be_left_out(self):
+        nameless = account(email="other@elsewhere.example", display_name=ALICE.display_name)
+        assert UserMatcher([ALICE]).match(nameless) is ALICE
+        assert UserMatcher([ALICE], names=False).match(nameless) is None
+
     def test_rewritten_domain_wins_over_the_original_address(self):
         rules = UserRules(domains={"old.example": "new.example"})
 
