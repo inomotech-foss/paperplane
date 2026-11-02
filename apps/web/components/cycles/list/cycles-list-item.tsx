@@ -18,6 +18,7 @@ import { ListItem } from "@/components/core/list";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { MD_UP, useMediaQuery } from "@/hooks/use-media-query";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local imports
 import { CycleQuickActions } from "../quick-actions";
@@ -45,6 +46,7 @@ export const CyclesListItem = observer(function CyclesListItem(props: TCyclesLis
   const pathname = usePathname();
   // hooks
   const { isMobile } = usePlatformOS();
+  const isMdUp = useMediaQuery(MD_UP);
   // store hooks
   const { getCycleById } = useCycle();
 
@@ -113,17 +115,18 @@ export const CyclesListItem = observer(function CyclesListItem(props: TCyclesLis
           cycleDetails={cycleDetails}
           parentRef={parentRef}
           isActive={isActive}
+          showQuickActions={isMdUp}
         />
       }
       quickActionElement={
-        <div className="block md:hidden">
+        !isMdUp && (
           <CycleQuickActions
             parentRef={parentRef}
             cycleId={cycleId}
             projectId={projectId}
             workspaceSlug={workspaceSlug}
           />
-        </div>
+        )
       }
       isMobile={isMobile}
       parentRef={parentRef}

@@ -22,6 +22,7 @@ import { useCycleMenuItems } from "@/components/common/quick-actions-helper";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { useMountOnOpen } from "@/hooks/use-mount-on-open";
 // local imports
 import { ArchiveCycleModal } from "./archived-cycles/modal";
 import { CycleDeleteModal } from "./delete-modal";
@@ -43,6 +44,9 @@ export const CycleQuickActions = observer(function CycleQuickActions(props: Prop
   const [updateModal, setUpdateModal] = useState(false);
   const [archiveCycleModal, setArchiveCycleModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
+  const showUpdateModal = useMountOnOpen(updateModal);
+  const showArchiveModal = useMountOnOpen(archiveCycleModal);
+  const showDeleteModal = useMountOnOpen(deleteModal);
   // store hooks
   const { allowPermissions } = useUserPermissions();
   const { getCycleById, restoreCycle } = useCycle();
@@ -116,27 +120,33 @@ export const CycleQuickActions = observer(function CycleQuickActions(props: Prop
     <>
       {cycleDetails && (
         <div className="fixed">
-          <CycleCreateUpdateModal
-            data={cycleDetails}
-            isOpen={updateModal}
-            handleClose={() => setUpdateModal(false)}
-            workspaceSlug={workspaceSlug}
-            projectId={projectId}
-          />
-          <ArchiveCycleModal
-            workspaceSlug={workspaceSlug}
-            projectId={projectId}
-            cycleId={cycleId}
-            isOpen={archiveCycleModal}
-            handleClose={() => setArchiveCycleModal(false)}
-          />
-          <CycleDeleteModal
-            cycle={cycleDetails}
-            isOpen={deleteModal}
-            handleClose={() => setDeleteModal(false)}
-            workspaceSlug={workspaceSlug}
-            projectId={projectId}
-          />
+          {showUpdateModal && (
+            <CycleCreateUpdateModal
+              data={cycleDetails}
+              isOpen={updateModal}
+              handleClose={() => setUpdateModal(false)}
+              workspaceSlug={workspaceSlug}
+              projectId={projectId}
+            />
+          )}
+          {showArchiveModal && (
+            <ArchiveCycleModal
+              workspaceSlug={workspaceSlug}
+              projectId={projectId}
+              cycleId={cycleId}
+              isOpen={archiveCycleModal}
+              handleClose={() => setArchiveCycleModal(false)}
+            />
+          )}
+          {showDeleteModal && (
+            <CycleDeleteModal
+              cycle={cycleDetails}
+              isOpen={deleteModal}
+              handleClose={() => setDeleteModal(false)}
+              workspaceSlug={workspaceSlug}
+              projectId={projectId}
+            />
+          )}
           {additionalModals}
         </div>
       )}

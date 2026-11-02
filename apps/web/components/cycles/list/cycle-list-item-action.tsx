@@ -5,10 +5,9 @@
  */
 
 import type { MouseEvent } from "react";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
 import {
   CalendarOutline,
   MembersOutline,
@@ -36,6 +35,7 @@ import { useCycle } from "@/hooks/store/use-cycle";
 import { useMember } from "@/hooks/store/use-member";
 import { useUserPermissions, useUserProfile } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
+import { useMountOnOpen } from "@/hooks/use-mount-on-open";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 import { useTimeZoneConverter } from "@/hooks/use-timezone-converter";
 // local imports
@@ -50,19 +50,17 @@ type Props = {
   cycleDetails: ICycle;
   parentRef: React.RefObject<HTMLDivElement | null>;
   isActive?: boolean;
-};
-
-const defaultValues: Partial<ICycle> = {
-  start_date: null,
-  end_date: null,
+  /** The row renders its quick actions here on wider screens and next to the title otherwise. */
+  showQuickActions: boolean;
 };
 
 export const CycleListItemAction = observer(function CycleListItemAction(props: Props) {
-  const { workspaceSlug, projectId, cycleId, cycleDetails, parentRef, isActive = false } = props;
+  const { workspaceSlug, projectId, cycleId, cycleDetails, parentRef, isActive = false, showQuickActions } = props;
   // router
   const { projectId: routerProjectId } = useParams();
   //states
   const [transferIssuesModal, setTransferIssuesModal] = useState(false);
+  const showTransferIssuesModal = useMountOnOpen(transferIssuesModal);
   // hooks
   const { isMobile } = usePlatformOS();
   const { t } = useTranslation();
@@ -85,23 +83,23 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
 
   const { getUserDetails } = useMember();
 
-  // form
-  const { reset } = useForm({
-    defaultValues,
-  });
-
   // derived values
   const cycleStatus = getCycleGroup(cycleDetails.status);
 
-  const showIssueCount = useMemo(() => cycleStatus === "draft" || cycleStatus === "upcoming", [cycleStatus]);
+  const showIssueCount = cycleStatus === "draft" || cycleStatus === "upcoming";
 
-  const transferableIssuesCount = cycleDetails
-    ? (cycleDetails.total_issues ?? 0) - ((cycleDetails.cancelled_issues ?? 0) + (cycleDetails.completed_issues ?? 0))
-    : 0;
+  const transferableIssuesCount =
+    (cycleDetails.total_issues ?? 0) - ((cycleDetails.cancelled_issues ?? 0) + (cycleDetails.completed_issues ?? 0));
 
   const showTransferIssues = routerProjectId && transferableIssuesCount > 0 && cycleStatus === "completed";
 
-  const projectUTCOffset = getProjectUTCOffset();
+  const projectUTCOffset = isActive ? getProjectUTCOffset() : undefined;
+  const isTimeZoneDifferent = isProjectTimeZoneDifferent();
+  const userTimezoneRange = isTimeZoneDifferent
+    ? `${renderFormattedDateInUserTimezone(cycleDetails.start_date ?? "")} → ${renderFormattedDateInUserTimezone(
+        cycleDetails.end_date ?? ""
+      )}`
+    : "";
 
   const isEditingAllowed = allowPermissions(
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
@@ -160,13 +158,6 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
 
   const createdByDetails = cycleDetails.created_by ? getUserDetails(cycleDetails.created_by) : undefined;
 
-  useEffect(() => {
-    if (cycleDetails)
-      reset({
-        ...cycleDetails,
-      });
-  }, [cycleDetails, reset]);
-
   // handlers
   const openCycleOverview = (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     e.preventDefault();
@@ -182,11 +173,13 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
 
   return (
     <>
-      <TransferIssuesModal
-        handleClose={() => setTransferIssuesModal(false)}
-        isOpen={transferIssuesModal}
-        cycleId={cycleId.toString()}
-      />
+      {showTransferIssuesModal && (
+        <TransferIssuesModal
+          handleClose={() => setTransferIssuesModal(false)}
+          isOpen={transferIssuesModal}
+          cycleId={cycleId.toString()}
+        />
+      )}
       <button
         onClick={openCycleOverview}
         className={`z-1 flex flex-shrink-0 gap-1 text-11 text-accent-secondary ${isMobile || (isActive && !searchParams.has("peekCycle")) ? "flex" : "hidden group-hover:flex"}`}
@@ -217,11 +210,9 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
           <div className="flex gap-2">
             {/* Duration */}
             <Tooltip
-              label={`${t("project_cycles.in_your_timezone")}: ${renderFormattedDateInUserTimezone(
-                cycleDetails.start_date ?? ""
-              )} → ${renderFormattedDateInUserTimezone(cycleDetails.end_date ?? "")}`}
+              label={`${t("project_cycles.in_your_timezone")}: ${userTimezoneRange}`}
               layout="stacked"
-              disabled={!isProjectTimeZoneDifferent()}
+              disabled={!isTimeZoneDifferent}
             >
               <div className="flex items-center gap-1 text-11 font-medium text-tertiary">
                 <CalendarOutline className="my-auto h-3 w-3 flex-shrink-0" />
@@ -250,11 +241,9 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
               }}
               onChange={() => {}}
               placeholder={`${t("project_cycles.start_date")} - ${t("project_cycles.end_date")}`}
-              showTooltip={isProjectTimeZoneDifferent()}
+              showTooltip={isTimeZoneDifferent}
               tooltipHeading={t("project_cycles.in_your_timezone")}
-              tooltipContent={`${renderFormattedDateInUserTimezone(
-                cycleDetails.start_date ?? ""
-              )} → ${renderFormattedDateInUserTimezone(cycleDetails.end_date ?? "")}`}
+              tooltipContent={userTimezoneRange}
               mergeDates
               disabled
               weekStartsOn={userProfile?.start_of_the_week}
@@ -294,14 +283,14 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
           selected={!!cycleDetails.is_favorite}
         />
       )}
-      <div className="hidden md:block">
+      {showQuickActions && (
         <CycleQuickActions
           parentRef={parentRef}
           cycleId={cycleId}
           projectId={projectId}
           workspaceSlug={workspaceSlug}
         />
-      </div>
+      )}
     </>
   );
 });
