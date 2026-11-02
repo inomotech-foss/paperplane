@@ -74,8 +74,8 @@ def assert_matches_schema(response, surface="internal"):
     assert str(response.status_code) in documented, f"{method.upper()} {route} does not document {response.status_code}"
     content = documented[str(response.status_code)].get("content", {})
     assert "application/json" in content, f"{method.upper()} {route} {response.status_code} documents no JSON body"
-    body = {**content["application/json"]["schema"], "components": schema["components"]}
-    jsonschema.validate(response.json(), strict(body))
+    body = {**strict(content["application/json"]["schema"]), "components": strict(schema["components"])}
+    jsonschema.validate(response.json(), body)
 
 
 def documented(response, status=200, surface="internal"):

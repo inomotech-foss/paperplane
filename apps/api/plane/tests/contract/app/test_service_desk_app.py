@@ -20,6 +20,7 @@ from plane.db.models import (
     State,
 )
 from plane.db.models.service_desk import EmailDeliveryStatus, EmailDirection
+from plane.tests.openapi import documented
 from plane.tests.factories import ProjectFactory, ProjectMemberFactory, UserFactory, WorkspaceMemberFactory
 from plane.utils.issue_type import link_starter_type
 
@@ -203,7 +204,7 @@ class TestServiceDeskConfigEndpoint:
 @pytest.mark.contract
 class TestIssueEmailThreadEndpoint:
     @pytest.mark.django_db
-    def test_get_returns_404_without_thread(self, session_client, workspace, project):
+    def test_get_returns_null_without_thread(self, session_client, workspace, project):
         state = State.objects.create(
             name="Backlog",
             group="backlog",
@@ -216,7 +217,7 @@ class TestIssueEmailThreadEndpoint:
             project_id=project.id, type=link_starter_type(project), name="Plain issue", state_id=state.id
         )
         response = session_client.get(thread_url(workspace, project, issue))
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert documented(response) is None
 
     @pytest.mark.django_db
     def test_get_returns_thread_with_messages(self, session_client, workspace, project, email_issue):
@@ -231,9 +232,20 @@ class TestIssueEmailThreadEndpoint:
             body_text="the printer is broken",
         )
         response = session_client.get(thread_url(workspace, project, issue))
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["creator_email"] == "customer@example.com"
-        assert len(response.data["messages"]) == 1
+        body = documented(response)
+        assert body["creator_email"] == "customer@example.com"
+        assert len(body["messages"]) == 1
+
+    @pytest.mark.django_db
+    def test_get_is_forbidden_for_guests(self, db, workspace, project, email_issue):
+        issue, _ = email_issue
+        guest = UserFactory(username=uuid4().hex)
+        WorkspaceMemberFactory(workspace=workspace, member=guest, role=5)
+        ProjectMemberFactory(project=project, member=guest, role=5)
+        client = APIClient()
+        client.force_authenticate(user=guest)
+        response = client.get(thread_url(workspace, project, issue))
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @pytest.mark.django_db
     def test_patch_updates_recipients(self, session_client, workspace, project, email_issue):

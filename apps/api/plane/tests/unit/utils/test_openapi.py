@@ -29,7 +29,7 @@ from plane.utils.openapi.pagination import FLAT, GROUPED, SUB_GROUPED, paginated
 from plane.app.permissions import ProjectEntityPermission
 from plane.app.views.base import BaseViewSet
 from plane.utils.openapi.hooks import is_callable, is_refused
-from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, _source_presence, single
+from plane.utils.openapi.schema import ALWAYS, MAYBE_NULL, OMITTED, DetailOrList, Nullable, _source_presence, single
 from plane.utils.openapi.fields import ClientJsonField, is_client_json, typed_json
 from plane.utils.openapi.serializers import DictOf, EmptyObjectSerializer
 from plane.utils.openapi.surfaces import SURFACES
@@ -304,6 +304,15 @@ class TestResponseHelpers:
         schema = _schema(path("items/", View.as_view()), path("items/<uuid:pk>/", View.as_view()))
         assert _body(schema, "/items/") == {"type": "array", "items": {"$ref": "#/components/schemas/PageItem"}}
         assert _body(schema, "/items/{pk}/") == {"$ref": "#/components/schemas/PageItem"}
+
+    def test_nullable(self):
+        class View(APIView):
+            @extend_schema(responses={200: Nullable(PageItemSerializer)})
+            def get(self, request):
+                pass
+
+        schema = _schema(path("items/", View.as_view()))
+        assert _body(schema, "/items/") == {"allOf": [{"$ref": "#/components/schemas/PageItem"}], "nullable": True}
 
     def test_empty_object(self):
         class View(APIView):

@@ -45,7 +45,7 @@ export class ServiceDeskService {
     );
   }
 
-  async getEmailThread(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueEmailThread> {
+  async getEmailThread(workspaceSlug: string, projectId: string, issueId: string): Promise<TIssueEmailThread | null> {
     return unwrap(
       apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/issues/{issue_id}/email-thread/", {
         params: issuePath(workspaceSlug, projectId, issueId),

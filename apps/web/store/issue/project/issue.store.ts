@@ -69,14 +69,8 @@ export class ProjectIssues extends BaseIssuesStore implements IProjectIssues {
     this.router = _rootStore.rootStore.router;
   }
 
-  /**
-   * Fetches the project details
-   * @param workspaceSlug
-   * @param projectId
-   */
-  fetchParentStats = async (workspaceSlug: string, projectId?: string) => {
-    projectId && this.rootIssueStore.rootStore.projectRoot.project.fetchProjectDetails(workspaceSlug, projectId);
-  };
+  /** The project details hold no work item stats, so loading or changing work items leaves them as they are. */
+  fetchParentStats = () => {};
 
   /** */
   updateParentStats = () => {};

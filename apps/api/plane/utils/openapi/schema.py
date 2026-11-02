@@ -118,6 +118,13 @@ class DetailOrList:
         return serializers.ListSerializer(child=serializer)
 
 
+class Nullable:
+    """Response body that is either `serializer` or JSON null. Use it as a value of the responses dict."""
+
+    def __init__(self, serializer):
+        self.serializer = serializer
+
+
 class AutoSchema(SpectacularAutoSchema):
     """Marks response fields as required when DRF always emits them, and nullable when the source can be null.
 
@@ -156,6 +163,9 @@ class AutoSchema(SpectacularAutoSchema):
     def _get_response_for_code(self, serializer, status_code, media_types=None, direction="response"):
         if isinstance(serializer, DetailOrList):
             serializer = serializer.resolve(self.path)
+        if isinstance(serializer, Nullable):
+            component = self.resolve_serializer(force_instance(serializer.serializer), direction)
+            serializer = {"allOf": [component.ref], "nullable": True}
         if isinstance(serializer, serializers.Field) and not isinstance(serializer, serializers.BaseSerializer):
             # A bare field, such as a DictField for a body keyed by id.
             serializer = self._map_serializer_field(serializer, direction)
