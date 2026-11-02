@@ -18,7 +18,7 @@
 #   docker compose -f docker-compose-test.yml down -v
 #
 # Notes:
-# - Postgres / Valkey / RabbitMQ / MinIO start with health checks; the test
+# - Postgres / Valkey / MinIO start with health checks; the test
 #   runner only starts once each dependency is healthy.
 # - Data dirs are tmpfs so every run begins from a clean state.
 # - Env vars come from apps/api/.env (the same file the local stack uses); tests
@@ -54,24 +54,6 @@ services:
       test: ["CMD", "valkey-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 10
-
-  test-mq:
-    image: rabbitmq:3.13.6-management-alpine
-    networks:
-      - test_env
-    env_file:
-      - ./apps/api/.env
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-plane}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-plane}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-plane}
-    tmpfs:
-      - /var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 10s
       retries: 10
 
   test-minio:
@@ -119,7 +101,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-plane}:${POSTGRES_PASSWORD:-plane}@test-db:5432/${POSTGRES_DB:-plane}
       REDIS_HOST: test-redis
       REDIS_URL: redis://test-redis:6379/
-      RABBITMQ_HOST: test-mq
+      # Celery publishes to Valkey. No worker runs, so RabbitMQ is not needed.
+      AMQP_URL: redis://test-redis:6379/15
       AWS_S3_ENDPOINT_URL: http://test-minio:9000
       # Magic-link tests mock the celery delay but the view first checks that
       # EMAIL_HOST is configured. Set a placeholder so the check passes.
@@ -131,8 +114,6 @@ services:
       test-db:
         condition: service_healthy
       test-redis:
-        condition: service_healthy
-      test-mq:
         condition: service_healthy
       test-minio:
         condition: service_healthy

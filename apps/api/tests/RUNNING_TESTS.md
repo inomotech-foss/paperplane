@@ -1,6 +1,6 @@
 # Running the API Test Suite
 
-This guide covers running the Django/pytest suite for `apps/api` inside Docker via `docker-compose-test.yml` at the repo root. The compose file boots an isolated stack — Postgres, Valkey (Redis), RabbitMQ, MinIO — with tmpfs-backed data dirs, so every run begins from a clean slate and a single teardown command removes everything.
+This guide covers running the Django/pytest suite for `apps/api` inside Docker via `docker-compose-test.yml` at the repo root. The compose file boots an isolated stack (Postgres, Valkey and MinIO) with tmpfs-backed data dirs, so every run begins from a clean slate and a single teardown command removes everything.
 
 For background on the test layout, markers, and fixtures, see [`TESTING_GUIDE.md`](./TESTING_GUIDE.md) and [`README.md`](./README.md).
 
@@ -68,13 +68,12 @@ docker compose -f docker-compose-test.yml down -v
 | ------------ | --------------------------------------------------- | --------------------------------------- |
 | `test-db`    | `postgres:15.7-alpine`                              | Application database                    |
 | `test-redis` | `valkey/valkey:7.2.11-alpine`                       | Cache / Celery broker                   |
-| `test-mq`    | `rabbitmq:3.13.6-management-alpine`                 | Task queue                              |
 | `test-minio` | `docker.io/pgsty/silo:RELEASE.2026-09-16T00-00-00Z` | S3-compatible object storage            |
 | `api-tests`  | built from `apps/api/Dockerfile.dev`                | `uv sync`s the locked deps, runs pytest |
 
-All four dependencies expose health checks; `api-tests` waits for `service_healthy` on each via `depends_on`, so pytest only starts once the stack is ready.
+All three dependencies expose health checks; `api-tests` waits for `service_healthy` on each via `depends_on`, so pytest only starts once the stack is ready.
 
-Test-time env overrides live in the compose file itself (`POSTGRES_HOST=test-db`, `REDIS_URL=redis://test-redis:6379/`, `AWS_S3_ENDPOINT_URL=http://test-minio:9000`, `DJANGO_SETTINGS_MODULE=plane.settings.test`). Everything else is inherited from `apps/api/.env`.
+Test-time env overrides live in the compose file itself (`POSTGRES_HOST=test-db`, `REDIS_URL=redis://test-redis:6379/`, `AMQP_URL=redis://test-redis:6379/15`, `AWS_S3_ENDPOINT_URL=http://test-minio:9000`, `DJANGO_SETTINGS_MODULE=plane.settings.test`). Everything else is inherited from `apps/api/.env`.
 
 ## Troubleshooting
 
@@ -82,4 +81,5 @@ Test-time env overrides live in the compose file itself (`POSTGRES_HOST=test-db`
 - **Port already in use** — none of the test services publish host ports; if you see this it's coming from a different compose stack. Stop the local stack (`docker compose -f docker-compose-local.yml down`).
 - **Stale image after dependency changes** — rebuild explicitly: `docker compose -f docker-compose-test.yml build --no-cache api-tests`.
 - **MinIO bucket missing** — the `test-minio` entrypoint creates the bucket named by `AWS_S3_BUCKET_NAME` (default `uploads`). Change the value in `apps/api/.env` and re-run.
+- **RabbitMQ fails with `.erlang.cookie` EACCES or hangs on start**: the test stack does not use RabbitMQ. Celery publishes to Valkey. For a local dev stack, set `AMQP_URL="redis://localhost:6379/15"` in `apps/api/.env` to use Valkey as the Celery broker as well.
 - **Database state leaking between runs** — confirm you ran `down -v` (not just `down`). The tmpfs mounts are torn down with the container, but the network and any externally created volumes need `-v` to clear.
