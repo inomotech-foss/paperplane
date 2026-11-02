@@ -5,9 +5,9 @@
  */
 
 import { Redis as HocuspocusRedis } from "@hocuspocus/extension-redis";
-import { Redlock } from "@sesamecare-oss/redlock";
+import { ExecutionError, Redlock, ResourceLockedError } from "@sesamecare-oss/redlock";
 import { OutgoingMessage } from "@hocuspocus/server";
-import type { onConfigurePayload } from "@hocuspocus/server";
+import type { onConfigurePayload, onStoreDocumentPayload } from "@hocuspocus/server";
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
 import { waitForRedisReady } from "@/lib/wait-for-redis";
@@ -21,6 +21,16 @@ const getRedisClient = () => {
     throw new AppError("Redis client not initialized");
   }
   return redisClient;
+};
+
+// Redlock reports a held lock and an unreachable Redis with the same error. Only the votes tell them apart.
+const isLockedByAnotherInstance = async (lockError: unknown): Promise<boolean> => {
+  if (!(lockError instanceof ExecutionError)) return false;
+  const votesAgainst: Error[] = [];
+  for (const attempt of await Promise.allSettled(lockError.attempts)) {
+    if (attempt.status === "fulfilled") votesAgainst.push(...attempt.value.votesAgainst.values());
+  }
+  return votesAgainst.length > 0 && votesAgainst.every((vote) => vote instanceof ResourceLockedError);
 };
 
 export class Redis extends HocuspocusRedis {
@@ -51,6 +61,27 @@ export class Redis extends HocuspocusRedis {
     // Listen for admin messages
     this.sub.on("message", this.handleAdminMessage);
     logger.info(`[Redis] Attached admin message listener`);
+  }
+
+  /**
+   * The upstream hook skips the save whenever the lock fails, so an unreachable Redis silently dropped every
+   * save. Only skip when another instance holds the lock. Otherwise store without it, since saves are full-state
+   * writes.
+   */
+  async onStoreDocument({ documentName }: onStoreDocumentPayload) {
+    const resource = `${this.configuration.prefix}:${documentName}:lock`;
+    try {
+      const lock = await this.redlock.acquire([resource], this.configuration.lockTimeout);
+      const oldLock = this.locks.get(resource);
+      if (oldLock?.release) await oldLock.release;
+      this.locks.set(resource, { lock });
+    } catch (error) {
+      if (await isLockedByAnotherInstance(error)) {
+        // An empty message makes Hocuspocus stop the store chain without logging an error
+        throw new Error("", { cause: error });
+      }
+      logger.warn(`[Redis] Storing ${documentName} without a lock`, new AppError(error));
+    }
   }
 
   private handleAdminMessage = async (channel: string, message: string) => {
