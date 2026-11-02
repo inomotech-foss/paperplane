@@ -160,6 +160,27 @@ describe("usePageFallback", () => {
     expect(updatePageDescription).not.toHaveBeenCalled();
   });
 
+  it("shows the stored page without saving when a sync timeout hits an empty doc", async () => {
+    const { editor, fetchPageDescription, updatePageDescription, props, rerender } = setup({
+      fetchPageDescription: vi.fn(async () => new ArrayBuffer(4)),
+    });
+    rerender(props(connected));
+    await flush();
+    vi.mocked(fetchPageDescription).mockClear();
+    vi.mocked(updatePageDescription).mockClear();
+    editor.setProviderDocument.mockClear();
+    editor.isProviderDocumentEmpty.mockReturnValueOnce(true).mockReturnValueOnce(true);
+
+    rerender(props(syncTimeout));
+    await flush();
+    await act(() => vi.advanceTimersByTimeAsync(AUTO_SAVE_MS * 3));
+
+    expect(fetchPageDescription).toHaveBeenCalledTimes(1);
+    expect(editor.setProviderDocument).toHaveBeenCalledWith(new Uint8Array(4));
+    expect(seed).not.toHaveBeenCalled();
+    expect(updatePageDescription).not.toHaveBeenCalled();
+  });
+
   it("skips the save when the stored page already has every change", async () => {
     hasChangesBeyond.mockReturnValue(false);
     const { editor, updatePageDescription } = setup({ fetchPageDescription: vi.fn(async () => new ArrayBuffer(4)) });

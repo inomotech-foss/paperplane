@@ -29,6 +29,9 @@ export const {
  * @param {Y.Doc} yDoc
  * @returns {boolean}
  */
+// Updates applied from the stored page. They hold no local edits.
+export const STORED_PAGE_ORIGIN = "stored-page";
+
 export const isDocumentEditorYDocEmpty = (yDoc: Y.Doc): boolean =>
   yDoc.getXmlFragment("default").length === 0 && yDoc.getXmlFragment("title").length === 0;
 
