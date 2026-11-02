@@ -9,11 +9,11 @@ import { useRender } from "@base-ui/react/use-render";
 import { cn } from "@plane/utils";
 
 /** Lifts an element above the card link so it gets its own clicks and hover. */
-export const clickableCardRaisedClassName = "relative z-[2]";
+export const clickableCardRaisedClassName = "relative z-2";
 
 /** Stretches an element over the card. `ClickableCardLink` applies it, use it directly only for a non-link target. */
 export const clickableCardStretchClassName =
-  "outline-none after:absolute after:inset-0 after:z-[1] focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-accent-strong";
+  "outline-none after:absolute after:inset-0 after:z-1 focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-accent-strong";
 
 export type ClickableCardProps = useRender.ComponentProps<"div">;
 

@@ -102,7 +102,7 @@ export const ModuleListItem = observer(function ModuleListItem(props: Props) {
       appendTitleElement={
         <button
           onClick={openModuleOverview}
-          className={`z-[5] flex-shrink-0 ${isMobile ? "flex" : "hidden group-hover:flex"}`}
+          className={`z-5 flex-shrink-0 ${isMobile ? "flex" : "hidden group-hover:flex"}`}
         >
           <InfoOutline className="h-4 w-4 text-placeholder" />
         </button>

@@ -66,7 +66,7 @@ describe("ListItem", () => {
     renderItem();
     const card = screen.getByRole("link", { name: "Roadmap" }).closest(".isolate");
     expect(card).not.toBeNull();
-    const raised = screen.getByRole("button", { name: "Expand" }).closest(".z-\\[2\\]");
+    const raised = screen.getByRole("button", { name: "Expand" }).closest(".z-2");
     expect(raised).not.toBeNull();
     expect(card?.contains(raised)).toBe(true);
     if (card) {

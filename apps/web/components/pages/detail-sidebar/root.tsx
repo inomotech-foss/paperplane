@@ -248,7 +248,7 @@ export const PageDetailsTreeSidebar = observer(function PageDetailsTreeSidebar()
         tabIndex={0}
         aria-label={t("aria_labels.resize.page_tree")}
         className={cn(
-          "absolute top-0 right-0 z-[20] h-full w-1 translate-x-1/2 cursor-ew-resize touch-none transition-colors duration-200",
+          "absolute top-0 right-0 z-10 h-full w-1 translate-x-1/2 cursor-ew-resize touch-none transition-colors duration-200",
           resize.isResizing ? "w-1.5 bg-layer-1" : "hover:bg-surface-2"
         )}
         {...resize.handleProps}

@@ -46,7 +46,7 @@ export const renderMentionsDropdown =
             onClose: () => handleClose(props.editor),
           } satisfies MentionsListDropdownProps,
           editor: props.editor,
-          className: "fixed z-[100]",
+          className: "fixed z-floating",
         });
         if (!props.clientRect) return;
         props.editor.commands.addActiveDropbarExtension(CORE_EXTENSIONS.MENTION);

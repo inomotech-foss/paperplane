@@ -75,7 +75,7 @@ export const emojiSuggestion: EmojiOptions["suggestion"] = {
             forceOpen,
           } satisfies EmojisListDropdownProps,
           editor: props.editor,
-          className: "fixed z-[100]",
+          className: "fixed z-floating",
         });
         if (!props.clientRect) return;
         props.editor.commands.addActiveDropbarExtension(CORE_EXTENSIONS.EMOJI);

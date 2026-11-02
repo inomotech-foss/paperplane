@@ -118,7 +118,7 @@ export const InboxIssueActionsMobileHeader = observer(function InboxIssueActions
         onClick={() => setIsMobileSidebar(!isMobileSidebar)}
         className={cn("my-auto mr-2 h-4 w-4 flex-shrink-0", isMobileSidebar ? "text-accent-primary" : "text-secondary")}
       />
-      <div className="z-[15] flex w-full items-center gap-2 bg-surface-1">
+      <div className="z-10 flex w-full items-center gap-2 bg-surface-1">
         <div className="flex items-center gap-x-2">
           <IconButton
             variant="secondary"

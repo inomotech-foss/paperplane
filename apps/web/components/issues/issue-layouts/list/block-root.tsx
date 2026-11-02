@@ -129,7 +129,7 @@ export const IssueBlockRoot = observer(function IssueBlockRoot(props: Props) {
   const subIssues = subIssuesStore.subIssuesByIssueId(issueId);
   return (
     <div className="relative" ref={issueBlockRef} id={getIssueBlockId(issueId, groupId)}>
-      <DropIndicator classNames={"absolute top-0 z-[2]"} isVisible={instruction === "DRAG_OVER"} />
+      <DropIndicator classNames={"absolute top-0 z-2"} isVisible={instruction === "DRAG_OVER"} />
       <RenderIfVisible
         key={`${issueId}`}
         root={containerRef}
@@ -179,7 +179,7 @@ export const IssueBlockRoot = observer(function IssueBlockRoot(props: Props) {
             shouldRenderByDefault={isExpanded}
           />
         ))}
-      {isLastChild && <DropIndicator classNames={"absolute z-[2]"} isVisible={instruction === "DRAG_BELOW"} />}
+      {isLastChild && <DropIndicator classNames={"absolute z-2"} isVisible={instruction === "DRAG_BELOW"} />}
     </div>
   );
 });

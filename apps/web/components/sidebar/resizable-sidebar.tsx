@@ -126,7 +126,7 @@ export function ResizableSidebar({
       <div
         id="main-sidebar"
         className={cn(
-          "z-20 h-full border-r border-subtle bg-surface-1",
+          "z-sidebar h-full border-r border-subtle bg-surface-1",
           !isResizing && "transition-all duration-300 ease-in-out",
           isCollapsed ? "w-0 translate-x-[-100%] opacity-0" : "translate-x-0 opacity-100",
           isMobile && "absolute",
@@ -152,7 +152,7 @@ export function ResizableSidebar({
           {/* Resize Handle */}
           <div
             className={cn(
-              "absolute z-[20] h-full w-1 cursor-ew-resize touch-none transition-all duration-200",
+              "absolute z-10 h-full w-1 cursor-ew-resize touch-none transition-all duration-200",
               !isResizing && "hover:bg-surface-2",
               isResizing && "w-1.5 bg-layer-1",
               "top-0 right-0"
@@ -164,7 +164,7 @@ export function ResizableSidebar({
       {/* Peek View */}
       <div
         className={cn(
-          "shadow-sm absolute left-0 z-20 h-full bg-surface-1",
+          "shadow-sm absolute left-0 z-sidebar h-full bg-surface-1",
           !isResizing && "transition-all duration-300 ease-in-out",
           isCollapsed && showPeek ? "translate-x-0 opacity-100" : "translate-x-[-100%] opacity-0",
           "pointer-events-none",
@@ -181,7 +181,7 @@ export function ResizableSidebar({
       >
         <aside
           className={cn(
-            "group/sidebar relative z-20 flex h-full w-full flex-col overflow-hidden bg-surface-1 pt-4",
+            "group/sidebar relative z-10 flex h-full w-full flex-col overflow-hidden bg-surface-1 pt-4",
             "self-center rounded-md rounded-tl-none rounded-bl-none border-r border-subtle",
             isAnyExtendedSidebarExpanded && "rounded-none"
           )}
@@ -190,7 +190,7 @@ export function ResizableSidebar({
           {/* Resize Handle */}
           <div
             className={cn(
-              "absolute z-[20] h-full w-1 cursor-ew-resize touch-none transition-all duration-200",
+              "absolute z-10 h-full w-1 cursor-ew-resize touch-none transition-all duration-200",
               !isResizing && "hover:bg-surface-2",
               isResizing && "bg-layer-1",
               "top-0 right-0"

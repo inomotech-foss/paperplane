@@ -28,14 +28,14 @@ export const WeekChartView = observer(function WeekChartView() {
           >
             {/** Header Div */}
             <div
-              className="sticky top-0 z-[5] w-full flex-shrink-0 bg-surface-1 outline-[1px] outline-subtle-1"
+              className="sticky top-0 z-5 w-full flex-shrink-0 bg-surface-1 outline-[1px] outline-subtle-1"
               style={{
                 height: `${HEADER_HEIGHT}px`,
               }}
             >
               {/** Main Months Title */}
               <div className="inline-flex h-7 w-full justify-between">
-                <div className="sticky left-(--timeline-sidebar-size) z-[1] m-1 flex items-center bg-surface-1 px-3 py-1 text-13 font-regular whitespace-nowrap text-secondary capitalize">
+                <div className="sticky left-(--timeline-sidebar-size) z-1 m-1 flex items-center bg-surface-1 px-3 py-1 text-13 font-regular whitespace-nowrap text-secondary capitalize">
                   {block?.title}
                 </div>
                 <div className="sticky px-3 py-2 text-11 whitespace-nowrap text-placeholder capitalize">

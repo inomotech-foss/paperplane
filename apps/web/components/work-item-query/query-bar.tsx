@@ -224,7 +224,7 @@ export const WorkItemQueryBar = observer(function WorkItemQueryBar(props: Props)
             <div
               role="alert"
               className={cn(
-                "absolute top-full left-0 z-30 mt-1 hidden w-max max-w-full flex-col gap-0.5 rounded-md border border-subtle bg-layer-1 px-2 py-1 text-11 text-danger-primary shadow-overlay-100",
+                "absolute top-full left-0 z-popover mt-1 hidden w-max max-w-full flex-col gap-0.5 rounded-md border border-subtle bg-layer-1 px-2 py-1 text-11 text-danger-primary shadow-overlay-100",
                 "group-focus-within/query:flex group-has-[.cm-tooltip-autocomplete]/query:hidden!"
               )}
             >

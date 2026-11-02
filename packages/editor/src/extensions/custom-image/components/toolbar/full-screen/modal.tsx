@@ -198,7 +198,7 @@ function ImageFullScreenModalWithoutPortal(props: Props) {
 
   return (
     <div
-      className={cn("pointer-events-none fixed inset-0 z-50 size-full bg-black/90 opacity-0 transition-opacity", {
+      className={cn("pointer-events-none fixed inset-0 z-modal size-full bg-black/90 opacity-0 transition-opacity", {
         "editor-image-full-screen-modal pointer-events-auto opacity-100": isFullScreenEnabled,
         "cursor-default": !isDragging,
         "cursor-grabbing": isDragging,

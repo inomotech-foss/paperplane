@@ -87,7 +87,7 @@ describe("ClickableCard", () => {
   it("raises actions above the link", () => {
     renderCard();
     const raised = screen.getByRole("button", { name: "Favorite" }).parentElement;
-    expect(raised?.className.split(" ")).toEqual(expect.arrayContaining(["relative", "z-[2]"]));
+    expect(raised?.className.split(" ")).toEqual(expect.arrayContaining(["relative", "z-2"]));
   });
 
   it("runs the link handler on a plain click", () => {

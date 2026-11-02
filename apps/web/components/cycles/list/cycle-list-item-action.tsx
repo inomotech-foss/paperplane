@@ -189,7 +189,7 @@ export const CycleListItemAction = observer(function CycleListItemAction(props: 
       />
       <button
         onClick={openCycleOverview}
-        className={`z-[1] flex flex-shrink-0 gap-1 text-11 text-accent-secondary ${isMobile || (isActive && !searchParams.has("peekCycle")) ? "flex" : "hidden group-hover:flex"}`}
+        className={`z-1 flex flex-shrink-0 gap-1 text-11 text-accent-secondary ${isMobile || (isActive && !searchParams.has("peekCycle")) ? "flex" : "hidden group-hover:flex"}`}
       >
         <ShowOutline className="my-auto h-4 w-4 text-accent-secondary" />
         <span>{t("project_cycles.more_details")}</span>

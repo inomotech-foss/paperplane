@@ -52,7 +52,7 @@ export const GanttRollupBracket = observer(function GanttRollupBracket(props: Pr
     // the overrun shows in red on the bracket itself; the tooltip says by how much
     <Tooltip label={lines.join(" · ")} layout="stacked">
       <div
-        className="absolute bottom-0.5 z-[4] h-1.5 rounded-b-sm border-x-2 border-b-2 border-strong"
+        className="absolute bottom-0.5 z-4 h-1.5 rounded-b-sm border-x-2 border-b-2 border-strong"
         style={{ left: `${left}px`, width: `${width}px` }}
         data-testid="gantt-rollup-bracket"
       >

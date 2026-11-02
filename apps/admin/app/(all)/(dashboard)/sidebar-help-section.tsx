@@ -113,7 +113,7 @@ export const AdminSidebarHelpSection = observer(function AdminSidebarHelpSection
             dropped), the same shape Propel's own panels animate with. */}
         {isNeedHelpOpen && (
           <div
-            className={`absolute bottom-2 z-[15] min-w-[10rem] ${
+            className={`absolute bottom-2 z-10 min-w-[10rem] ${
               isSidebarCollapsed ? "left-full" : "-left-[75px]"
             } animate-fade-in divide-y divide-subtle-1 rounded-sm bg-surface-1 p-1 whitespace-nowrap shadow-raised-100 motion-reduce:animate-none`}
             ref={helpOptionsRef}

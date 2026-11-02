@@ -173,7 +173,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
   return (
     // The popover owns the portal, positioning, outside press and Escape, so the outside-click
     // detector and the dropdown key handler go (Ruling 36).
-    <div className="relative z-19">
+    <div className="relative z-10">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           disabled={disabled}
@@ -319,7 +319,7 @@ export const ImagePickerPopover = observer(function ImagePickerPopover(props: Pr
                             >
                               <button
                                 type="button"
-                                className="absolute top-0 right-0 z-40 -translate-y-1/2 rounded-sm bg-surface-2 px-2 py-0.5 text-11 font-medium text-secondary"
+                                className="absolute top-0 right-0 z-10 -translate-y-1/2 rounded-sm bg-surface-2 px-2 py-0.5 text-11 font-medium text-secondary"
                               >
                                 Edit
                               </button>

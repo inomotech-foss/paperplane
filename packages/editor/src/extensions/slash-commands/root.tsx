@@ -81,7 +81,7 @@ const Command = Extension.create<SlashCommandOptions>({
                   onClose: () => handleClose(props.editor),
                 } satisfies SlashCommandsMenuProps,
                 editor: props.editor,
-                className: "fixed z-[100]",
+                className: "fixed z-floating",
               });
               if (!props.clientRect) return;
               props.editor.commands.addActiveDropbarExtension(CORE_EXTENSIONS.SLASH_COMMANDS);

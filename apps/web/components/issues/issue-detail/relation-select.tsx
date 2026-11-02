@@ -120,7 +120,7 @@ export const IssueRelationSelect = observer(function IssueRelationSelect(props: 
                 return (
                   <div
                     key={relationIssueId}
-                    className={`group relative z-[1] flex items-center gap-1 rounded-sm px-1.5 pt-1 pb-1 leading-3 hover:bg-surface-2 ${currRelationOption?.className}`}
+                    className={`group relative z-1 flex items-center gap-1 rounded-sm px-1.5 pt-1 pb-1 leading-3 hover:bg-surface-2 ${currRelationOption?.className}`}
                   >
                     <Tooltip label={`Title: ${currentIssue.name}`} layout="stacked" disabled={isMobile}>
                       <Link

@@ -168,7 +168,7 @@ export const IssuePeekOverview = observer(function IssuePeekOverview(props: TIss
           aria-modal="true"
           aria-label={panelLabel}
           tabIndex={-1}
-          className="fixed top-0 right-0 z-20 h-full w-1/2 border-l border-subtle-1 bg-surface-1 shadow-raised-200 outline-none"
+          className="fixed top-0 right-0 z-peek h-full w-1/2 border-l border-subtle-1 bg-surface-1 shadow-raised-200 outline-none"
         >
           <SidePeekView anchor={anchor} handleClose={handleClose} issueDetails={issueDetails} />
         </div>
@@ -177,7 +177,7 @@ export const IssuePeekOverview = observer(function IssuePeekOverview(props: TIss
         <>
           <div
             aria-hidden="true"
-            className="fixed inset-0 z-20 animate-fade-in bg-backdrop motion-reduce:animate-none"
+            className="fixed inset-0 z-peek animate-fade-in bg-backdrop motion-reduce:animate-none"
           />
           <div
             ref={panelRef}
@@ -185,7 +185,7 @@ export const IssuePeekOverview = observer(function IssuePeekOverview(props: TIss
             aria-modal="true"
             aria-label={panelLabel}
             tabIndex={-1}
-            className={`fixed top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 animate-fade-in rounded-lg bg-surface-1 transition-all duration-300 outline-none motion-reduce:animate-none ${
+            className={`fixed top-1/2 left-1/2 z-peek -translate-x-1/2 -translate-y-1/2 animate-fade-in rounded-lg bg-surface-1 transition-all duration-300 outline-none motion-reduce:animate-none ${
               peekMode === "modal" ? "h-[70%] w-3/5" : "size-[95%]"
             }`}
           >

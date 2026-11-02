@@ -16,6 +16,24 @@
 @import "@makeplane/propel/styles";
 @source "../**/*.{ts,tsx}";
 
+/*
+ * Shared z-index layers, aligned with propel's own (header 18, sidebar 20, rail 26, dialogs and popovers 50,
+ * toasts 60). Local stacking inside a component uses z-0 to z-10 under an `isolate` parent.
+ */
+@theme static {
+  --z-index-subheader: 15;
+  --z-index-header: 18;
+  --z-index-sidebar: 20;
+  --z-index-peek: 25;
+  --z-index-rail: 26;
+  --z-index-nav: 27;
+  --z-index-modal: 50;
+  --z-index-popover: 50;
+  --z-index-toast: 60;
+  --z-index-submenu: 70;
+  --z-index-floating: 100;
+}
+
 * {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;

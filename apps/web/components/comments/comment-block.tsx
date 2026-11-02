@@ -36,7 +36,7 @@ export const CommentBlock = observer(function CommentBlock(props: TCommentBlock)
       />
       <div
         className={cn(
-          "transition-border relative z-[3] flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-subtle bg-layer-2 uppercase shadow-raised-100 duration-1000"
+          "transition-border relative z-3 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-subtle bg-layer-2 uppercase shadow-raised-100 duration-1000"
         )}
       >
         <ReplyOutline width={14} height={14} className="text-secondary" aria-hidden="true" />

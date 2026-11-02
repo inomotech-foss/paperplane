@@ -182,7 +182,7 @@ export function NestedSubmenuRoot(props: NestedSubmenuProps) {
             side={inheritedSide ?? "right"}
             align="start"
             sideOffset={4}
-            className="z-70"
+            className="z-submenu"
           >
             <BasePopover.Popup
               // The flyout portals to <body>; ancestors in a DIFFERENT floating tree (e.g. a

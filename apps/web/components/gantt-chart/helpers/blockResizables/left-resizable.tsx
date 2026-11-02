@@ -52,11 +52,11 @@ export const LeftResizable = observer(function LeftResizable(props: LeftResizabl
         onMouseOut={() => {
           setIsHovering(false);
         }}
-        className="absolute top-1/2 -left-1.5 z-[7] h-full w-3 -translate-y-1/2 cursor-col-resize rounded-md"
+        className="absolute top-1/2 -left-1.5 z-7 h-full w-3 -translate-y-1/2 cursor-col-resize rounded-md"
       />
       <div
         className={cn(
-          "pointer-events-none absolute top-1/2 left-1 z-[7] h-7 w-1 -translate-y-1/2 rounded-xs bg-surface-1 opacity-0 transition-all duration-300 group-hover:opacity-100",
+          "pointer-events-none absolute top-1/2 left-1 z-7 h-7 w-1 -translate-y-1/2 rounded-xs bg-surface-1 opacity-0 transition-all duration-300 group-hover:opacity-100",
           {
             "-left-1.5 opacity-100": isLeftResizing,
           }

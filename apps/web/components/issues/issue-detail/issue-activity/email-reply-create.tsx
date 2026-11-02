@@ -196,7 +196,7 @@ export const EmailReplyCreate = observer(function EmailReplyCreate(props: TEmail
   return (
     // oxlint-disable-next-line jsx_a11y/no-static-element-interactions
     <div
-      className={cn("sticky bottom-0 z-[4] bg-surface-1 sm:static")}
+      className={cn("sticky bottom-0 z-4 bg-surface-1 sm:static")}
       onKeyDown={(e) => {
         if (
           e.key === "Enter" &&

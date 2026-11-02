@@ -109,7 +109,7 @@ describe("ProjectCard", () => {
     const card = screen.getByRole("button", { name: actions[0] }).closest(".isolate");
     expect(card?.classList.contains("isolate")).toBe(true);
     for (const name of actions) {
-      const raised = screen.getByRole("button", { name }).closest(".z-\\[2\\]");
+      const raised = screen.getByRole("button", { name }).closest(".z-2");
       expect(raised).not.toBeNull();
       expect(card?.contains(raised)).toBe(true);
     }

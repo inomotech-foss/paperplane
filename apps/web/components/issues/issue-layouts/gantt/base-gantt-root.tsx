@@ -249,7 +249,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
       <QuickAddIssueRoot
         layout={EIssueLayoutTypes.GANTT}
         QuickAddButton={GanttQuickAddIssueButton}
-        containerClassName="sticky bottom-0 z-[1]"
+        containerClassName="sticky bottom-0 z-1"
         prePopulatedData={{
           start_date: renderFormattedPayloadDate(new Date()),
           target_date: renderFormattedPayloadDate(targetDate),

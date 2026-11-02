@@ -1,0 +1,13 @@
+{
+  "name": "@plane/oxlint-plugin",
+  "version": "1.4.2",
+  "private": true,
+  "type": "module",
+  "exports": "./index.mjs",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "catalog:"
+  }
+}
