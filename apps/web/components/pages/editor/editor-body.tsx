@@ -270,6 +270,8 @@ export const PageEditorBody = observer(function PageEditorBody(props: Props) {
       isServerDisconnected: false,
       hasUnsyncedChanges: false,
     });
+    // the page object outlives this editor, so a reopened page must not start as synced
+    return () => setSyncingStatus("syncing");
   }, [pageId, setSyncingStatus, onCollaborationStateChange]);
 
   const aiHandler = useWritingAssistant({ workspaceId, workspaceSlug, projectId });
