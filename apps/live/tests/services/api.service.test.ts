@@ -190,6 +190,16 @@ describe("APIService", () => {
     });
   });
 
+  it("fetches page details without counting a visit", async () => {
+    handle = (_req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ name: "Page", parent: "0" }));
+    };
+    const service = new ProjectPageService({ workspaceSlug: "w", projectId: "p", cookie: "session=abc" });
+    await expect(service.fetchDetails("1")).resolves.toMatchObject({ name: "Page", parent: "0" });
+    expect(seen).toMatchObject({ method: "GET", url: "/api/workspaces/w/projects/p/pages/1/?track_visit=false" });
+  });
+
   it("throws an AppError without a status on a network error", async () => {
     const error: unknown = await new TestService("http://127.0.0.1:1").send("GET", "/api/x/").catch((e: unknown) => e);
     expect(error).toBeInstanceOf(AppError);

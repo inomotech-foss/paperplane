@@ -125,6 +125,22 @@ describe("useRealtimeServerEvents", () => {
     expect(other.name).toBe("Renamed child");
   });
 
+  it("does not save a child page's name it got from the server", () => {
+    vi.useFakeTimers();
+    try {
+      const { other, first } = setup();
+      const update = vi.spyOn(other.services, "update").mockResolvedValue({});
+      first.emit(childRenamed("page-2", "page-1", "Renamed child"));
+      vi.advanceTimersByTime(5000);
+      expect(update).not.toHaveBeenCalled();
+      other.updateTitle("Typed");
+      vi.advanceTimersByTime(5000);
+      expect(update).toHaveBeenCalledWith({ name: "Typed" });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("toasts a failing save once until a save succeeds, without the server's text", () => {
     const banner = vi.fn();
     const { first } = setup({ error: banner });

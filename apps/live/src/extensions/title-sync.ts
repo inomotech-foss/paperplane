@@ -19,6 +19,7 @@ import {
 import { logger } from "@plane/logger";
 import { AppError } from "@/lib/errors";
 // helpers
+import type { TPageDetails } from "@/services/page/core.service";
 import { getPageService } from "@/services/page/handler";
 import type { HocusPocusServerContext, OnLoadDocumentPayloadWithContext } from "@/types";
 import { broadcastMessageToPage } from "@/utils/broadcast-message";
@@ -85,10 +86,7 @@ export class TitleSyncExtension implements Extension {
   }) {
     // Create a title update manager for this document
     const updateManager = new TitleUpdateManager(documentName, context, {
-      onSaved: (page) => {
-        if (page.parent !== undefined && this.titleUpdateManagers.has(documentName))
-          this.parentIds.set(documentName, page.parent);
-      },
+      onSaved: (page) => this.handleTitleSaved(documentName, page),
     });
 
     // Store the manager
@@ -124,28 +122,38 @@ export class TitleSyncExtension implements Extension {
     // Get the manager for this document
     const manager = this.titleUpdateManagers.get(documentName);
 
-    const data = this.titleObserverData.get(documentName);
-    const parentId = this.parentIds.get(documentName);
-
-    // Clients with the parent page open show this page in their page tree
-    if (parentId && data?.workspaceSlug) {
-      const event = createRealtimeEvent({
-        user_id: data.userId,
-        workspace_slug: data.workspaceSlug,
-        project_id: data.projectId ?? undefined,
-        action: "property_updated",
-        page_id: documentName,
-        parent_id: parentId,
-        data: { name: title },
-        descendants_ids: [],
-      });
-      void broadcastMessageToPage(data.instance, parentId, event);
-    }
+    this.broadcastToParent(documentName, title);
 
     // Schedule the title update
     if (manager) {
       manager.scheduleUpdate(title);
     }
+  }
+
+  // A page moved since it loaded reports to its new parent once the save returns it
+  private handleTitleSaved(documentName: string, page: TPageDetails) {
+    if (page.parent === undefined || !this.titleUpdateManagers.has(documentName)) return;
+    const moved = page.parent !== this.parentIds.get(documentName);
+    this.parentIds.set(documentName, page.parent);
+    if (moved && page.name !== undefined) this.broadcastToParent(documentName, page.name);
+  }
+
+  // Clients with the parent page open show this page in their page tree
+  private broadcastToParent(documentName: string, title: string) {
+    const data = this.titleObserverData.get(documentName);
+    const parentId = this.parentIds.get(documentName);
+    if (!parentId || !data?.workspaceSlug) return;
+    const event = createRealtimeEvent({
+      user_id: data.userId,
+      workspace_slug: data.workspaceSlug,
+      project_id: data.projectId ?? undefined,
+      action: "property_updated",
+      page_id: documentName,
+      parent_id: parentId,
+      data: { name: title },
+      descendants_ids: [],
+    });
+    void broadcastMessageToPage(data.instance, parentId, event);
   }
 
   /**

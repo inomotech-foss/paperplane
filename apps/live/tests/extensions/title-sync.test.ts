@@ -111,9 +111,24 @@ describe("title sync", () => {
     rename(document, "First");
     await vi.advanceTimersByTimeAsync(5000);
     expect(api.saved).toEqual(["First"]);
+    expect(broadcasts.map(({ page, event }) => [page, event.data])).toEqual([
+      ["parent-1", { name: "First" }],
+      ["parent-2", { name: "First" }],
+    ]);
     rename(document, "Second");
 
-    expect(broadcasts.map(({ page }) => page)).toEqual(["parent-1", "parent-2"]);
+    expect(broadcasts.map(({ page }) => page)).toEqual(["parent-1", "parent-2", "parent-2"]);
+  });
+
+  it("does not repeat the broadcast when the parent is unchanged", async () => {
+    const extension = new TitleSyncExtension();
+    const document = await open(extension, "child-1");
+
+    rename(document, "First");
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(api.saved).toEqual(["First"]);
+    expect(broadcasts).toHaveLength(1);
   });
 
   it("forgets the parent when the document unloads", async () => {

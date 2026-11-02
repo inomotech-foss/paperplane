@@ -33,7 +33,12 @@ export abstract class PageCoreService extends APIService {
 
   async fetchDetails(pageId: string, signal?: AbortSignal): Promise<TPageDetails> {
     try {
-      return pageDetailsSchema.parse(await this.requestJson("GET", `${this.basePath}/pages/${pageId}/`, { signal }));
+      return pageDetailsSchema.parse(
+        await this.requestJson("GET", `${this.basePath}/pages/${pageId}/`, {
+          query: { track_visit: "false" },
+          signal,
+        })
+      );
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "fetchDetails", pageId },

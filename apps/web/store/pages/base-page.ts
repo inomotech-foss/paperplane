@@ -30,6 +30,7 @@ export type TBasePage = TPage & {
   // actions
   update: (pageData: Partial<TPage>) => Promise<Partial<TPage> | undefined>;
   updateTitle: (title: string) => void;
+  applySavedName: (name: string) => void;
   updateDescription: (document: TDocumentPayload) => Promise<void>;
   makePublic: (params: { shouldSync?: boolean }) => Promise<void>;
   makePrivate: (params: { shouldSync?: boolean }) => Promise<void>;
@@ -178,6 +179,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
       // actions
       update: action,
       updateTitle: action,
+      applySavedName: action,
       updateDescription: action,
       makePublic: action,
       makePrivate: action,
@@ -200,6 +202,8 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     const titleDisposer = reaction(
       () => this.name,
       (name) => {
+        // a name that is already saved, from the server or a rollback, needs no request
+        if (name === this.oldName) return;
         this.isSubmitting = "submitting";
         this.services
           .update({
@@ -295,6 +299,12 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
   updateTitle = (title: string) => {
     this.oldName = this.name ?? "";
     this.name = title;
+  };
+
+  /** Sets a name the server already holds, without saving it again. */
+  applySavedName = (name: string) => {
+    this.oldName = name;
+    this.name = name;
   };
 
   /**
