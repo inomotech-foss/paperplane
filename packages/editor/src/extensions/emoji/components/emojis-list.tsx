@@ -123,7 +123,7 @@ export const EmojisListDropdown = forwardRef(function EmojisListDropdown(
       {/* Backdrop */}
       <FloatingOverlay
         style={{
-          zIndex: 99,
+          zIndex: 1,
         }}
         lockScroll
       />
@@ -136,7 +136,7 @@ export const EmojisListDropdown = forwardRef(function EmojisListDropdown(
           }
         )}
         style={{
-          zIndex: 100,
+          zIndex: 2,
         }}
         onClick={(e) => {
           e.stopPropagation();

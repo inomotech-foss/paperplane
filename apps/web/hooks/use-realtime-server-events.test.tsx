@@ -64,6 +64,18 @@ const event = <T extends keyof EventToPayloadMap>(action: T, pageId: string, dat
   );
 const saved = (pageId: string, at: string) =>
   event("property_updated", pageId, { updated_by: "other", updated_at: at });
+const childRenamed = (pageId: string, parentId: string, name: string) =>
+  JSON.stringify(
+    createRealtimeEvent({
+      action: "property_updated",
+      page_id: pageId,
+      parent_id: parentId,
+      descendants_ids: [],
+      data: { name },
+      workspace_slug: "w",
+      user_id: "x",
+    })
+  );
 const saveFailed = (pageId: string) =>
   event("error", pageId, { error_message: "<b>forged</b>", error_type: "store", error_code: "content_too_large" });
 
@@ -83,6 +95,7 @@ const setup = (customRealtimeEventHandlers?: TCustomEventHandlers) => {
         customRealtimeEventHandlers,
       });
       useRealtimeServerEvents(editorRef, page.id, updatePageProperties);
+      return updatePageProperties;
     },
     { initialProps: { editorRef: first.editorRef } }
   );
@@ -103,6 +116,51 @@ describe("useRealtimeServerEvents", () => {
     expect(page.updated_by).toBe("other");
     expect(page.updated_at).toBe("2026-11-02T10:00:00Z");
     expect(other.updated_by).toBe("old");
+  });
+
+  it("renames a child page of the open page only", () => {
+    const { other, first } = setup();
+    first.emit(childRenamed("page-2", "page-3", "Elsewhere"));
+    expect(other.name).toBe("page-2");
+    first.emit(childRenamed("page-2", "page-1", "Renamed child"));
+    expect(other.name).toBe("Renamed child");
+  });
+
+  it("shows the open page's typed title without saving it from the web", () => {
+    vi.useFakeTimers();
+    try {
+      const { page, hook } = setup();
+      const update = vi.spyOn(page.services, "update").mockResolvedValue({});
+      // what the title editor reports on every change
+      act(() => hook.result.current("page-1", "property_updated", { name: "Typed title" }));
+      vi.advanceTimersByTime(5000);
+      expect(page.name).toBe("Typed title");
+      expect(update).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("ignores a broadcast name for the open page", () => {
+    const { page, first } = setup();
+    first.emit(childRenamed("page-1", "page-0", "Stale"));
+    expect(page.name).toBe("page-1");
+  });
+
+  it("does not save a child page's name it got from the server", () => {
+    vi.useFakeTimers();
+    try {
+      const { other, first } = setup();
+      const update = vi.spyOn(other.services, "update").mockResolvedValue({});
+      first.emit(childRenamed("page-2", "page-1", "Renamed child"));
+      vi.advanceTimersByTime(5000);
+      expect(update).not.toHaveBeenCalled();
+      other.updateTitle("Typed");
+      vi.advanceTimersByTime(5000);
+      expect(update).toHaveBeenCalledWith({ name: "Typed" });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("toasts a failing save once until a save succeeds, without the server's text", () => {

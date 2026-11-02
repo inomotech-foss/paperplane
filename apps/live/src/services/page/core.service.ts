@@ -22,6 +22,7 @@ export type TUserMention = z.infer<typeof userMentionSchema>;
 const pageDetailsSchema = z.looseObject({
   name: z.string().optional(),
   description_html: z.string().nullish(),
+  parent: z.string().nullish(),
 });
 
 /** The page fields live reads. */
@@ -32,7 +33,12 @@ export abstract class PageCoreService extends APIService {
 
   async fetchDetails(pageId: string, signal?: AbortSignal): Promise<TPageDetails> {
     try {
-      return pageDetailsSchema.parse(await this.requestJson("GET", `${this.basePath}/pages/${pageId}/`, { signal }));
+      return pageDetailsSchema.parse(
+        await this.requestJson("GET", `${this.basePath}/pages/${pageId}/`, {
+          query: { track_visit: "false" },
+          signal,
+        })
+      );
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "fetchDetails", pageId },
@@ -58,19 +64,19 @@ export abstract class PageCoreService extends APIService {
     }
   }
 
-  /**
-   * Updates the title of a page
-   */
+  /** Updates page properties and returns the page as saved. */
   async updatePageProperties(
     pageId: string,
     params: { data: Partial<TPage>; abortSignal?: AbortSignal }
-  ): Promise<void> {
+  ): Promise<TPageDetails> {
     const { data, abortSignal } = params;
     try {
-      await this.request("PATCH", `${this.basePath}/pages/${pageId}/`, {
+      const page = await this.requestJson("PATCH", `${this.basePath}/pages/${pageId}/`, {
         body: data,
         ...(abortSignal ? { signal: abortSignal } : {}),
       });
+      const parsed = pageDetailsSchema.safeParse(page);
+      return parsed.success ? parsed.data : {};
     } catch (error) {
       const appError = new AppError(error, {
         context: { operation: "updatePageProperties", pageId },

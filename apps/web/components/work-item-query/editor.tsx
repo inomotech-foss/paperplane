@@ -47,7 +47,7 @@ const theme = EditorView.theme({
   ".cm-placeholder": { color: "var(--txt-placeholder)" },
   ".cm-lintRange-error": { textDecoration: "underline wavy var(--txt-danger-primary)", backgroundImage: "none" },
   "&.cm-editor .cm-tooltip": {
-    zIndex: "50",
+    zIndex: "var(--z-index-popover)",
     overflow: "hidden",
     border: "1px solid var(--border-subtle)",
     borderRadius: "8px",

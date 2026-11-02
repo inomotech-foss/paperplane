@@ -270,11 +270,11 @@ overrides:
   picomatch: 2.3.2
   "yaml@1": 1.10.3
   "yaml@2": 2.8.3
-  # Pinned for Express 4 (apps/live), which needs path-to-regexp ~0.1.12.
-  path-to-regexp: 0.1.13
-  # Express 5's router needs path-to-regexp 8; the pin above would otherwise reach it
-  # and break route matching at startup with `pathRegexp.match is not a function`.
-  "router>path-to-regexp": "^8.4.2"
+  # Each major has its own API, so each pin stays on its own line: Express 4 (apps/live) needs 0.1.x,
+  # Express 5's router needs 8.x and serve-handler (`pnpm --filter web start`) needs 3.x.
+  # CVE-2026-4867 is fixed in 0.1.13, CVE-2026-4923/4926 in 8.4.0, and serve-handler's 3.3.0 is not affected.
+  "path-to-regexp@0": 0.1.13
+  "path-to-regexp@8": "^8.4.2"
   defu: 6.1.5
   postcss: 8.5.25
   # No 6.x fix for CVE-2026-104844 (fixed 7.1.6). @tailwindcss/typography pins 6.0.10 but

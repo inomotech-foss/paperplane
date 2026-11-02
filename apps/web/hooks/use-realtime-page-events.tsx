@@ -141,7 +141,13 @@ export const useRealtimePageEvents = ({
         },
 
         property_updated: ({ pageIds, data }: { pageIds: string[]; data: EventToPayloadMap["property_updated"] }) => {
-          pageIds.forEach((pageId) => getPageById(pageId)?.mutateProperties(data, false));
+          pageIds.forEach((pageId) => {
+            const pageItem = getPageById(pageId);
+            if (!pageItem) return;
+            pageItem.mutateProperties(data, false);
+            // live saves titles, so a name from the title editor or a child rename must not be saved again
+            if (data.name !== undefined) pageItem.applySavedName(data.name);
+          });
           // a save went through, so the next failure is news again
           if (data.updated_at) saveErrorShownRef.current = false;
         },

@@ -198,7 +198,7 @@ export function LinkViewContainer({ editor, containerRef }: Props) {
       {isOpen && linkViewProps && virtualElement && (
         <div
           ref={refs.setFloating}
-          style={{ ...floatingStyles, zIndex: 100 }}
+          style={{ ...floatingStyles, zIndex: "var(--z-index-floating)" }}
           {...getFloatingProps()}
           onMouseEnter={handleFloatingMouseEnter}
           onMouseLeave={handleFloatingMouseLeave}

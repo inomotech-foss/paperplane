@@ -61,7 +61,7 @@ vi.mock("@/services/page/handler", () => ({
     },
     updatePageProperties: (id: string, { data }: { data: { name: string } }) => {
       api.titles.set(id, data.name);
-      return Promise.resolve();
+      return Promise.resolve({});
     },
   }),
 }));

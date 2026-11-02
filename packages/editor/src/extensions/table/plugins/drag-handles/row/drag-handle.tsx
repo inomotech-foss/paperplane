@@ -242,7 +242,7 @@ export function RowDragHandle(props: RowDragHandleProps) {
           {/* Backdrop */}
           <FloatingOverlay
             style={{
-              zIndex: 99,
+              zIndex: "calc(var(--z-index-floating) - 1)",
             }}
             lockScroll
           />
@@ -252,7 +252,7 @@ export function RowDragHandle(props: RowDragHandleProps) {
             {...getFloatingProps()}
             style={{
               ...floatingStyles,
-              zIndex: 100,
+              zIndex: "var(--z-index-floating)",
             }}
           >
             <RowOptionsDropdown editor={editor} onClose={() => context.onOpenChange(false)} />

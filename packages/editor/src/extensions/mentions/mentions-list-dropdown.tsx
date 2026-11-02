@@ -141,7 +141,7 @@ export const MentionsListDropdown = forwardRef(function MentionsListDropdown(pro
       {/* Backdrop */}
       <FloatingOverlay
         style={{
-          zIndex: 99,
+          zIndex: 1,
         }}
         lockScroll
       />
@@ -149,7 +149,7 @@ export const MentionsListDropdown = forwardRef(function MentionsListDropdown(pro
         ref={dropdownContainer}
         className="relative max-h-80 w-[14rem] space-y-2 overflow-y-auto rounded-md border-[0.5px] border-strong bg-surface-1 px-2 py-2.5 shadow-raised-200"
         style={{
-          zIndex: 100,
+          zIndex: 2,
         }}
         onClick={(e) => {
           e.stopPropagation();

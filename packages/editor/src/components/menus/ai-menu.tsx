@@ -99,7 +99,7 @@ export function AIFeaturesMenu(props: Props) {
       <div
         ref={(node) => refs.setFloating(node)}
         data-prevent-outside-click
-        style={{ ...floatingStyles, zIndex: 100 }}
+        style={{ ...floatingStyles, zIndex: "var(--z-index-floating)" }}
         {...getFloatingProps()}
       >
         {menu({

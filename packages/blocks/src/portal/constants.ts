@@ -22,4 +22,3 @@ export const PORTAL_POSITION_CLASSES = {
 } as const;
 
 export const DEFAULT_PORTAL_ID = "full-screen-portal";
-export const MODAL_Z_INDEX = 25;
