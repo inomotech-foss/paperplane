@@ -24,6 +24,13 @@ export type TStoreQueryState = {
 export type TStoreQueryOptions = {
   /** Wait for `ensureLoaded` instead of fetching on mount. For controls rendered once per row. */
   lazy?: boolean;
+  /** Key of a wider query whose answer contains this one, such as all workspace labels for one project's labels. */
+  coveredBy?: string | null;
+};
+
+type TInternalOptions = TStoreQueryOptions & {
+  /** The key is not known yet. Counts as loading unless the covering query answered. */
+  isWaiting?: boolean;
 };
 
 const SWR_OPTIONS = { revalidateIfStale: false, revalidateOnFocus: false };
@@ -32,20 +39,28 @@ const LAZY_SWR_OPTIONS = { ...SWR_OPTIONS, revalidateOnMount: false };
 export const useStoreQuery = <T>(
   key: string | null,
   fetcher: (() => Promise<T>) | null,
-  options: TStoreQueryOptions = {}
+  options: TInternalOptions = {}
 ): TStoreQueryState => {
   const { data, error, isLoading, mutate } = useSWR<T, unknown>(
     key,
     fetcher,
     options.lazy ? LAZY_SWR_OPTIONS : SWR_OPTIONS
   );
+  // Reads the covering query from the cache. Without a fetcher this never requests anything.
+  const { data: covering } = useSWR<unknown, unknown>(options.coveredBy ?? null, null);
+  const hasAnswer = data !== undefined || covering !== undefined;
   const retry = useCallback(() => {
     void mutate();
   }, [mutate]);
   const ensureLoaded = useCallback(async () => {
-    if (data === undefined) await mutate();
-  }, [data, mutate]);
-  return { isLoading, error: data === undefined ? error : undefined, retry, ensureLoaded };
+    if (!hasAnswer) await mutate();
+  }, [hasAnswer, mutate]);
+  return {
+    isLoading: !hasAnswer && (isLoading || (!!options.isWaiting && !options.lazy)),
+    error: hasAnswer ? undefined : error,
+    retry,
+    ensureLoaded,
+  };
 };
 
 type TProjectRoleKey = (projectId: string, projectRole: EUserPermissions | undefined) => string;
@@ -66,11 +81,9 @@ export const useProjectStoreQuery = <T>(
     workspaceSlug && projectId ? getProjectRoleByWorkspaceSlugAndProjectId(workspaceSlug, projectId) : undefined;
   const key = workspaceSlug && projectId && role !== undefined ? roleKey(projectId, role) : null;
   // Without project roles for the workspace there is no key yet. Once they are in, a missing role means no access.
-  const isWaitingForRole = !!workspaceSlug && !!projectId && !key && !workspaceProjectsPermissions[workspaceSlug];
-  const state = useStoreQuery(
-    key,
-    workspaceSlug && projectId ? () => fetcher(workspaceSlug, projectId) : null,
-    options
-  );
-  return { ...state, isLoading: state.isLoading || (isWaitingForRole && !options.lazy) };
+  const isWaiting = !!workspaceSlug && !!projectId && !key && !workspaceProjectsPermissions[workspaceSlug];
+  return useStoreQuery(key, workspaceSlug && projectId ? () => fetcher(workspaceSlug, projectId) : null, {
+    ...options,
+    isWaiting,
+  });
 };

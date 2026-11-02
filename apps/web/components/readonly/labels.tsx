@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect } from "react";
 import { observer } from "mobx-react";
 // plane imports
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 import { cn } from "@plane/utils";
 // hooks
+import { useProjectLabels } from "@/hooks/queries/use-label-queries";
 import { useLabel } from "@/hooks/store/use-label";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 
@@ -25,17 +25,12 @@ export type TReadonlyLabelsProps = {
 export const ReadonlyLabels = observer(function ReadonlyLabels(props: TReadonlyLabelsProps) {
   const { className, value, projectId, workspaceSlug } = props;
 
-  const { getLabelById, fetchProjectLabels } = useLabel();
+  const { getLabelById } = useLabel();
   const { isMobile } = usePlatformOS();
   const labels = value
     .map((labelId) => getLabelById(labelId))
     .filter((label): label is NonNullable<typeof label> => Boolean(label));
-
-  useEffect(() => {
-    if (projectId) {
-      fetchProjectLabels(workspaceSlug?.toString(), projectId);
-    }
-  }, [projectId, workspaceSlug]);
+  useProjectLabels(workspaceSlug, labels.length < value.length ? projectId : undefined);
 
   return (
     <div className={cn("flex items-center gap-2 text-body-xs-regular", className)}>

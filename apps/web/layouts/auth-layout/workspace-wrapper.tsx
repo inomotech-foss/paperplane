@@ -28,16 +28,15 @@ import {
   WORKSPACE_MEMBER_ME_INFORMATION,
   WORKSPACE_PROJECTS_ROLES_INFORMATION,
   WORKSPACE_FAVORITE,
-  WORKSPACE_STATES,
   WORKSPACE_SIDEBAR_PREFERENCES,
   WORKSPACE_PROJECT_NAVIGATION_PREFERENCES,
 } from "@plane/constants";
 // hooks
+import { useWorkspaceStates } from "@/hooks/queries/use-state-queries";
 import { useFavorite } from "@/hooks/store/use-favorite";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectLink } from "@/hooks/store/use-project-link";
-import { useProjectState } from "@/hooks/store/use-project-state";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -63,7 +62,6 @@ export const WorkspaceAuthWrapper = observer(function WorkspaceAuthWrapper(props
   const { isMobile } = usePlatformOS();
   const { loader, workspaceInfoBySlug, fetchUserWorkspaceInfo, fetchUserProjectPermissions, allowPermissions } =
     useUserPermissions();
-  const { fetchWorkspaceStates } = useProjectState();
   // derived values
   const canPerformWorkspaceMemberActions = allowPermissions(
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
@@ -113,12 +111,7 @@ export const WorkspaceAuthWrapper = observer(function WorkspaceAuthWrapper(props
       : null,
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
-  // fetch workspace states
-  useSWR(
-    workspaceSlug ? WORKSPACE_STATES(workspaceSlug.toString()) : null,
-    workspaceSlug ? () => fetchWorkspaceStates(workspaceSlug.toString()) : null,
-    { revalidateIfStale: false, revalidateOnFocus: false }
-  );
+  useWorkspaceStates(workspaceSlug?.toString());
 
   // fetch workspace sidebar preferences
   useSWR(

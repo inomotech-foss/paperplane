@@ -18,23 +18,20 @@ import type { TStateCreateBody } from "@/services/project/project-state.service"
 import type { RootStore } from "@/store/root.store";
 
 export interface IStateStore {
-  //Loaders
-  fetchedMap: Record<string, boolean>;
-  fetchedIntakeMap: Record<string, boolean>;
   // observables
   stateMap: Record<string, IState>;
   intakeStateMap: Record<string, IIntakeState>;
   // computed
-  workspaceStates: IState[] | undefined;
-  projectStates: IState[] | undefined;
-  groupedProjectStates: Record<string, IState[]> | undefined;
+  workspaceStates: IState[];
+  projectStates: IState[];
+  groupedProjectStates: Record<string, IState[]>;
   // computed actions
   getStateById: (stateId: string | null | undefined) => IState | undefined;
   getIntakeStateById: (intakeStateId: string | null | undefined) => IIntakeState | undefined;
-  getProjectStates: (projectId: string | null | undefined) => IState[] | undefined;
+  getProjectStates: (projectId: string | null | undefined) => IState[];
   getProjectIntakeState: (projectId: string | null | undefined) => IIntakeState | undefined;
-  getProjectStateIds: (projectId: string | null | undefined) => string[] | undefined;
-  getProjectIntakeStateIds: (projectId: string | null | undefined) => string[] | undefined;
+  getProjectStateIds: (projectId: string | null | undefined) => string[];
+  getProjectIntakeStateIds: (projectId: string | null | undefined) => string[];
   getProjectDefaultStateId: (projectId: string | null | undefined) => string | undefined;
   // fetch actions
   fetchProjectStates: (workspaceSlug: string, projectId: string) => Promise<IState[]>;
@@ -63,9 +60,6 @@ export interface IStateStore {
 export class StateStore implements IStateStore {
   stateMap: Record<string, IState> = {};
   intakeStateMap: Record<string, IIntakeState> = {};
-  //loaders
-  fetchedMap: Record<string, boolean> = {};
-  fetchedIntakeMap: Record<string, boolean> = {};
   rootStore: RootStore;
   router;
   stateService: ProjectStateService;
@@ -75,8 +69,6 @@ export class StateStore implements IStateStore {
       // observables
       stateMap: observable,
       intakeStateMap: observable,
-      fetchedMap: observable,
-      fetchedIntakeMap: observable,
       // computed
       projectStates: computed,
       groupedProjectStates: computed,
@@ -100,27 +92,17 @@ export class StateStore implements IStateStore {
    * Returns the stateMap belongs to a specific workspace
    */
   get workspaceStates() {
-    const workspaceSlug = this.router.workspaceSlug || "";
-    if (!workspaceSlug || !this.fetchedMap[workspaceSlug]) return;
     return sortStates(Object.values(this.stateMap));
   }
 
-  /**
-   * Returns the stateMap belongs to a specific project
-   */
   get projectStates() {
-    const projectId = this.router.projectId;
-    const workspaceSlug = this.router.workspaceSlug || "";
-    if (!projectId || !(this.fetchedMap[projectId] || this.fetchedMap[workspaceSlug])) return;
-    return sortStates(Object.values(this.stateMap).filter((state) => state.project_id === projectId));
+    return this.getProjectStates(this.router.projectId);
   }
 
   /**
    * Returns the stateMap belongs to a specific project grouped by group
    */
   get groupedProjectStates() {
-    if (!this.router.projectId) return;
-
     // First group the existing states
     const groupedStates = groupBy(this.projectStates, "group") as Record<string, IState[]>;
 
@@ -156,56 +138,29 @@ export class StateStore implements IStateStore {
    * @param projectId
    * @returns IState[]
    */
+  /** States of a project. Whether the list is complete is the query's concern, see `useProjectStates`. */
   getProjectStates = computedFn((projectId: string | null | undefined) => {
-    const workspaceSlug = this.router.workspaceSlug || "";
-    if (!projectId || !(this.fetchedMap[projectId] || this.fetchedMap[workspaceSlug])) return;
+    if (!projectId) return [];
     return sortStates(Object.values(this.stateMap).filter((state) => state.project_id === projectId));
   });
 
-  /**
-   * Returns the intake state for a project by projectId
-   * @param projectId
-   * @returns IIntakeState | undefined
-   */
   getProjectIntakeState = computedFn((projectId: string | null | undefined) => {
-    if (!projectId || !this.fetchedIntakeMap[projectId]) return;
+    if (!projectId) return;
     return Object.values(this.intakeStateMap).find((state) => state.project_id === projectId);
   });
 
-  /**
-   * Returns the state ids for a project by projectId
-   * @param projectId
-   * @returns string[]
-   */
-  getProjectStateIds = computedFn((projectId: string | null | undefined) => {
-    const workspaceSlug = this.router.workspaceSlug;
-    if (!workspaceSlug || !projectId || !(this.fetchedMap[projectId] || this.fetchedMap[workspaceSlug]))
-      return undefined;
-    const projectStates = this.getProjectStates(projectId);
-    return projectStates?.map((state) => state.id) ?? [];
-  });
+  getProjectStateIds = computedFn((projectId: string | null | undefined) =>
+    this.getProjectStates(projectId).map((state) => state.id)
+  );
 
-  /**
-   * Returns the intake state ids for a project by projectId
-   * @param projectId
-   * @returns string[]
-   */
   getProjectIntakeStateIds = computedFn((projectId: string | null | undefined) => {
-    const workspaceSlug = this.router.workspaceSlug;
-    if (!workspaceSlug || !projectId || !this.fetchedIntakeMap[projectId]) return undefined;
     const projectIntakeState = this.getProjectIntakeState(projectId);
-    return projectIntakeState?.id ? [projectIntakeState.id] : [];
+    return projectIntakeState ? [projectIntakeState.id] : [];
   });
 
-  /**
-   * Returns the default state id for a project
-   * @param projectId
-   * @returns string | undefined
-   */
-  getProjectDefaultStateId = computedFn((projectId: string | null | undefined) => {
-    const projectStates = this.getProjectStates(projectId);
-    return projectStates?.find((state) => state.default)?.id;
-  });
+  getProjectDefaultStateId = computedFn(
+    (projectId: string | null | undefined) => this.getProjectStates(projectId).find((state) => state.default)?.id
+  );
 
   /**
    * fetches the stateMap of a project
@@ -219,7 +174,6 @@ export class StateStore implements IStateStore {
       statesResponse.forEach((state) => {
         set(this.stateMap, [state.id], state);
       });
-      set(this.fetchedMap, projectId, true);
     });
     return statesResponse;
   };
@@ -234,7 +188,6 @@ export class StateStore implements IStateStore {
     const intakeStateResponse = await this.stateService.getIntakeState(workspaceSlug, projectId);
     runInAction(() => {
       set(this.intakeStateMap, [intakeStateResponse.id], intakeStateResponse);
-      set(this.fetchedIntakeMap, projectId, true);
     });
     return intakeStateResponse;
   };
@@ -250,7 +203,6 @@ export class StateStore implements IStateStore {
       statesResponse.forEach((state) => {
         set(this.stateMap, [state.id], state);
       });
-      set(this.fetchedMap, workspaceSlug, true);
     });
     return statesResponse;
   };

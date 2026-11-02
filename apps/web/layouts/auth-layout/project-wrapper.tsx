@@ -21,21 +21,20 @@ import {
   PROJECT_CUSTOM_PROPERTIES,
   PROJECT_CUSTOM_PROPERTY_VALUES,
   PROJECT_ISSUE_TYPES,
-  PROJECT_LABELS,
   PROJECT_MEMBERS,
   PROJECT_MEMBER_PREFERENCES,
-  PROJECT_STATES,
   PROJECT_ESTIMATES,
   PROJECT_INTAKE_STATE,
 } from "@plane/constants";
 // hooks
 import { useProjectCycles } from "@/hooks/queries/use-cycle-queries";
+import { useProjectLabels } from "@/hooks/queries/use-label-queries";
 import { useProjectModules } from "@/hooks/queries/use-module-queries";
 import { useProjectViews } from "@/hooks/queries/use-project-view-queries";
+import { useProjectStates } from "@/hooks/queries/use-state-queries";
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useIssueCustomProperties } from "@/hooks/store/use-issue-custom-properties";
 import { useIssueTypes } from "@/hooks/store/use-issue-types";
-import { useLabel } from "@/hooks/store/use-label";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
@@ -61,9 +60,8 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
   const {
     project: { fetchProjectMembers, fetchProjectUserProperties, getProjectUserProperties },
   } = useMember();
-  const { fetchProjectStates, fetchProjectIntakeState } = useProjectState();
+  const { fetchProjectIntakeState } = useProjectState();
   const { data: currentUserData } = useUser();
-  const { fetchProjectLabels } = useLabel();
   const { fetchProjectProperties, fetchBulkValues } = useIssueCustomProperties();
   const { fetchProjectIssueTypes } = useIssueTypes();
   const { getProjectEstimates } = useProjectEstimates();
@@ -102,11 +100,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
       : null,
     { revalidateIfStale: false, revalidateOnFocus: false }
   );
-  // fetching project labels
-  useSWR(roleKey(PROJECT_LABELS), () => fetchProjectLabels(workspaceSlug, projectId), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
+  useProjectLabels(workspaceSlug, projectId);
   // fetching project custom properties and their values on all work items
   useSWR(roleKey(PROJECT_CUSTOM_PROPERTIES), () => fetchProjectProperties(workspaceSlug, projectId), {
     revalidateIfStale: false,
@@ -126,11 +120,7 @@ export const ProjectAuthWrapper = observer(function ProjectAuthWrapper(props: IP
     revalidateIfStale: false,
     revalidateOnFocus: false,
   });
-  // fetching project states
-  useSWR(roleKey(PROJECT_STATES), () => fetchProjectStates(workspaceSlug, projectId), {
-    revalidateIfStale: false,
-    revalidateOnFocus: false,
-  });
+  useProjectStates(workspaceSlug, projectId);
   // fetching project intake state
   useSWR(
     isIntakeEnabled ? roleKey(PROJECT_INTAKE_STATE) : null,

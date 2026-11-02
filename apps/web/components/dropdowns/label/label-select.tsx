@@ -16,6 +16,7 @@ import { useTranslation } from "@plane/i18n";
 import type { IIssueLabel, TPaginatedResponse } from "@plane/types";
 import { EUserPermissions } from "@plane/types";
 // hooks
+import { useProjectLabels } from "@/hooks/queries/use-label-queries";
 import { useLabel } from "@/hooks/store/use-label";
 import { useUserPermissions } from "@/hooks/store/user";
 
@@ -54,7 +55,8 @@ export const LabelSelect = observer(function LabelSelect(props: LabelSelectWebPr
   // router params
   const { workspaceSlug } = useParams();
   // store hooks
-  const { getProjectLabels, getLabelById, fetchProjectLabels, createLabel } = useLabel();
+  const { getProjectLabels, getLabelById, createLabel } = useLabel();
+  const { ensureLoaded } = useProjectLabels(workspaceSlug?.toString(), projectId, { lazy: true });
   const { allowPermissions } = useUserPermissions();
   // translation
   const { t } = useTranslation();
@@ -75,14 +77,14 @@ export const LabelSelect = observer(function LabelSelect(props: LabelSelectWebPr
   const getValues = useCallback(
     async ({ search }: SelectPaginationParams): Promise<TPaginatedResponse<LabelOption[]>> => {
       if (!workspaceSlug || !projectId) return { results: [] };
-      const labels = getProjectLabels(projectId) ?? (await fetchProjectLabels(workspaceSlug.toString(), projectId));
+      await ensureLoaded();
       const query = search?.trim().toLocaleLowerCase();
-      const results = (labels ?? [])
+      const results = getProjectLabels(projectId)
         .filter((label) => !query || label.name.toLocaleLowerCase().includes(query))
         .map(toOption);
       return { results, next_page_results: false };
     },
-    [workspaceSlug, projectId, getProjectLabels, fetchProjectLabels]
+    [workspaceSlug, projectId, getProjectLabels, ensureLoaded]
   );
 
   const handleCreateLabel = useCallback(
