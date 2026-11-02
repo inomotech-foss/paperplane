@@ -10,7 +10,7 @@ type TUpdatePageProperties = ReturnType<typeof useRealtimePageEvents>["updatePag
 
 /** Applies the JSON page events the live server broadcasts. Bare event names are left to the page actions. */
 export const useRealtimeServerEvents = (
-  editorRef: EditorRefApi | null,
+  editorRef: Pick<EditorRefApi, "listenToRealTimeUpdate"> | null,
   updatePageProperties: TUpdatePageProperties
 ) => {
   useEffect(() => {

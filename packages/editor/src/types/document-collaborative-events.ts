@@ -28,9 +28,10 @@ export type BaseActionPayload = {
 // Generic type for creating specific payloads
 export type CreatePayload<T = Record<string, never>> = BaseActionPayload & T;
 
+// A stateless payload is a bare client event name or a JSON message from the server.
 export type TDocumentEventEmitter = {
-  on: (event: string, callback: (message: { payload: TDocumentEventsClient }) => void) => void;
-  off: (event: string, callback: (message: { payload: TDocumentEventsClient }) => void) => void;
+  on: (event: string, callback: (message: { payload: string }) => void) => void;
+  off: (event: string, callback: (message: { payload: string }) => void) => void;
 };
 
 export type TDocumentEventKey = keyof typeof DocumentCollaborativeEvents;
