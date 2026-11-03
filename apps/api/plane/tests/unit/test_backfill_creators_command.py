@@ -23,6 +23,9 @@ def damage(db, workspace, create_user):
     without_activity = Issue.objects.create(name="No activity", project=project, state=state, type=issue_type)
     kept = Issue.objects.create(name="Has creator", project=project, state=state, type=issue_type)
     IssueActivity.objects.create(issue=with_activity, project=project, verb="created", actor=other)
+    later = IssueActivity.objects.create(issue=with_activity, project=project, verb="created", actor=create_user)
+    IssueActivity.all_objects.filter(pk=later.pk).update(created_at="2099-01-01T00:00:00Z")
+    actorless = IssueActivity.objects.create(issue=with_activity, project=project, verb="updated", actor=None)
     comment = IssueComment.objects.create(issue=with_activity, project=project, actor=other, comment_html="<p>x</p>")
     page = Page.objects.create(name="Owned", workspace=workspace, owned_by=other)
     label = Label.objects.create(name="Orphan", project=project)
@@ -32,6 +35,7 @@ def damage(db, workspace, create_user):
     IssueComment.all_objects.filter(pk=comment.pk).update(created_by=None)
     Page.all_objects.filter(pk=page.pk).update(created_by=None, deleted_at="2026-01-01T00:00:00Z")
     Label.all_objects.filter(pk=label.pk).update(created_by=None)
+    IssueActivity.all_objects.filter(pk=actorless.pk).update(created_by=None)
     return {
         "other": other,
         "user": create_user,
@@ -41,6 +45,7 @@ def damage(db, workspace, create_user):
         "comment": comment,
         "page": page,
         "label": label,
+        "actorless": actorless,
     }
 
 
@@ -65,7 +70,7 @@ def test_dry_run_counts_without_writing(damage):
 
 
 def test_apply_fills_from_the_inferred_source_and_keeps_the_rest(damage):
-    page_updated_at = Page._base_manager.values_list("updated_at", flat=True).get(pk=damage["page"].pk)
+    page_before = Page._base_manager.values("updated_at", "updated_by_id").get(pk=damage["page"].pk)
 
     out = _run("--apply", "--batch-size", "1")
 
@@ -77,7 +82,8 @@ def test_apply_fills_from_the_inferred_source_and_keeps_the_rest(damage):
     assert _creator(Issue, damage["without_activity"]) is None
     assert _creator(Label, damage["label"]) is None
     assert _creator(Issue, damage["kept"]) == damage["user"].pk
-    assert Page._base_manager.values_list("updated_at", flat=True).get(pk=damage["page"].pk) == page_updated_at
+    assert _creator(IssueActivity, damage["actorless"]) is None
+    assert Page._base_manager.values("updated_at", "updated_by_id").get(pk=damage["page"].pk) == page_before
 
 
 def test_a_second_apply_has_nothing_left(damage):
