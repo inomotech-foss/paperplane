@@ -7,8 +7,11 @@
  * @plane/editor/styles (imported above), which is their single source of truth.
  * Only the un-themed :root fallback below is kept: the editor package declares
  * background colors solely under [data-theme*="light"] / [data-theme*="dark"],
- * so without this they are undefined until a theme lands on the element. */
-:root {
+ * so without this they are undefined until a theme lands on the element.
+ * :where() keeps this rule's specificity at zero: as a plain :root it tied with
+ * the editor's [data-theme*="dark"] rule and, coming later, won, so coloured
+ * table cells and highlights kept their light backgrounds in dark mode. */
+:where(:root) {
   --editor-colors-gray-background: #d6d6d8;
   --editor-colors-peach-background: #ffd5d7;
   --editor-colors-pink-background: #fdd4e3;
