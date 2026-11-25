@@ -91,6 +91,7 @@ PROJECT_DETAIL = {
     "intake_view",
     "is_favorite",
     "is_issue_type_enabled",
+    "is_page_approval_enabled",
     "is_time_tracking_enabled",
     "issue_view",
     "issue_views_view",

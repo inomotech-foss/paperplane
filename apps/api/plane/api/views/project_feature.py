@@ -22,6 +22,8 @@ FEATURE_FIELDS = {
     "work_items": "issue_view",
     "intakes": "intake_view",
     "work_item_types": "is_issue_type_enabled",
+    # fork-only: review and approval of pages (document control)
+    "page_approvals": "is_page_approval_enabled",
 }
 
 

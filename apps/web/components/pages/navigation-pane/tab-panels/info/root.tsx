@@ -9,6 +9,8 @@ import { observer } from "mobx-react";
 import type { TPageRootHandlers } from "@/components/pages/editor/page-root";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
+// components
+import { PageApprovalHistory } from "@/components/pages/approval/history";
 // local imports
 import { PageNavigationPaneInfoTabActorsInfo } from "./actors-info";
 import { PageNavigationPaneInfoTabDocumentInfo } from "./document-info";
@@ -27,6 +29,12 @@ export const PageNavigationPaneInfoTabPanel = observer(function PageNavigationPa
         <PageNavigationPaneInfoTabDocumentInfo page={page} />
         <PageNavigationPaneInfoTabActorsInfo page={page} />
         <div className="my-3 h-px flex-shrink-0 bg-layer-1" />
+        {page.approval.isEnabled && (
+          <>
+            <PageApprovalHistory page={page} />
+            <div className="my-3 h-px flex-shrink-0 bg-layer-1" />
+          </>
+        )}
         <PageNavigationPaneInfoTabVersionHistory page={page} versionHistory={versionHistory} />
       </div>
     </div>

@@ -31,6 +31,8 @@ export interface IPartialProject {
   page_view: boolean;
   issue_view: boolean;
   inbox_view: boolean;
+  /** Pages need review and approval before they take effect. Off unless a project switches it on. */
+  is_page_approval_enabled?: boolean;
   guest_view_all_features?: boolean;
   project_lead?: IUserLite | string | null;
   network?: number;

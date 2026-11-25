@@ -1,6 +1,6 @@
 # The tool surface
 
-**19 tools**, one per Plane resource, each taking an `action` parameter that selects the operation. 118 actions in total.
+**19 tools**, one per Plane resource, each taking an `action` parameter that selects the operation. 122 actions in total.
 
 ```python
 workitem(action="create", project_id=..., name="Fix login")
@@ -85,7 +85,7 @@ Types belong to the workspace here and are linked into projects, so `workitem_ty
 | `label` | `list` · `retrieve` · `create` · `update` · `delete` |
 | `member` | `me` · `list_workspace` · `list_project` |
 | `module` | `list` · `retrieve` · `create` · `update` · `delete` · `list_workitems` · `manage_workitems` · `archive` · `unarchive` |
-| `page` | `list` · `retrieve` · `create` · `update` · `list_versions` · `retrieve_version` |
+| `page` | `list` · `retrieve` · `create` · `update` · `list_versions` · `retrieve_version` · `submit_for_review` · `approval_status` · `list_approvals` · `set_review_date` |
 | `project` | `list` · `retrieve` · `create` · `update` · `delete` · `archive` · `unarchive` · `get_features` · `update_features` |
 | `project_estimate` | `retrieve` · `create` · `update` · `delete` · `link` · `list_points` · `create_points` · `update_point` · `delete_point` |
 | `state` | `list` · `retrieve` · `create` · `update` · `delete` |

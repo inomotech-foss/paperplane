@@ -4,20 +4,26 @@
  * See the LICENSE file for details.
  */
 
+import { observer } from "mobx-react";
 import Link from "next/link";
 // types
 import type { TPageNavigationTabs } from "@plane/types";
 // helpers
 import { cn } from "@plane/utils";
+// hooks
+import { useProject } from "@/hooks/store/use-project";
+
+/** The document register of a project with page approvals, shown as one more tab. */
+export type TPageListTab = TPageNavigationTabs | "register";
 
 type TPageTabNavigation = {
   workspaceSlug: string;
   projectId: string;
-  pageType: TPageNavigationTabs;
+  pageType: TPageListTab;
 };
 
 // pages tab options
-const pageTabs: { key: TPageNavigationTabs; label: string }[] = [
+const pageTabs: { key: TPageListTab; label: string }[] = [
   {
     key: "public",
     label: "Public",
@@ -32,16 +38,20 @@ const pageTabs: { key: TPageNavigationTabs; label: string }[] = [
   },
 ];
 
-export function PageTabNavigation(props: TPageTabNavigation) {
+export const PageTabNavigation = observer(function PageTabNavigation(props: TPageTabNavigation) {
   const { workspaceSlug, projectId, pageType } = props;
+  const { getProjectById } = useProject();
+  const tabs = getProjectById(projectId)?.is_page_approval_enabled
+    ? [...pageTabs, { key: "register" as const, label: "Register" }]
+    : pageTabs;
 
-  const handleTabClick = (e: React.MouseEvent<HTMLAnchorElement>, tabKey: TPageNavigationTabs) => {
+  const handleTabClick = (e: React.MouseEvent<HTMLAnchorElement>, tabKey: TPageListTab) => {
     if (tabKey === pageType) e.preventDefault();
   };
 
   return (
     <div className="relative flex h-full items-center">
-      {pageTabs.map((tab) => (
+      {tabs.map((tab) => (
         <Link
           key={tab.key}
           href={`/${workspaceSlug}/projects/${projectId}/pages?type=${tab.key}`}
@@ -64,4 +74,4 @@ export function PageTabNavigation(props: TPageTabNavigation) {
       ))}
     </div>
   );
-}
+});

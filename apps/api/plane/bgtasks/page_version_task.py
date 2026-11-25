@@ -14,6 +14,7 @@ from django.utils import timezone
 
 # Module imports
 from plane.db.models import Page, PageVersion
+from plane.utils.page_approval import frozen_version_ids
 from plane.utils.exception_logger import log_exception
 
 # Window in which consecutive edits by the same user coalesce into one version
@@ -35,12 +36,15 @@ def track_page_version(page_id, existing_instance, user_id):
 
         # Create a version if description_html is updated
         if current_instance.get("description_html") != page.description_html:
+            # Versions an approval refers to are records; edits never go into them
+            frozen = frozen_version_ids(page_id)
             # Fetch the latest page version
             page_version = PageVersion.objects.filter(page_id=page_id).order_by("-last_saved_at").first()
 
             # Get the latest page version if it exists and is owned by the user
             if (
                 page_version
+                and page_version.id not in frozen
                 and str(page_version.owned_by_id) == str(user_id)
                 and (timezone.now() - page_version.last_saved_at).total_seconds() <= PAGE_VERSION_COALESCE_WINDOW
             ):
@@ -73,9 +77,11 @@ def track_page_version(page_id, existing_instance, user_id):
                     sub_pages_data=sub_pages,
                 )
             # Trim the oldest version once the page is over the retention limit
-            if PageVersion.objects.filter(page_id=page_id).count() > PAGE_VERSION_RETENTION_LIMIT:
+            # (approval records are kept and not counted)
+            prunable = PageVersion.objects.filter(page_id=page_id).exclude(id__in=frozen)
+            if prunable.count() > PAGE_VERSION_RETENTION_LIMIT:
                 # Delete the old page version
-                PageVersion.objects.filter(page_id=page_id).order_by("last_saved_at").first().delete()
+                prunable.order_by("last_saved_at").first().delete()
 
         return
     except Page.DoesNotExist:

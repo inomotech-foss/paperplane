@@ -33,6 +33,7 @@ class ProjectListItemSerializer(serializers.Serializer):
     page_view = serializers.BooleanField()
     issue_view = serializers.BooleanField()
     inbox_view = serializers.BooleanField()
+    is_page_approval_enabled = serializers.BooleanField()
     guest_view_all_features = serializers.BooleanField()
     project_lead = serializers.UUIDField(allow_null=True)
     network = serializers.IntegerField()

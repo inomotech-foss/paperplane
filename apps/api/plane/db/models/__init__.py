@@ -61,6 +61,7 @@ from .notification import EmailNotificationLog, Notification, UserNotificationPr
 from .page import Page, PageLabel, PageLog, ProjectPage, PageVersion, PageComment, PageCommentReaction
 from .oauth import ApplicationInstallation
 from .page_index import PageIndexEntry
+from .page_approval import PageApproval, PageApprovalEvent, PageApprover
 from .project import (
     Project,
     ProjectBaseModel,

@@ -174,12 +174,15 @@ def test_every_declared_feature_toggle_is_a_real_sdk_field():
     """`ProjectFeature` allows extras, so a misspelled toggle would be accepted and dropped."""
     from plane.models.projects import ProjectFeature
 
-    from plane_mcp.tools.project import ACTIONS
+    from plane_mcp.tools.project import ACTIONS, FORK_FEATURES
 
     declared = next(a for a in ACTIONS if a.name == "update_features").optional
     # The tool spells this one `workitem_types`; the SDK field kept `work_item_types`.
     fields = set(ProjectFeature.model_fields)
-    unknown = [name for name in declared if name.replace("workitem", "work_item") not in fields]
+    # Fork-only toggles are declared on purpose, and sent as extras.
+    unknown = [
+        name for name in declared if name not in FORK_FEATURES and name.replace("workitem", "work_item") not in fields
+    ]
     assert not unknown, f"not ProjectFeature fields: {unknown} (have {sorted(fields)})"
 
 

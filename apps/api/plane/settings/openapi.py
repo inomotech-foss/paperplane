@@ -298,5 +298,7 @@ SPECTACULAR_SETTINGS = {
         "AutomationTriggerGroupEnum": "plane.app.serializers.response.automation.TRIGGER_GROUPS",
         "AutomationTriggerEntityEnum": "plane.app.serializers.response.automation.TRIGGER_ENTITIES",
         "AutomationNotificationRecipientEnum": "plane.automation.registry.NOTIFICATION_RECIPIENTS",
+        "PageApprovalStatusEnum": "plane.db.models.page_approval.PageApproval.STATUS_CHOICES",
+        "PageApprovalEventActionEnum": "plane.db.models.page_approval.PageApprovalEvent.ACTION_CHOICES",
     },
 }

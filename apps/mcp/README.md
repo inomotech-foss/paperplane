@@ -15,7 +15,7 @@ Issues and contributions belong in this repository, not upstream.
 Built on [FastMCP](https://github.com/jlowin/fastmcp) and the official
 [`plane-sdk`](https://pypi.org/project/plane-sdk/).
 
-- **19 tools**, one per Plane resource, covering 118 operations
+- **19 tools**, one per Plane resource, covering 122 operations
 - **Local or remote** — stdio, streamable HTTP, SSE
 - **OAuth or API key** authentication
 

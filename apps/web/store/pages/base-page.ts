@@ -14,6 +14,7 @@ import type { TDocumentPayload, TLogoProps, TNameDescriptionLoader, TPage } from
 import { ExtendedBasePage } from "@/store/pages/extended-base-page";
 import type { RootStore } from "@/store/root.store";
 // local imports
+import { PageApprovalStore } from "./page-approval.store";
 import { PageEditorInstance } from "./page-editor-info";
 
 export type TBasePage = TPage & {
@@ -46,6 +47,7 @@ export type TBasePage = TPage & {
   setSyncingStatus: (status: "syncing" | "synced" | "error") => void;
   // sub-store
   editor: PageEditorInstance;
+  approval: PageApprovalStore;
 };
 
 export type TBasePagePermissions = {
@@ -114,6 +116,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
   rootStore: RootStore;
   // sub-store
   editor: PageEditorInstance;
+  approval: PageApprovalStore;
 
   constructor(
     private store: RootStore,
@@ -198,6 +201,7 @@ export class BasePage extends ExtendedBasePage implements TBasePage {
     this.services = services;
     this.rootStore = store;
     this.editor = new PageEditorInstance();
+    this.approval = new PageApprovalStore(store.router.workspaceSlug, page?.project_ids?.[0], page?.id);
 
     const titleDisposer = reaction(
       () => this.name,

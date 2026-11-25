@@ -93,15 +93,20 @@ ACTIONS = (
             "parallel_cycles",
             "project_updates",
             "workflows",
+            "page_approvals",
         ),
         note="toggles project features on or off",
     ),
 )
 
+# Feature toggles this fork's API has and plane-sdk's ProjectFeature does not; sent as model extras.
+FORK_FEATURES = ("page_approvals",)
+
 FOOTER = (
     "identifier is the short work item prefix, such as ENG. network is 0 for secret or 2 for public. "
     "project_lead and default_assignee are member ids -- get them from `member list_workspace`. "
-    "Feature toggles are booleans; omitted ones are left as they are."
+    "Feature toggles are booleans; omitted ones are left as they are. page_approvals makes pages of the "
+    "project need review and approval before they take effect (see the page tool)."
 )
 
 LEGACY = {
@@ -166,6 +171,7 @@ def register(mcp: FastMCP) -> None:
         parallel_cycles: bool | None = None,
         project_updates: bool | None = None,
         workflows: bool | None = None,
+        page_approvals: bool | None = None,
         is_time_tracking_enabled: bool | None = None,
         cursor: str = "",
         per_page: int = 0,
@@ -284,5 +290,7 @@ def register(mcp: FastMCP) -> None:
                 parallel_cycles=parallel_cycles,
                 project_updates=project_updates,
                 workflows=workflows,
+                # fork-only, so plane-sdk's model carries it as an extra field
+                page_approvals=page_approvals,
             ),
         )

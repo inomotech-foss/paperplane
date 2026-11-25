@@ -90,6 +90,7 @@ class ProjectCreateSerializer(BaseSerializer):
             "external_id",
             "is_issue_type_enabled",
             "is_time_tracking_enabled",
+            "is_page_approval_enabled",
         ]
 
         read_only_fields = [

@@ -9,7 +9,10 @@ import { useSearchParams } from "next/navigation";
 // plane imports
 import type { TPageNavigationTabs } from "@plane/types";
 // components
+import { Header, EHeaderVariant } from "@plane/blocks/layout";
 import { PageHead } from "@/components/core/page-title";
+import { PageApprovalRegister } from "@/components/pages/approval/register";
+import { PageTabNavigation } from "@/components/pages/list/tab-navigation";
 import { PagesListRoot } from "@/components/pages/list/root";
 import { PagesListView } from "@/components/pages/pages-list-view";
 // hooks
@@ -34,6 +37,21 @@ function ProjectPagesPage({ params }: Route.ComponentProps) {
   const project = getProjectById(projectId);
   const pageTitle = project?.name ? `${project?.name} - Pages` : undefined;
   const pageType = getPageType(type);
+
+  if (type === "register" && project?.is_page_approval_enabled)
+    return (
+      <>
+        <PageHead title={project?.name ? `${project.name} - Document register` : undefined} />
+        <div className="relative flex h-full w-full flex-col overflow-hidden">
+          <Header variant={EHeaderVariant.SECONDARY}>
+            <Header.LeftItem>
+              <PageTabNavigation workspaceSlug={workspaceSlug} projectId={projectId} pageType="register" />
+            </Header.LeftItem>
+          </Header>
+          <PageApprovalRegister workspaceSlug={workspaceSlug} projectId={projectId} />
+        </div>
+      </>
+    );
 
   return (
     <>

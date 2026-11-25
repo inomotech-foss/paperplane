@@ -18,6 +18,14 @@ from plane.app.views import (
     PageCommentViewSet,
     PageCommentReactionViewSet,
     PageLiveAccessEndpoint,
+    PageApprovalApproveEndpoint,
+    PageApprovalEndpoint,
+    PageApprovalEventsEndpoint,
+    PageApprovalRejectEndpoint,
+    PageApprovalReviewDateEndpoint,
+    PageApprovalSubmitEndpoint,
+    ProjectPageApprovalRegisterEndpoint,
+    ProjectPageApproversEndpoint,
 )
 
 urlpatterns = [
@@ -141,5 +149,46 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/comments/<uuid:comment_id>/reactions/<str:reaction_code>/",
         PageCommentReactionViewSet.as_view({"delete": "destroy"}),
         name="project-page-comment-reaction",
+    ),
+    # page approvals (opt-in per project)
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/page-approvals/",
+        ProjectPageApprovalRegisterEndpoint.as_view(),
+        name="project-page-approval-register",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/page-approvers/",
+        ProjectPageApproversEndpoint.as_view(),
+        name="project-page-approvers",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/",
+        PageApprovalEndpoint.as_view(),
+        name="page-approval",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/submit/",
+        PageApprovalSubmitEndpoint.as_view(),
+        name="page-approval-submit",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/approve/",
+        PageApprovalApproveEndpoint.as_view(),
+        name="page-approval-approve",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/reject/",
+        PageApprovalRejectEndpoint.as_view(),
+        name="page-approval-reject",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/review-date/",
+        PageApprovalReviewDateEndpoint.as_view(),
+        name="page-approval-review-date",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/events/",
+        PageApprovalEventsEndpoint.as_view(),
+        name="page-approval-events",
     ),
 ]

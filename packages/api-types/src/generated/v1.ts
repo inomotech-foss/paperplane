@@ -1159,6 +1159,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/page-approvals/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the document register
+         * @description Every live page of the project with its approval status, the version in force, who approved it and when, the next review date and whether that is overdue. Only for projects with page approvals switched on.
+         */
+        get: operations["list_page_approvals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces/{slug}/projects/{project_id}/pages/": {
         parameters: {
             query?: never;
@@ -1205,6 +1225,86 @@ export interface paths {
          * @description Partially update an existing page's properties like name or HTML description.
          */
         patch: operations["update_page"];
+        trace?: never;
+    };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve page approval status
+         * @description Where the page stands in review: status, the version in force and who approved it, the next review date and whether it is overdue.
+         */
+        get: operations["retrieve_page_approval"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/events/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List page approval events
+         * @description The page's approval log, newest first: submissions, approvals, rejections and review dates.
+         */
+        get: operations["list_page_approval_events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/review-date/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set page review date
+         * @description Set or clear the date the page is next due for review. Page approvers and project admins only.
+         */
+        post: operations["set_page_review_date"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/submit/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit page for review
+         * @description Snapshot the page as it is now and ask the project's approvers to review it. Approving and rejecting are only possible in the app.
+         */
+        post: operations["submit_page_for_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/": {
@@ -3730,6 +3830,110 @@ export interface components {
          * @enum {integer}
          */
         PageAccessEnum: 0 | 1;
+        PageApprovalEvent: {
+            /** Format: uuid */
+            readonly id?: string;
+            /** Format: uuid */
+            readonly page?: string;
+            /** Format: uuid */
+            readonly version?: string | null;
+            readonly action?: components["schemas"]["PageApprovalEventActionEnum"];
+            /** Format: uuid */
+            readonly actor?: string | null;
+            readonly comment?: string;
+            readonly revision?: number | null;
+            /** Format: date */
+            readonly next_review_date?: string | null;
+            /** Format: date-time */
+            readonly created_at?: string;
+        };
+        /**
+         * @description * `submitted` - Submitted
+         *     * `approved` - Approved
+         *     * `rejected` - Rejected
+         *     * `review_date_set` - Review date set
+         * @enum {string}
+         */
+        PageApprovalEventActionEnum: "submitted" | "approved" | "rejected" | "review_date_set";
+        /** @description One page in the project's document register. */
+        PageApprovalRegisterRow: {
+            /** Format: uuid */
+            page: string;
+            name: string;
+            /** Format: uuid */
+            owned_by: string;
+            status: components["schemas"]["PageApprovalStatusEnum"];
+            revision: number;
+            /** Format: uuid */
+            approved_version: string | null;
+            /** Format: uuid */
+            approved_by: string | null;
+            /** Format: date-time */
+            approved_at: string | null;
+            /** Format: date-time */
+            submitted_at: string | null;
+            /** Format: date */
+            next_review_date: string | null;
+            is_review_overdue: boolean;
+            has_unapproved_changes: boolean;
+        };
+        PageApprovalReviewDateRequest: {
+            /**
+             * Format: date
+             * @description null clears the date
+             */
+            next_review_date: string | null;
+            /** @default  */
+            comment: string;
+        };
+        /** @description Where a page stands in review, and which version is in force. */
+        PageApprovalStatus: {
+            /** Format: uuid */
+            page: string;
+            /** @description Whether the page's project has page approvals switched on */
+            enabled: boolean;
+            status: components["schemas"]["PageApprovalStatusEnum"];
+            /** @description Number of approvals so far; the version in force is this revision */
+            revision: number;
+            /**
+             * Format: uuid
+             * @description Page version in force
+             */
+            approved_version: string | null;
+            /** Format: uuid */
+            approved_by: string | null;
+            /** Format: date-time */
+            approved_at: string | null;
+            approval_comment: string;
+            /**
+             * Format: uuid
+             * @description Page version submitted for review
+             */
+            submitted_version: string | null;
+            /** Format: uuid */
+            submitted_by: string | null;
+            /** Format: date-time */
+            submitted_at: string | null;
+            /** @description Why the latest submission was rejected */
+            rejection_comment: string;
+            /** Format: date */
+            next_review_date: string | null;
+            is_review_overdue: boolean;
+            /** @description The page body differs from the version in force, or nothing is approved yet */
+            has_unapproved_changes: boolean;
+        };
+        /**
+         * @description * `draft` - Draft
+         *     * `in_review` - In review
+         *     * `approved` - Approved
+         *     * `rejected` - Rejected
+         * @enum {string}
+         */
+        PageApprovalStatusEnum: "draft" | "in_review" | "approved" | "rejected";
+        PageApprovalSubmitRequest: {
+            /** @default  */
+            comment: string;
+        };
         /**
          * @description Base serializer providing common functionality for all model serializers.
          *
@@ -4128,6 +4332,34 @@ export interface components {
             total_results: number;
             extra_stats: string | null;
             results: components["schemas"]["Module"][];
+        };
+        PaginatedPageApprovalEventResponse: {
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: string | null;
+            results: components["schemas"]["PageApprovalEvent"][];
+        };
+        PaginatedPageApprovalRegisterResponse: {
+            grouped_by: string | null;
+            sub_grouped_by: string | null;
+            total_count: number;
+            next_cursor: string;
+            prev_cursor: string;
+            next_page_results: boolean;
+            prev_page_results: boolean;
+            count: number;
+            total_pages: number;
+            total_results: number;
+            extra_stats: string | null;
+            results: components["schemas"]["PageApprovalRegisterRow"][];
         };
         PaginatedPageResponse: {
             grouped_by: string | null;
@@ -4546,6 +4778,7 @@ export interface components {
             external_id?: string | null;
             is_issue_type_enabled?: boolean;
             is_time_tracking_enabled?: boolean;
+            is_page_approval_enabled?: boolean;
             /** Format: uuid */
             default_state?: string | null;
             /** Format: uuid */
@@ -4660,6 +4893,7 @@ export interface components {
             intake_view?: boolean;
             is_time_tracking_enabled?: boolean;
             is_issue_type_enabled?: boolean;
+            is_page_approval_enabled?: boolean;
             guest_view_all_features?: boolean;
             cover_image?: string | null;
             archive_in?: number;
@@ -4724,6 +4958,7 @@ export interface components {
             external_id?: string | null;
             is_issue_type_enabled?: boolean;
             is_time_tracking_enabled?: boolean;
+            is_page_approval_enabled?: boolean;
         };
         /**
          * @description Lightweight project serializer for minimal data transfer.
@@ -10408,6 +10643,64 @@ export interface operations {
             };
         };
     };
+    list_page_approvals: {
+        parameters: {
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated document register */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedPageApprovalRegisterResponse"];
+                };
+            };
+            /** @description Invalid request data provided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_pages: {
         parameters: {
             query?: {
@@ -10636,6 +10929,225 @@ export interface operations {
             };
             /** @description Resource with same external ID already exists */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    retrieve_page_approval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Approval status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalStatus"];
+                };
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_page_approval_events: {
+        parameters: {
+            query?: {
+                /** @description Pagination cursor for getting next set of results */
+                cursor?: string;
+                /** @description Number of results per page (default: 20, max: 100) */
+                per_page?: number;
+            };
+            header?: never;
+            path: {
+                page_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated approval events */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedPageApprovalEventResponse"];
+                };
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_page_review_date: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PageApprovalReviewDateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageApprovalReviewDateRequest"];
+                "multipart/form-data": components["schemas"]["PageApprovalReviewDateRequest"];
+            };
+        };
+        responses: {
+            /** @description Review date set */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalStatus"];
+                };
+            };
+            /** @description Refused: see error_code */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    submit_page_for_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                /** @description Project ID */
+                project_id: string;
+                /** @description Workspace slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PageApprovalSubmitRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageApprovalSubmitRequest"];
+                "multipart/form-data": components["schemas"]["PageApprovalSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description Submitted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalStatus"];
+                };
+            };
+            /** @description Refused: see error_code */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication credentials were not provided or are invalid. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission denied. User lacks required permissions. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The requested resource was not found. */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15670,6 +16182,8 @@ export const issueRelationCreateRelationTypeEnumValues: ReadonlyArray<FlattenedD
 export const moduleStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ModuleStatusEnum"]> = ["backlog", "planned", "in-progress", "paused", "completed", "cancelled"];
 export const networkEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NetworkEnum"]> = [0, 2];
 export const pageAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageAccessEnum"]> = [0, 1];
+export const pageApprovalEventActionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalEventActionEnum"]> = ["submitted", "approved", "rejected", "review_date_set"];
+export const pageApprovalStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalStatusEnum"]> = ["draft", "in_review", "approved", "rejected"];
 export const priorityEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PriorityEnum"]> = ["urgent", "high", "medium", "low", "none"];
 export const propertyTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PropertyTypeEnum"]> = ["TEXT", "DECIMAL", "OPTION", "DATETIME", "BOOLEAN", "RELATION"];
 export const removeTypeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RemoveTypeEnum"]> = ["unlink", "delete"];

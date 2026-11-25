@@ -220,6 +220,7 @@ class ProjectViewSet(BaseViewSet):
             "page_view",
             "issue_view",
             "inbox_view",
+            "is_page_approval_enabled",
             "guest_view_all_features",
             "project_lead",
             "network",
