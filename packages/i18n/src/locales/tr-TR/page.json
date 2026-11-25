@@ -179,6 +179,12 @@
     "loading": "Sayfalar yükleniyor",
     "error": "Sayfalar yüklenemedi",
     "unsupported": "Bu sayfa listesi henüz kullanılamıyor",
+    "include": {
+      "loading": "Eklenen sayfa yükleniyor",
+      "error": "Eklenen sayfa yüklenemedi",
+      "invalid": "Bu blok eklenecek bir sayfa belirtmiyor",
+      "source": "Şuradan eklendi:"
+    },
     "empty_state": {
       "tree": "Henüz alt sayfa yok",
       "pages": "Bu listeyle eşleşen sayfa yok",

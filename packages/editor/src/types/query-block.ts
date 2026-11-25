@@ -18,7 +18,8 @@ export type TQueryBlockKind =
   | "label-list"
   | "page-properties"
   | "task-report"
-  | "decision-report";
+  | "decision-report"
+  | "include";
 
 export type TQueryBlockScope = "page" | "project" | "workspace";
 

@@ -422,6 +422,21 @@ describe("PDF Rendering Integration", () => {
       expect(text).toContain("here");
       expect(text).toContain("to visit");
     });
+
+    it("names an included page rather than calling it a page list", async () => {
+      const doc: TipTapDocument = {
+        type: "doc",
+        content: [
+          { type: "query-block-component", attrs: { kind: "include", "root-page-id": "p1" } },
+          { type: "query-block-component", attrs: { kind: "tree" } },
+        ],
+      };
+
+      const text = await extractPdfText(await renderPlaneDocToPdfBuffer(doc));
+
+      expect(text).toContain("Included page");
+      expect(text).toContain("Page list (tree)");
+    });
   });
 
   describe("page options", () => {

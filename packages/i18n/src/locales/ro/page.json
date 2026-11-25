@@ -179,6 +179,12 @@
     "loading": "Se încarcă paginile",
     "error": "Paginile nu au putut fi încărcate",
     "unsupported": "Această listă de pagini nu este încă disponibilă",
+    "include": {
+      "loading": "Se încarcă pagina inclusă",
+      "error": "Pagina inclusă nu a putut fi încărcată",
+      "invalid": "Acest bloc nu indică nicio pagină de inclus",
+      "source": "Inclus din"
+    },
     "empty_state": {
       "tree": "Încă nu există subpagini",
       "pages": "Nicio pagină nu corespunde acestei liste",

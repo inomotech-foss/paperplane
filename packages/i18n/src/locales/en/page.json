@@ -179,6 +179,12 @@
     "loading": "Loading pages",
     "error": "Could not load pages",
     "unsupported": "This page list is not available yet",
+    "include": {
+      "loading": "Loading the included page",
+      "error": "Could not load the included page",
+      "invalid": "This block does not name a page to include",
+      "source": "Included from"
+    },
     "unknown_user": "Unknown user",
     "page_count": "{count, plural, one {# page} other {# pages}}",
     "empty_state": {

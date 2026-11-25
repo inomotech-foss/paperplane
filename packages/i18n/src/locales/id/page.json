@@ -179,6 +179,12 @@
     "loading": "Memuat halaman",
     "error": "Tidak dapat memuat halaman",
     "unsupported": "Daftar halaman ini belum tersedia",
+    "include": {
+      "loading": "Memuat halaman yang disertakan",
+      "error": "Tidak dapat memuat halaman yang disertakan",
+      "invalid": "Blok ini tidak menyebut halaman untuk disertakan",
+      "source": "Disertakan dari"
+    },
     "empty_state": {
       "tree": "Belum ada subhalaman",
       "pages": "Tidak ada halaman yang cocok dengan daftar ini",

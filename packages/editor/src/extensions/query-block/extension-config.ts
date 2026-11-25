@@ -24,6 +24,8 @@ export const QUERY_BLOCK_KINDS: readonly TQueryBlockKind[] = [
   "page-properties",
   "task-report",
   "decision-report",
+  // the content of the page named by `root-page-id`, shown read-only in place
+  "include",
 ];
 export const QUERY_BLOCK_SCOPES: readonly TQueryBlockScope[] = ["page", "project", "workspace"];
 

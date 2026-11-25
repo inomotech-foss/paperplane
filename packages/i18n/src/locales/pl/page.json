@@ -179,6 +179,12 @@
     "loading": "Ładowanie stron",
     "error": "Nie udało się załadować stron",
     "unsupported": "Ta lista stron nie jest jeszcze dostępna",
+    "include": {
+      "loading": "Wczytywanie dołączonej strony",
+      "error": "Nie udało się wczytać dołączonej strony",
+      "invalid": "Ten blok nie wskazuje strony do dołączenia",
+      "source": "Dołączono z"
+    },
     "empty_state": {
       "tree": "Brak podstron",
       "pages": "Żadna strona nie pasuje do tej listy",

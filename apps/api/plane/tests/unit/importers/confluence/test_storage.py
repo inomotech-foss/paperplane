@@ -512,11 +512,51 @@ class TestMacros:
         assert f'entity_identifier="{USER_ID}"' in result.html
         assert result.is_lossless
 
-    @pytest.mark.parametrize("macro_name", ["include", "excerpt-include"])
-    def test_include_macro_becomes_a_link_to_the_page(self, macro_name, resolvers):
-        """Transclusion is not reproduced; the reference is."""
+    def test_include_macro_becomes_an_include_block(self, resolvers):
+        """The block shows the page's content in place, as the macro did."""
         body = (
-            f'<ac:structured-macro ac:name="{macro_name}"><ac:parameter ac:name="">'
+            '<p><ac:structured-macro ac:name="include"><ac:parameter ac:name="">'
+            '<ac:link><ri:page ri:content-title="Test Plan" ri:space-key="QA"/></ac:link>'
+            "</ac:parameter></ac:structured-macro></p><p>after</p>"
+        )
+
+        result = convert(body, resolvers)
+
+        assert (
+            result.html
+            == '<query-block-component kind="include" root-page-id="p1"></query-block-component><p>after</p>'
+        )
+        assert result.is_lossless
+        assert result.downgraded == {}
+
+    def test_include_macro_in_a_table_cell_becomes_an_include_block(self, resolvers):
+        body = (
+            "<table><tbody><tr><th>Instruction</th><td>"
+            '<ac:structured-macro ac:name="include"><ac:parameter ac:name="">'
+            '<ac:link><ri:page ri:content-title="Test Plan" ri:space-key="QA"/></ac:link>'
+            "</ac:parameter></ac:structured-macro></td></tr></tbody></table>"
+        )
+
+        html = convert(body, resolvers).html
+
+        assert '<td><query-block-component kind="include" root-page-id="p1"></query-block-component></td>' in html
+
+    def test_include_of_a_page_not_in_the_import_stays_a_reference(self, resolvers):
+        body = (
+            '<ac:structured-macro ac:name="include"><ac:parameter ac:name="">'
+            '<ac:link><ri:page ri:content-title="Elsewhere" ri:space-key="QA"/></ac:link>'
+            "</ac:parameter></ac:structured-macro>"
+        )
+
+        result = convert(body, resolvers)
+
+        assert "query-block-component" not in result.html
+        assert result.unresolved_pages == {"Elsewhere"}
+
+    def test_excerpt_include_macro_becomes_a_link_to_the_page(self, resolvers):
+        """Only part of the page is shown, which an include block cannot do."""
+        body = (
+            '<ac:structured-macro ac:name="excerpt-include"><ac:parameter ac:name="">'
             '<ac:link><ri:page ri:content-title="Test Plan" ri:space-key="QA"/></ac:link>'
             "</ac:parameter></ac:structured-macro>"
         )
@@ -524,7 +564,7 @@ class TestMacros:
         result = convert(body, resolvers)
 
         assert result.html == '<a href="/w/projects/p/pages/1/">Test Plan</a>'
-        assert result.is_lossless
+        assert result.downgraded == {"excerpt-include": 1}
 
     def test_include_macro_without_a_reference_is_recorded(self, resolvers):
         result = convert('<ac:structured-macro ac:name="include"/>', resolvers)

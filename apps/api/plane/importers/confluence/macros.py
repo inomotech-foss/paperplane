@@ -5,6 +5,7 @@ from bs4 import NavigableString
 
 from .colours import CALLOUT_MACROS, status_colour
 from .embeds import EMBED_MACROS, convert_embed_macro
+from .includes import include_block, sole_child_of_paragraph
 from .jira import convert_jira_macro
 from .math import MATH_MACROS, convert_math_macro
 from .parameters import macro_parameter, macro_parameters
@@ -172,9 +173,10 @@ def _attachment_macro(soup, node, macro_name, resolvers, result):
     node.replace_with(reference.extract())
 
 
-def _reference_macro(node, macro_name, result):
+def _reference_macro(soup, node, macro_name, resolvers, result):
     """profile and include are a bare ri:user or ri:page wrapped in macro
-    chrome. Transclusion is not reproduced; the reference is."""
+    chrome. An include of a page in the import becomes an include block, which
+    shows that page's content in place; anything else keeps the reference."""
     parameter = macro_parameter(node, REFERENCE_MACROS[macro_name])
 
     if parameter is None or parameter.find(True) is None:
@@ -182,11 +184,35 @@ def _reference_macro(node, macro_name, result):
         node.decompose()
         return
 
+    if macro_name == "include" and _include(soup, node, parameter, resolvers):
+        return
+
     # A mention is the real thing; a link instead of a transclusion is not.
+    # excerpt-include shows only part of a page, which an include block cannot.
     if macro_name != "profile":
         result.downgraded[macro_name] += 1
 
     node.replace_with(*[child.extract() for child in list(parameter.contents)])
+
+
+def _include(soup, node, parameter, resolvers):
+    """Replace an include macro with an include block, if its page resolves.
+
+    Pages only resolve on the pass that runs once every page exists, so the
+    first pass keeps the reference and the second replaces it.
+    """
+    reference = parameter.find("ri:page")
+    if reference is None:
+        return False
+    page = resolvers.page(reference.get("ri:content-title") or "", reference.get("ri:space-key"))
+    if page is None:
+        return False
+
+    block = include_block(soup, page.id)
+    # The macro alone in a paragraph is a block placed in a paragraph only
+    # because Confluence put it there.
+    (sole_child_of_paragraph(node) or node).replace_with(block)
+    return True
 
 
 def _diagram(soup, node, macro_name, resolvers, result):
@@ -293,7 +319,7 @@ def convert_structured_macros(soup, resolvers, result):
         elif name in ATTACHMENT_MACROS:
             _attachment_macro(soup, node, name, resolvers, result)
         elif name in REFERENCE_MACROS:
-            _reference_macro(node, name, result)
+            _reference_macro(soup, node, name, resolvers, result)
         elif name == "jira":
             convert_jira_macro(soup, node, resolvers, result)
         elif name == "roadmap":

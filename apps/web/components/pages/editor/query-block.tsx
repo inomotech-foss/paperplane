@@ -17,6 +17,7 @@ import type { TQueryBlockHandlerProps } from "@plane/editor";
 import { calculateTimeAgo, getFileURL, getPageName } from "@plane/utils";
 // components
 import { PageChildPagesTree } from "@/components/pages/editor/child-pages-block";
+import { PageIncludeBlock } from "@/components/pages/editor/include-block";
 import { SubPageItem } from "@/components/pages/sub-page-item";
 // hooks
 import type { EPageStoreType } from "@/hooks/store";
@@ -513,6 +514,14 @@ export const PageQueryBlock = observer(function PageQueryBlock(props: Props) {
       return <ContributorsQuery {...props} />;
     case "search":
       return <SearchQuery {...props} />;
+    case "include":
+      return (
+        <PageIncludeBlock
+          sourcePageId={props.rootPageId}
+          hostPageId={props.page.id}
+          projectId={props.page.project_ids?.[0]}
+        />
+      );
     default:
       // Kinds land one PR at a time, and an unrecognised one must still say
       // that something was here rather than render an empty box.

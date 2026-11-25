@@ -179,6 +179,12 @@
     "loading": "Đang tải trang",
     "error": "Không thể tải trang",
     "unsupported": "Danh sách trang này chưa khả dụng",
+    "include": {
+      "loading": "Đang tải trang được nhúng",
+      "error": "Không thể tải trang được nhúng",
+      "invalid": "Khối này không chỉ định trang để nhúng",
+      "source": "Nhúng từ"
+    },
     "empty_state": {
       "tree": "Chưa có trang con",
       "pages": "Không có trang nào khớp với danh sách này",

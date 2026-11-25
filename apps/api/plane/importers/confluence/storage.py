@@ -17,7 +17,7 @@ from .links import (
 from .macros import convert_adf_extensions, convert_structured_macros
 from .page_index import index_page
 from .resolvers import ConversionResult, Resolvers
-from .tables import convert_tables
+from .tables import convert_tables, normalise_tables
 from .tasks import convert_task_lists
 
 # Any ac:/ri: element still present after the passes below has no Plane
@@ -61,6 +61,8 @@ def storage_to_html(body, resolvers=None, result=None):
     convert_times(soup)
     convert_tables(soup, result)
     _drop_residual_elements(soup)
+    # last, so that cells hold only what the editor will be given
+    normalise_tables(soup)
 
     result.html = str(soup).strip() or "<p></p>"
     return result
