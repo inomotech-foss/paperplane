@@ -6,6 +6,7 @@
 
 export * from "./page-attachment.service";
 export * from "./page-comment.service";
+export * from "./page-approval.service";
 export * from "./page-query.service";
 export * from "./project-page-version.service";
 export * from "./project-page.service";

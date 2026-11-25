@@ -25,7 +25,11 @@ import type { TPageInstance } from "@/store/pages/base-page";
 import { useQueryParams } from "@/hooks/use-query-params";
 // ui
 import { Banner } from "@makeplane/propel/components/banner";
+import { useProject } from "@/hooks/store/use-project";
 // local imports
+import { PageApprovalBanner } from "../approval/banner";
+import { PageApprovedVersionView } from "../approval/approved-view";
+import { EditorContentLoader } from "../loaders/editor-content-loader";
 import { PageNavigationPaneRoot, PAGE_NAVIGATION_PANE_TABS_QUERY_PARAM } from "../navigation-pane";
 import { setPendingCommentThread } from "../navigation-pane/tab-panels/comments/pending-thread";
 import { PageVersionsOverlay } from "../version";
@@ -79,9 +83,18 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
   const { updateQueryParams } = useQueryParams();
   // derived values
   const {
+    approval,
+    canCurrentUserEditPage,
     isContentEditable,
     editor: { setEditorRef },
   } = page;
+  // approvals: readers see the version in force, editors the draft unless they switch
+  const { getProjectById } = useProject();
+  const approvalsEnabled = !!(projectId && getProjectById(projectId)?.is_page_approval_enabled);
+  const approvedVersionId = approval.status?.approved_version;
+  const showsApprovedVersion = !!approvedVersionId && approval.showsApproved(canCurrentUserEditPage);
+  // hold the body back until a reader's status is in, so the draft never flashes up first
+  const isApprovalPending = approvalsEnabled && !canCurrentUserEditPage && !approval.status;
   const { editorRef, editorRefCallback } = usePageEditorRef(setEditorRef);
   // page fallback
   const { isFetchingFallbackBinary } = usePageFallback({
@@ -189,24 +202,40 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
           <Banner placement="page" variant="warning" title={t("page_content_limit_banner.message")} />
         )}
         <PageSyncTimeoutBanner collaborationState={collaborationState} />
-        <PageEditorBody
-          config={config}
-          customRealtimeEventHandlers={mergedCustomEventHandlers}
-          editorReady={editorReady}
-          editorForwardRef={editorRefCallback}
-          handleEditorReady={handleEditorReady}
-          handleOpenNavigationPane={handleOpenNavigationPane}
-          handlers={handlers}
-          isNavigationPaneOpen={isNavigationPaneOpen}
-          page={page}
-          projectId={projectId}
-          storeType={storeType}
-          webhookConnectionParams={webhookConnectionParams}
-          workspaceSlug={workspaceSlug}
-          extendedEditorProps={extendedEditorProps}
-          isFetchingFallbackBinary={isFetchingFallbackBinary}
-          onCollaborationStateChange={setCollaborationState}
-        />
+        <PageApprovalBanner page={page} />
+        {isApprovalPending && (
+          <div className="size-full px-5 pt-8">
+            <EditorContentLoader />
+          </div>
+        )}
+        {showsApprovedVersion && (
+          <PageApprovedVersionView
+            approvedVersionId={approvedVersionId}
+            fetchVersionDetails={handlers.fetchVersionDetails}
+            pageId={page.id ?? ""}
+            storeType={storeType}
+          />
+        )}
+        {!showsApprovedVersion && !isApprovalPending && (
+          <PageEditorBody
+            config={config}
+            customRealtimeEventHandlers={mergedCustomEventHandlers}
+            editorReady={editorReady}
+            editorForwardRef={editorRefCallback}
+            handleEditorReady={handleEditorReady}
+            handleOpenNavigationPane={handleOpenNavigationPane}
+            handlers={handlers}
+            isNavigationPaneOpen={isNavigationPaneOpen}
+            page={page}
+            projectId={projectId}
+            storeType={storeType}
+            webhookConnectionParams={webhookConnectionParams}
+            workspaceSlug={workspaceSlug}
+            extendedEditorProps={extendedEditorProps}
+            isFetchingFallbackBinary={isFetchingFallbackBinary}
+            onCollaborationStateChange={setCollaborationState}
+          />
+        )}
         {/* Last, so it covers editor controls that share its z-index */}
         <PageVersionsOverlay
           editorComponent={PagesVersionEditor}

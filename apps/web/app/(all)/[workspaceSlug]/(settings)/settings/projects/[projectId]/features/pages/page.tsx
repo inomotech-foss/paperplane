@@ -14,6 +14,7 @@ import { PageHead } from "@/components/core/page-title";
 import { SettingsContentWrapper } from "@/components/settings/content-wrapper";
 import { SettingsHeading } from "@/components/settings/heading";
 import { ProjectSettingsFeatureControlItem } from "@/components/settings/project/content/feature-control-item";
+import { PageApproversSettings } from "@/components/pages/approval/approvers-settings";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -55,6 +56,19 @@ function FeaturesPagesSettingsPage({ params }: Route.ComponentProps) {
             value={!!currentProjectDetails?.page_view}
             workspaceSlug={workspaceSlug}
           />
+        </div>
+        <div className="mt-4 flex flex-col gap-y-4">
+          <ProjectSettingsFeatureControlItem
+            title="Page approvals"
+            description="Pages need review and approval before they take effect. Readers see the approved version, and every submission and decision is logged."
+            featureProperty="is_page_approval_enabled"
+            projectId={projectId}
+            value={!!currentProjectDetails?.is_page_approval_enabled}
+            workspaceSlug={workspaceSlug}
+          />
+          {currentProjectDetails?.is_page_approval_enabled && (
+            <PageApproversSettings workspaceSlug={workspaceSlug} projectId={projectId} />
+          )}
         </div>
       </section>
     </SettingsContentWrapper>

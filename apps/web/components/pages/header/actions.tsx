@@ -10,6 +10,7 @@ import type { EPageStoreType } from "@/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
+import { PageApprovalHeaderControl } from "../approval/header-control";
 import { PageOptionsDropdown } from "../editor/toolbar/options-dropdown";
 import { PageArchivedBadge } from "./archived-badge";
 import { PageCopyLinkControl } from "./copy-link-control";
@@ -27,6 +28,7 @@ export const PageHeaderActions = observer(function PageHeaderActions(props: Prop
 
   return (
     <div className="flex items-center gap-1">
+      <PageApprovalHeaderControl page={page} />
       <PageArchivedBadge page={page} />
       <PageOfflineBadge page={page} />
       <PageLockControl page={page} />
