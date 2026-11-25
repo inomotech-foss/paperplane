@@ -12,7 +12,7 @@ import { CORE_EXTENSIONS } from "@/constants/extension";
 import { findParentNodeOfType } from "@/helpers/common";
 // local imports
 import { TableCellSelectionOutlinePlugin } from "./plugins/selection-outline/plugin";
-import { DEFAULT_COLUMN_WIDTH } from "./table";
+import { columnWidthAttribute } from "./column-width";
 import { isCellSelection } from "./table/utilities/helpers";
 
 type TableCellOptions = {
@@ -38,15 +38,7 @@ export const TableCell = Node.create<TableCellOptions>({
       rowspan: {
         default: 1,
       },
-      colwidth: {
-        default: [DEFAULT_COLUMN_WIDTH],
-        parseHTML: (element) => {
-          const colwidth = element.getAttribute("colwidth");
-          const value = colwidth ? [parseInt(colwidth, 10)] : null;
-
-          return value;
-        },
-      },
+      colwidth: columnWidthAttribute,
       background: {
         default: null,
       },
