@@ -94,7 +94,7 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
   const approvedVersionId = approval.status?.approved_version;
   const showsApprovedVersion = !!approvedVersionId && approval.showsApproved(canCurrentUserEditPage);
   // hold the body back until a reader's status is in, so the draft never flashes up first
-  const isApprovalPending = approvalsEnabled && !canCurrentUserEditPage && !approval.status;
+  const isApprovalPending = approvalsEnabled && !canCurrentUserEditPage && !approval.status && !approval.loadFailed;
   const { editorRef, editorRefCallback } = usePageEditorRef(setEditorRef);
   // page fallback
   const { isFetchingFallbackBinary } = usePageFallback({

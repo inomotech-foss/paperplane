@@ -24,6 +24,8 @@ export class PageApprovalStore {
   events: TPageApprovalEvent[] = [];
   /** An explicit choice of which body to show; undefined follows the default for the user's role. */
   viewMode: TPageApprovalViewMode | undefined = undefined;
+  /** The status could not be loaded; the page then falls back to the draft, as without approvals. */
+  loadFailed = false;
 
   constructor(
     private workspaceSlug: string | undefined,
@@ -34,6 +36,7 @@ export class PageApprovalStore {
       status: observable.ref,
       events: observable.ref,
       viewMode: observable.ref,
+      loadFailed: observable.ref,
       isEnabled: computed,
       fetch: action,
       fetchEvents: action,
@@ -66,9 +69,19 @@ export class PageApprovalStore {
   };
 
   fetch = async () => {
-    const status = await service.getStatus(...this.ids());
-    runInAction(() => this.apply(status));
-    return status;
+    try {
+      const status = await service.getStatus(...this.ids());
+      runInAction(() => {
+        this.apply(status);
+        this.loadFailed = false;
+      });
+      return status;
+    } catch (error) {
+      runInAction(() => {
+        this.loadFailed = true;
+      });
+      throw error;
+    }
   };
 
   fetchEvents = async () => {

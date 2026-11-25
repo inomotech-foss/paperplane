@@ -77,4 +77,12 @@ describe("PageApprovalStore", () => {
     await expect(store.submit("")).rejects.toThrow("Missing required fields.");
     expect(service.submit).not.toHaveBeenCalled();
   });
+
+  it("remembers that the status could not be loaded", async () => {
+    service.getStatus.mockRejectedValue(new Error("offline"));
+    const store = new PageApprovalStore("acme", "project", "page");
+
+    await expect(store.fetch()).rejects.toThrow("offline");
+    expect(store.loadFailed).toBe(true);
+  });
 });
