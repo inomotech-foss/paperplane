@@ -102,6 +102,8 @@ class Project(ChangeTrackerMixin, BaseModel):
     intake_view = models.BooleanField(default=False)
     is_time_tracking_enabled = models.BooleanField(default=False)
     is_issue_type_enabled = models.BooleanField(default=False)
+    # Pages need review and approval before they take effect (document control).
+    is_page_approval_enabled = models.BooleanField(default=False)
     guest_view_all_features = models.BooleanField(default=False)
     cover_image = models.TextField(blank=True, null=True)
     cover_image_asset = models.ForeignKey(
