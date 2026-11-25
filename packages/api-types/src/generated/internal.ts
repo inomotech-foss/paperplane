@@ -3620,6 +3620,38 @@ export interface paths {
         patch: operations["workspaces_projects_modules_partial_update"];
         trace?: never;
     };
+    "/api/workspaces/{slug}/projects/{project_id}/page-approvals/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["workspaces_projects_page_approvals_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/page-approvers/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["workspaces_projects_page_approvers_list"];
+        put: operations["workspaces_projects_page_approvers_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspaces/{slug}/projects/{project_id}/pages/": {
         parameters: {
             query?: never;
@@ -3678,6 +3710,102 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["workspaces_projects_pages_access_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["workspaces_projects_pages_approval_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/approve/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["workspaces_projects_pages_approval_approve_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/events/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["workspaces_projects_pages_approval_events_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/reject/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["workspaces_projects_pages_approval_reject_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/review-date/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["workspaces_projects_pages_approval_review_date_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/submit/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["workspaces_projects_pages_approval_submit_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9245,6 +9373,139 @@ export interface components {
              */
             access?: components["schemas"]["PageAccessEnum"];
         };
+        PageApprovalApproveRequest: {
+            /** @default  */
+            comment: string;
+            /**
+             * Format: date
+             * @description Defaults to a year from now
+             */
+            next_review_date?: string | null;
+        };
+        PageApprovalEvent: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly page: string;
+            /** Format: uuid */
+            readonly version: string | null;
+            readonly action: components["schemas"]["PageApprovalEventActionEnum"];
+            /** Format: uuid */
+            readonly actor: string | null;
+            readonly comment: string;
+            readonly revision: number | null;
+            /** Format: date */
+            readonly next_review_date: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        /**
+         * @description * `submitted` - Submitted
+         *     * `approved` - Approved
+         *     * `rejected` - Rejected
+         *     * `review_date_set` - Review date set
+         * @enum {string}
+         */
+        PageApprovalEventActionEnum: "submitted" | "approved" | "rejected" | "review_date_set";
+        PageApprovalRegisterRow: {
+            /** Format: uuid */
+            page: string;
+            name: string;
+            /** Format: uuid */
+            owned_by: string;
+            status: components["schemas"]["PageApprovalStatusEnum"];
+            revision: number;
+            /** Format: uuid */
+            approved_version: string | null;
+            /** Format: uuid */
+            approved_by: string | null;
+            /** Format: date-time */
+            approved_at: string | null;
+            /** Format: date-time */
+            submitted_at: string | null;
+            /** Format: date */
+            next_review_date: string | null;
+            is_review_overdue: boolean;
+            has_unapproved_changes: boolean;
+        };
+        PageApprovalRejectRequest: {
+            /** @description Why the version is rejected */
+            comment: string;
+        };
+        PageApprovalReviewDateRequest: {
+            /**
+             * Format: date
+             * @description null clears the date
+             */
+            next_review_date: string | null;
+            /** @default  */
+            comment: string;
+        };
+        /**
+         * @description * `draft` - Draft
+         *     * `in_review` - In review
+         *     * `approved` - Approved
+         *     * `rejected` - Rejected
+         * @enum {string}
+         */
+        PageApprovalStatusEnum: "draft" | "in_review" | "approved" | "rejected";
+        PageApprovalStatusWithAbilities: {
+            /** Format: uuid */
+            page: string;
+            /** @description Whether the page's project has page approvals switched on */
+            enabled: boolean;
+            status: components["schemas"]["PageApprovalStatusEnum"];
+            /** @description Number of approvals so far; the version in force is this revision */
+            revision: number;
+            /**
+             * Format: uuid
+             * @description Page version in force
+             */
+            approved_version: string | null;
+            /** Format: uuid */
+            approved_by: string | null;
+            /** Format: date-time */
+            approved_at: string | null;
+            approval_comment: string;
+            /**
+             * Format: uuid
+             * @description Page version submitted for review
+             */
+            submitted_version: string | null;
+            /** Format: uuid */
+            submitted_by: string | null;
+            /** Format: date-time */
+            submitted_at: string | null;
+            /** @description Why the latest submission was rejected */
+            rejection_comment: string;
+            /** Format: date */
+            next_review_date: string | null;
+            is_review_overdue: boolean;
+            /** @description The page body differs from the version in force, or nothing is approved yet */
+            has_unapproved_changes: boolean;
+            /** @description The current user may approve or reject the version under review */
+            can_decide: boolean;
+            /** @description Why the current user may not decide, when the page is in review */
+            decision_blocked_reason: string | null;
+            can_schedule_review: boolean;
+            is_approver: boolean;
+        };
+        PageApprovalSubmitRequest: {
+            /** @default  */
+            comment: string;
+        };
+        PageApprover: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly member: string;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        PageApproversUpdateRequest: {
+            /** @description The full list of approvers; replaces the current one */
+            member_ids: string[];
+        };
         PageAttachment: {
             /** Format: uuid */
             readonly id: string;
@@ -10371,6 +10632,7 @@ export interface components {
             issue_view?: boolean;
             is_time_tracking_enabled?: boolean;
             is_issue_type_enabled?: boolean;
+            is_page_approval_enabled?: boolean;
             guest_view_all_features?: boolean;
             cover_image?: string | null;
             archive_in?: number;
@@ -10782,6 +11044,7 @@ export interface components {
             intake_view: boolean;
             is_time_tracking_enabled: boolean;
             is_issue_type_enabled: boolean;
+            is_page_approval_enabled: boolean;
             guest_view_all_features: boolean;
             cover_image: string | null;
             archive_in: number;
@@ -10833,6 +11096,7 @@ export interface components {
             page_view: boolean;
             issue_view: boolean;
             inbox_view: boolean;
+            is_page_approval_enabled: boolean;
             guest_view_all_features: boolean;
             /** Format: uuid */
             project_lead: string | null;
@@ -11063,6 +11327,7 @@ export interface components {
             intake_view?: boolean;
             is_time_tracking_enabled?: boolean;
             is_issue_type_enabled?: boolean;
+            is_page_approval_enabled?: boolean;
             guest_view_all_features?: boolean;
             cover_image?: string | null;
             archive_in?: number;
@@ -23756,6 +24021,101 @@ export interface operations {
             };
         };
     };
+    workspaces_projects_page_approvals_list: {
+        parameters: {
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalRegisterRow"][];
+                };
+            };
+            /** @description Refused: see error_code */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    workspaces_projects_page_approvers_list: {
+        parameters: {
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprover"][];
+                };
+            };
+        };
+    };
+    workspaces_projects_page_approvers_update: {
+        parameters: {
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PageApproversUpdateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageApproversUpdateRequest"];
+                "multipart/form-data": components["schemas"]["PageApproversUpdateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprover"][];
+                };
+            };
+            /** @description Not project members */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     workspaces_projects_pages_list: {
         parameters: {
             query?: never;
@@ -23926,6 +24286,220 @@ export interface operations {
         responses: {
             /** @description Done */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    workspaces_projects_pages_approval_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalStatusWithAbilities"];
+                };
+            };
+        };
+    };
+    workspaces_projects_pages_approval_approve_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PageApprovalApproveRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageApprovalApproveRequest"];
+                "multipart/form-data": components["schemas"]["PageApprovalApproveRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalStatusWithAbilities"];
+                };
+            };
+            /** @description Refused: see error_code */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Refused: see error_code */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    workspaces_projects_pages_approval_events_list: {
+        parameters: {
+            query?: {
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                page_id: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalEvent"][];
+                };
+            };
+        };
+    };
+    workspaces_projects_pages_approval_reject_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PageApprovalRejectRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageApprovalRejectRequest"];
+                "multipart/form-data": components["schemas"]["PageApprovalRejectRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalStatusWithAbilities"];
+                };
+            };
+            /** @description Refused: see error_code */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Refused: see error_code */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    workspaces_projects_pages_approval_review_date_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PageApprovalReviewDateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageApprovalReviewDateRequest"];
+                "multipart/form-data": components["schemas"]["PageApprovalReviewDateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalStatusWithAbilities"];
+                };
+            };
+            /** @description Refused: see error_code */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Refused: see error_code */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    workspaces_projects_pages_approval_submit_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                page_id: string;
+                project_id: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PageApprovalSubmitRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PageApprovalSubmitRequest"];
+                "multipart/form-data": components["schemas"]["PageApprovalSubmitRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageApprovalStatusWithAbilities"];
+                };
+            };
+            /** @description Refused: see error_code */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -27588,6 +28162,8 @@ export const networkEnumValues: ReadonlyArray<FlattenedDeepRequired<components>[
 export const notificationViewModeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NotificationViewModeEnum"]> = ["full", "compact"];
 export const notifyModeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NotifyModeEnum"]> = ["NONE", "ADMINS", "MEMBERS", "CUSTOM"];
 export const pageAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageAccessEnum"]> = [0, 1];
+export const pageApprovalEventActionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalEventActionEnum"]> = ["submitted", "approved", "rejected", "review_date_set"];
+export const pageApprovalStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalStatusEnum"]> = ["draft", "in_review", "approved", "rejected"];
 export const pageLiveAccessAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageLiveAccessAccessEnum"]> = ["edit", "read"];
 export const pqlDialectEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PqlDialectEnum"]> = ["jql", "plane"];
 export const priorityEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PriorityEnum"]> = ["urgent", "high", "medium", "low", "none"];

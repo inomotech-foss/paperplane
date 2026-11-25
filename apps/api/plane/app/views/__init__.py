@@ -208,6 +208,16 @@ from .page.base import (
 from .page.attachment import PageAttachmentContentEndpoint, PageAttachmentEndpoint
 from .page.query import PageQueryEndpoint
 from .page.version import PageVersionEndpoint
+from .page.approval import (
+    PageApprovalApproveEndpoint,
+    PageApprovalEndpoint,
+    PageApprovalEventsEndpoint,
+    PageApprovalRejectEndpoint,
+    PageApprovalReviewDateEndpoint,
+    PageApprovalSubmitEndpoint,
+    ProjectPageApprovalRegisterEndpoint,
+    ProjectPageApproversEndpoint,
+)
 from .page.mention import PageMentionEndpoint
 from .page.comment import PageCommentViewSet, PageCommentReactionViewSet
 

@@ -12,6 +12,11 @@ from plane.api.views import (
     PageCommentResolveAPIEndpoint,
     PageVersionListCreateAPIEndpoint,
     PageVersionDetailAPIEndpoint,
+    PageApprovalAPIEndpoint,
+    PageApprovalEventsAPIEndpoint,
+    PageApprovalRegisterAPIEndpoint,
+    PageApprovalReviewDateAPIEndpoint,
+    PageApprovalSubmitAPIEndpoint,
 )
 
 urlpatterns = [
@@ -49,5 +54,31 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/versions/<uuid:pk>/",
         PageVersionDetailAPIEndpoint.as_view(http_method_names=["get"]),
         name="page-versions",
+    ),
+    # Page approvals. There is no approve or reject here: decisions need a person in the app.
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/page-approvals/",
+        PageApprovalRegisterAPIEndpoint.as_view(http_method_names=["get"]),
+        name="page-approval-register",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/",
+        PageApprovalAPIEndpoint.as_view(http_method_names=["get"]),
+        name="page-approval",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/submit/",
+        PageApprovalSubmitAPIEndpoint.as_view(http_method_names=["post"]),
+        name="page-approval-submit",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/review-date/",
+        PageApprovalReviewDateAPIEndpoint.as_view(http_method_names=["post"]),
+        name="page-approval-review-date",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/pages/<uuid:page_id>/approval/events/",
+        PageApprovalEventsAPIEndpoint.as_view(http_method_names=["get"]),
+        name="page-approval-events",
     ),
 ]

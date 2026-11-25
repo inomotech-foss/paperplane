@@ -15,6 +15,9 @@ NOT_FROM_PLANE = {
     "application_installations",
     "automation_actions",
     "automation_projects",
+    "page_approvals",
+    "page_approval_events",
+    "page_approvers",
 }
 
 

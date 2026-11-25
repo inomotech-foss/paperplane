@@ -13512,6 +13512,123 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/workspaces/{slug}/projects/{project_id}/page-approvals/:
+    get:
+      operationId: workspaces_projects_page_approvals_list
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PageApprovalRegisterRow'
+          description: ''
+        '400':
+          description: 'Refused: see error_code'
+  /api/workspaces/{slug}/projects/{project_id}/page-approvers/:
+    get:
+      operationId: workspaces_projects_page_approvers_list
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PageApprover'
+          description: ''
+    put:
+      operationId: workspaces_projects_page_approvers_update
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageApproversUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageApproversUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageApproversUpdateRequest'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PageApprover'
+          description: ''
+        '400':
+          description: Not project members
   /api/workspaces/{slug}/projects/{project_id}/pages/:
     get:
       operationId: workspaces_projects_pages_list
@@ -13747,6 +13864,266 @@ paths:
       responses:
         '204':
           description: Done
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/:
+    get:
+      operationId: workspaces_projects_pages_approval_retrieve
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageApprovalStatusWithAbilities'
+          description: ''
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/approve/:
+    post:
+      operationId: workspaces_projects_pages_approval_approve_create
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageApprovalApproveRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageApprovalApproveRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageApprovalApproveRequest'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageApprovalStatusWithAbilities'
+          description: ''
+        '400':
+          description: 'Refused: see error_code'
+        '403':
+          description: 'Refused: see error_code'
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/events/:
+    get:
+      operationId: workspaces_projects_pages_approval_events_list
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PageApprovalEvent'
+          description: ''
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/reject/:
+    post:
+      operationId: workspaces_projects_pages_approval_reject_create
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageApprovalRejectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageApprovalRejectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageApprovalRejectRequest'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageApprovalStatusWithAbilities'
+          description: ''
+        '400':
+          description: 'Refused: see error_code'
+        '403':
+          description: 'Refused: see error_code'
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/review-date/:
+    post:
+      operationId: workspaces_projects_pages_approval_review_date_create
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageApprovalReviewDateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageApprovalReviewDateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageApprovalReviewDateRequest'
+        required: true
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageApprovalStatusWithAbilities'
+          description: ''
+        '400':
+          description: 'Refused: see error_code'
+        '403':
+          description: 'Refused: see error_code'
+  /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/submit/:
+    post:
+      operationId: workspaces_projects_pages_approval_submit_create
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageApprovalSubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageApprovalSubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageApprovalSubmitRequest'
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageApprovalStatusWithAbilities'
+          description: ''
+        '400':
+          description: 'Refused: see error_code'
   /api/workspaces/{slug}/projects/{project_id}/pages/{page_id}/archive/:
     post:
       operationId: workspaces_projects_pages_archive_create
@@ -28251,6 +28628,292 @@ components:
 
             * `1` - Private
             * `0` - Public
+    PageApprovalApproveRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          default: ''
+          maxLength: 5000
+        next_review_date:
+          type: string
+          format: date
+          nullable: true
+          description: Defaults to a year from now
+    PageApprovalEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        page:
+          type: string
+          format: uuid
+          readOnly: true
+        version:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        action:
+          allOf:
+          - $ref: '#/components/schemas/PageApprovalEventActionEnum'
+          readOnly: true
+        actor:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        comment:
+          type: string
+          readOnly: true
+        revision:
+          type: integer
+          readOnly: true
+          nullable: true
+        next_review_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - page
+      - version
+      - action
+      - actor
+      - comment
+      - revision
+      - next_review_date
+      - created_at
+    PageApprovalEventActionEnum:
+      enum:
+      - submitted
+      - approved
+      - rejected
+      - review_date_set
+      type: string
+      description: |-
+        * `submitted` - Submitted
+        * `approved` - Approved
+        * `rejected` - Rejected
+        * `review_date_set` - Review date set
+    PageApprovalRegisterRow:
+      type: object
+      properties:
+        page:
+          type: string
+          format: uuid
+        name:
+          type: string
+        owned_by:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/PageApprovalStatusEnum'
+        revision:
+          type: integer
+        approved_version:
+          type: string
+          format: uuid
+          nullable: true
+        approved_by:
+          type: string
+          format: uuid
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        next_review_date:
+          type: string
+          format: date
+          nullable: true
+        is_review_overdue:
+          type: boolean
+        has_unapproved_changes:
+          type: boolean
+      required:
+      - page
+      - name
+      - owned_by
+      - status
+      - revision
+      - approved_version
+      - approved_by
+      - approved_at
+      - submitted_at
+      - next_review_date
+      - is_review_overdue
+      - has_unapproved_changes
+    PageApprovalRejectRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          minLength: 1
+          description: Why the version is rejected
+          maxLength: 5000
+      required:
+      - comment
+    PageApprovalReviewDateRequest:
+      type: object
+      properties:
+        next_review_date:
+          type: string
+          format: date
+          nullable: true
+          description: null clears the date
+        comment:
+          type: string
+          default: ''
+          maxLength: 5000
+      required:
+      - next_review_date
+    PageApprovalStatusEnum:
+      enum:
+      - draft
+      - in_review
+      - approved
+      - rejected
+      type: string
+      description: |-
+        * `draft` - Draft
+        * `in_review` - In review
+        * `approved` - Approved
+        * `rejected` - Rejected
+    PageApprovalStatusWithAbilities:
+      type: object
+      properties:
+        page:
+          type: string
+          format: uuid
+        enabled:
+          type: boolean
+          description: Whether the page's project has page approvals switched on
+        status:
+          $ref: '#/components/schemas/PageApprovalStatusEnum'
+        revision:
+          type: integer
+          description: Number of approvals so far; the version in force is this revision
+        approved_version:
+          type: string
+          format: uuid
+          nullable: true
+          description: Page version in force
+        approved_by:
+          type: string
+          format: uuid
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        approval_comment:
+          type: string
+        submitted_version:
+          type: string
+          format: uuid
+          nullable: true
+          description: Page version submitted for review
+        submitted_by:
+          type: string
+          format: uuid
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        rejection_comment:
+          type: string
+          description: Why the latest submission was rejected
+        next_review_date:
+          type: string
+          format: date
+          nullable: true
+        is_review_overdue:
+          type: boolean
+        has_unapproved_changes:
+          type: boolean
+          description: The page body differs from the version in force, or nothing
+            is approved yet
+        can_decide:
+          type: boolean
+          description: The current user may approve or reject the version under review
+        decision_blocked_reason:
+          type: string
+          nullable: true
+          description: Why the current user may not decide, when the page is in review
+        can_schedule_review:
+          type: boolean
+        is_approver:
+          type: boolean
+      required:
+      - page
+      - enabled
+      - status
+      - revision
+      - approved_version
+      - approved_by
+      - approved_at
+      - approval_comment
+      - submitted_version
+      - submitted_by
+      - submitted_at
+      - rejection_comment
+      - next_review_date
+      - is_review_overdue
+      - has_unapproved_changes
+      - can_decide
+      - decision_blocked_reason
+      - can_schedule_review
+      - is_approver
+    PageApprovalSubmitRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          default: ''
+          maxLength: 5000
+    PageApprover:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        member:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - member
+      - created_at
+    PageApproversUpdateRequest:
+      type: object
+      properties:
+        member_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: The full list of approvers; replaces the current one
+      required:
+      - member_ids
     PageAttachment:
       type: object
       properties:
@@ -30966,6 +31629,8 @@ components:
           type: boolean
         is_issue_type_enabled:
           type: boolean
+        is_page_approval_enabled:
+          type: boolean
         guest_view_all_features:
           type: boolean
         cover_image:
@@ -31861,6 +32526,8 @@ components:
           type: boolean
         is_issue_type_enabled:
           type: boolean
+        is_page_approval_enabled:
+          type: boolean
         guest_view_all_features:
           type: boolean
         cover_image:
@@ -31951,6 +32618,7 @@ components:
       - intake_view
       - is_time_tracking_enabled
       - is_issue_type_enabled
+      - is_page_approval_enabled
       - guest_view_all_features
       - cover_image
       - archive_in
@@ -32014,6 +32682,8 @@ components:
           type: boolean
         inbox_view:
           type: boolean
+        is_page_approval_enabled:
+          type: boolean
         guest_view_all_features:
           type: boolean
         project_lead:
@@ -32052,6 +32722,7 @@ components:
       - page_view
       - issue_view
       - inbox_view
+      - is_page_approval_enabled
       - guest_view_all_features
       - project_lead
       - network
@@ -32627,6 +33298,8 @@ components:
         is_time_tracking_enabled:
           type: boolean
         is_issue_type_enabled:
+          type: boolean
+        is_page_approval_enabled:
           type: boolean
         guest_view_all_features:
           type: boolean

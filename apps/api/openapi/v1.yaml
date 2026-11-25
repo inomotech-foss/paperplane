@@ -8282,6 +8282,95 @@ paths:
           description: No response body
         '400':
           description: Resource cannot be archived in current state
+  /api/v1/workspaces/{slug}/projects/{project_id}/page-approvals/:
+    get:
+      operationId: list_page_approvals
+      description: Every live page of the project with its approval status, the version
+        in force, who approved it and when, the next review date and whether that
+        is overdue. Only for projects with page approvals switched on.
+      summary: List the document register
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor for getting next set of results
+        examples:
+          NextPageCursor:
+            value: '20:1:0'
+            summary: Next page cursor
+            description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 'Number of results per page (default: 20, max: 100)'
+        examples:
+          Default:
+            value: 20
+          Maximum:
+            value: 100
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: Project ID
+        required: true
+        examples:
+          ExampleProjectID:
+            value: 550e8400-e29b-41d4-a716-446655440000
+            summary: Example project ID
+            description: A typical project UUID
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug
+        required: true
+        examples:
+          ExampleWorkspace:
+            value: my-workspace
+            summary: Example workspace
+            description: A typical workspace slug
+      tags:
+      - Pages
+      security:
+      - ApiKeyAuthentication: []
+      responses:
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+        '403':
+          description: Permission denied. User lacks required permissions.
+        '404':
+          description: The requested resource was not found.
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPageApprovalRegisterResponse'
+              examples:
+                PaginatedDocumentRegister:
+                  value:
+                    grouped_by: state
+                    sub_grouped_by: priority
+                    total_count: 150
+                    next_cursor: '20:1:0'
+                    prev_cursor: '20:0:0'
+                    next_page_results: true
+                    prev_page_results: false
+                    count: 20
+                    total_pages: 8
+                    total_results: 150
+                    extra_stats: null
+                    results:
+                    - id: 550e8400-e29b-41d4-a716-446655440000
+                      name: Sample Item
+                      created_at: '2024-01-15T12:00:00Z'
+                  summary: Paginated Document Register
+          description: Paginated document register
+        '400':
+          description: Invalid request data provided
   /api/v1/workspaces/{slug}/projects/{project_id}/pages/:
     get:
       operationId: list_pages
@@ -8587,6 +8676,284 @@ paths:
           description: Invalid request data provided
         '409':
           description: Resource with same external ID already exists
+  /api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/:
+    get:
+      operationId: retrieve_page_approval
+      description: 'Where the page stands in review: status, the version in force
+        and who approved it, the next review date and whether it is overdue.'
+      summary: Retrieve page approval status
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: Project ID
+        required: true
+        examples:
+          ExampleProjectID:
+            value: 550e8400-e29b-41d4-a716-446655440000
+            summary: Example project ID
+            description: A typical project UUID
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug
+        required: true
+        examples:
+          ExampleWorkspace:
+            value: my-workspace
+            summary: Example workspace
+            description: A typical workspace slug
+      tags:
+      - Pages
+      security:
+      - ApiKeyAuthentication: []
+      responses:
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+        '403':
+          description: Permission denied. User lacks required permissions.
+        '404':
+          description: The requested resource was not found.
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageApprovalStatus'
+          description: Approval status
+  /api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/events/:
+    get:
+      operationId: list_page_approval_events
+      description: 'The page''s approval log, newest first: submissions, approvals,
+        rejections and review dates.'
+      summary: List page approval events
+      parameters:
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        description: Pagination cursor for getting next set of results
+        examples:
+          NextPageCursor:
+            value: '20:1:0'
+            summary: Next page cursor
+            description: 'Cursor format: ''page_size:page_number:offset'''
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: per_page
+        schema:
+          type: integer
+        description: 'Number of results per page (default: 20, max: 100)'
+        examples:
+          Default:
+            value: 20
+          Maximum:
+            value: 100
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: Project ID
+        required: true
+        examples:
+          ExampleProjectID:
+            value: 550e8400-e29b-41d4-a716-446655440000
+            summary: Example project ID
+            description: A typical project UUID
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug
+        required: true
+        examples:
+          ExampleWorkspace:
+            value: my-workspace
+            summary: Example workspace
+            description: A typical workspace slug
+      tags:
+      - Pages
+      security:
+      - ApiKeyAuthentication: []
+      responses:
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+        '403':
+          description: Permission denied. User lacks required permissions.
+        '404':
+          description: The requested resource was not found.
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPageApprovalEventResponse'
+              examples:
+                PaginatedPageApprovalEvents:
+                  value:
+                    grouped_by: state
+                    sub_grouped_by: priority
+                    total_count: 150
+                    next_cursor: '20:1:0'
+                    prev_cursor: '20:0:0'
+                    next_page_results: true
+                    prev_page_results: false
+                    count: 20
+                    total_pages: 8
+                    total_results: 150
+                    extra_stats: null
+                    results:
+                    - id: 550e8400-e29b-41d4-a716-446655440000
+                      name: Sample Item
+                      created_at: '2024-01-15T12:00:00Z'
+                  summary: Paginated Page Approval Events
+          description: Paginated approval events
+  /api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/review-date/:
+    post:
+      operationId: set_page_review_date
+      description: Set or clear the date the page is next due for review. Page approvers
+        and project admins only.
+      summary: Set page review date
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: Project ID
+        required: true
+        examples:
+          ExampleProjectID:
+            value: 550e8400-e29b-41d4-a716-446655440000
+            summary: Example project ID
+            description: A typical project UUID
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug
+        required: true
+        examples:
+          ExampleWorkspace:
+            value: my-workspace
+            summary: Example workspace
+            description: A typical workspace slug
+      tags:
+      - Pages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageApprovalReviewDateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageApprovalReviewDateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageApprovalReviewDateRequest'
+        required: true
+      security:
+      - ApiKeyAuthentication: []
+      responses:
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+        '403':
+          description: Permission denied. User lacks required permissions.
+        '404':
+          description: The requested resource was not found.
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageApprovalStatus'
+          description: Review date set
+        '400':
+          description: 'Refused: see error_code'
+  /api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/approval/submit/:
+    post:
+      operationId: submit_page_for_review
+      description: Snapshot the page as it is now and ask the project's approvers
+        to review it. Approving and rejecting are only possible in the app.
+      summary: Submit page for review
+      parameters:
+      - in: path
+        name: page_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        description: Project ID
+        required: true
+        examples:
+          ExampleProjectID:
+            value: 550e8400-e29b-41d4-a716-446655440000
+            summary: Example project ID
+            description: A typical project UUID
+      - in: path
+        name: slug
+        schema:
+          type: string
+        description: Workspace slug
+        required: true
+        examples:
+          ExampleWorkspace:
+            value: my-workspace
+            summary: Example workspace
+            description: A typical workspace slug
+      tags:
+      - Pages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageApprovalSubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageApprovalSubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageApprovalSubmitRequest'
+      security:
+      - ApiKeyAuthentication: []
+      responses:
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+        '403':
+          description: Permission denied. User lacks required permissions.
+        '404':
+          description: The requested resource was not found.
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageApprovalStatus'
+          description: Submitted
+        '400':
+          description: 'Refused: see error_code'
   /api/v1/workspaces/{slug}/projects/{project_id}/pages/{page_id}/comments/:
     get:
       operationId: workspaces_projects_pages_comments_retrieve
@@ -18634,6 +19001,217 @@ components:
       description: |-
         * `0` - Public
         * `1` - Private
+    PageApprovalEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        page:
+          type: string
+          format: uuid
+          readOnly: true
+        version:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        action:
+          allOf:
+          - $ref: '#/components/schemas/PageApprovalEventActionEnum'
+          readOnly: true
+        actor:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        comment:
+          type: string
+          readOnly: true
+        revision:
+          type: integer
+          readOnly: true
+          nullable: true
+        next_review_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PageApprovalEventActionEnum:
+      enum:
+      - submitted
+      - approved
+      - rejected
+      - review_date_set
+      type: string
+      description: |-
+        * `submitted` - Submitted
+        * `approved` - Approved
+        * `rejected` - Rejected
+        * `review_date_set` - Review date set
+    PageApprovalRegisterRow:
+      type: object
+      description: One page in the project's document register.
+      properties:
+        page:
+          type: string
+          format: uuid
+        name:
+          type: string
+        owned_by:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/PageApprovalStatusEnum'
+        revision:
+          type: integer
+        approved_version:
+          type: string
+          format: uuid
+          nullable: true
+        approved_by:
+          type: string
+          format: uuid
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        next_review_date:
+          type: string
+          format: date
+          nullable: true
+        is_review_overdue:
+          type: boolean
+        has_unapproved_changes:
+          type: boolean
+      required:
+      - approved_at
+      - approved_by
+      - approved_version
+      - has_unapproved_changes
+      - is_review_overdue
+      - name
+      - next_review_date
+      - owned_by
+      - page
+      - revision
+      - status
+      - submitted_at
+    PageApprovalReviewDateRequest:
+      type: object
+      properties:
+        next_review_date:
+          type: string
+          format: date
+          nullable: true
+          description: null clears the date
+        comment:
+          type: string
+          default: ''
+          maxLength: 5000
+      required:
+      - next_review_date
+    PageApprovalStatus:
+      type: object
+      description: Where a page stands in review, and which version is in force.
+      properties:
+        page:
+          type: string
+          format: uuid
+        enabled:
+          type: boolean
+          description: Whether the page's project has page approvals switched on
+        status:
+          $ref: '#/components/schemas/PageApprovalStatusEnum'
+        revision:
+          type: integer
+          description: Number of approvals so far; the version in force is this revision
+        approved_version:
+          type: string
+          format: uuid
+          nullable: true
+          description: Page version in force
+        approved_by:
+          type: string
+          format: uuid
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        approval_comment:
+          type: string
+        submitted_version:
+          type: string
+          format: uuid
+          nullable: true
+          description: Page version submitted for review
+        submitted_by:
+          type: string
+          format: uuid
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        rejection_comment:
+          type: string
+          description: Why the latest submission was rejected
+        next_review_date:
+          type: string
+          format: date
+          nullable: true
+        is_review_overdue:
+          type: boolean
+        has_unapproved_changes:
+          type: boolean
+          description: The page body differs from the version in force, or nothing
+            is approved yet
+      required:
+      - approval_comment
+      - approved_at
+      - approved_by
+      - approved_version
+      - enabled
+      - has_unapproved_changes
+      - is_review_overdue
+      - next_review_date
+      - page
+      - rejection_comment
+      - revision
+      - status
+      - submitted_at
+      - submitted_by
+      - submitted_version
+    PageApprovalStatusEnum:
+      enum:
+      - draft
+      - in_review
+      - approved
+      - rejected
+      type: string
+      description: |-
+        * `draft` - Draft
+        * `in_review` - In review
+        * `approved` - Approved
+        * `rejected` - Rejected
+    PageApprovalSubmitRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          default: ''
+          maxLength: 5000
     PageComment:
       type: object
       description: |-
@@ -19693,6 +20271,96 @@ components:
       - total_count
       - total_pages
       - total_results
+    PaginatedPageApprovalEventResponse:
+      type: object
+      properties:
+        grouped_by:
+          type: string
+          nullable: true
+        sub_grouped_by:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+        next_cursor:
+          type: string
+        prev_cursor:
+          type: string
+        next_page_results:
+          type: boolean
+        prev_page_results:
+          type: boolean
+        count:
+          type: integer
+        total_pages:
+          type: integer
+        total_results:
+          type: integer
+        extra_stats:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageApprovalEvent'
+      required:
+      - count
+      - extra_stats
+      - grouped_by
+      - next_cursor
+      - next_page_results
+      - prev_cursor
+      - prev_page_results
+      - results
+      - sub_grouped_by
+      - total_count
+      - total_pages
+      - total_results
+    PaginatedPageApprovalRegisterResponse:
+      type: object
+      properties:
+        grouped_by:
+          type: string
+          nullable: true
+        sub_grouped_by:
+          type: string
+          nullable: true
+        total_count:
+          type: integer
+        next_cursor:
+          type: string
+        prev_cursor:
+          type: string
+        next_page_results:
+          type: boolean
+        prev_page_results:
+          type: boolean
+        count:
+          type: integer
+        total_pages:
+          type: integer
+        total_results:
+          type: integer
+        extra_stats:
+          type: string
+          nullable: true
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageApprovalRegisterRow'
+      required:
+      - count
+      - extra_stats
+      - grouped_by
+      - next_cursor
+      - next_page_results
+      - prev_cursor
+      - prev_page_results
+      - results
+      - sub_grouped_by
+      - total_count
+      - total_pages
+      - total_results
     PaginatedPageResponse:
       type: object
       properties:
@@ -20630,6 +21298,8 @@ components:
           type: boolean
         is_time_tracking_enabled:
           type: boolean
+        is_page_approval_enabled:
+          type: boolean
         default_state:
           type: string
           format: uuid
@@ -20840,6 +21510,8 @@ components:
           type: boolean
         is_issue_type_enabled:
           type: boolean
+        is_page_approval_enabled:
+          type: boolean
         guest_view_all_features:
           type: boolean
         cover_image:
@@ -20979,6 +21651,8 @@ components:
         is_issue_type_enabled:
           type: boolean
         is_time_tracking_enabled:
+          type: boolean
+        is_page_approval_enabled:
           type: boolean
       required:
       - identifier

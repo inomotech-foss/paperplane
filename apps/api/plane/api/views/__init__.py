@@ -78,6 +78,13 @@ from .page_comment import (
     PageCommentDetailAPIEndpoint,
     PageCommentResolveAPIEndpoint,
 )
+from .page_approval import (
+    PageApprovalAPIEndpoint,
+    PageApprovalEventsAPIEndpoint,
+    PageApprovalRegisterAPIEndpoint,
+    PageApprovalReviewDateAPIEndpoint,
+    PageApprovalSubmitAPIEndpoint,
+)
 from .page_version import (
     PageVersionListCreateAPIEndpoint,
     PageVersionDetailAPIEndpoint,

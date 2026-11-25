@@ -108,7 +108,7 @@ def approval_for(page, project_id, *, for_update=False):
     """The page's approval row, created as a draft the first time it is needed."""
     queryset = PageApproval.all_objects.select_related("approved_version", "submitted_version")
     if for_update:
-        queryset = queryset.select_for_update()
+        queryset = queryset.select_for_update(of=("self",))
     approval = queryset.filter(page_id=page.id).first()
     if approval is None:
         try:
