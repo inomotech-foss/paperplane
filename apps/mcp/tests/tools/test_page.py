@@ -65,3 +65,80 @@ def test_retrieving_a_version(registered, spy):
     call = spy.recorder.only()
     assert call.method == "pages._get"
     assert call.kwargs == {"endpoint": f"{PAGE}/versions/v"}
+
+
+# --- approvals ---------------------------------------------------------------
+
+
+def test_submitting_for_review(registered, spy):
+    registered["page"].fn(action="submit_for_review", project_id="p", page_id="pg", comment="Annual review")
+
+    call = spy.recorder.only()
+    assert call.method == "pages._post"
+    assert call.kwargs == {"endpoint": f"{PAGE}/approval/submit", "data": {"comment": "Annual review"}}
+
+
+def test_approval_status_comes_with_the_log(registered, spy):
+    # the spy answers every GET alike, so one payload stands in for both responses
+    answer = {"status": "approved", "results": [{"action": "approved"}]}
+    spy.returns["pages._get"] = answer
+
+    result = registered["page"].fn(action="approval_status", project_id="p", page_id="pg")
+
+    calls = [(call.kwargs["endpoint"], call.kwargs.get("params")) for call in spy.recorder.calls]
+    assert calls == [(f"{PAGE}/approval", None), (f"{PAGE}/approval/events", {"per_page": 50})]
+    assert result == {"approval": answer, "events": [{"action": "approved"}]}
+
+
+def test_the_register_keeps_the_page_envelope(registered, spy):
+    register = {
+        "results": [{"page": "pg", "status": "approved"}],
+        "total_count": 1,
+        "count": 1,
+        "next_cursor": "next",
+        "prev_cursor": "prev",
+        "next_page_results": False,
+        "prev_page_results": False,
+    }
+    spy.returns["pages._get"] = register
+
+    result = registered["page"].fn(action="list_approvals", project_id="p", per_page=50)
+
+    call = spy.recorder.only()
+    assert call.kwargs == {"endpoint": "acme/projects/p/page-approvals", "params": {"per_page": 50}}
+    assert result == register
+
+
+def test_setting_a_review_date(registered, spy):
+    registered["page"].fn(action="set_review_date", project_id="p", page_id="pg", next_review_date="2027-11-30")
+
+    call = spy.recorder.only()
+    assert call.method == "pages._post"
+    assert call.kwargs == {
+        "endpoint": f"{PAGE}/approval/review-date",
+        "data": {"next_review_date": "2027-11-30", "comment": ""},
+    }
+
+
+def test_a_review_date_that_is_not_a_date_makes_no_request(registered, spy):
+    result = registered["page"].fn(action="set_review_date", project_id="p", page_id="pg", next_review_date="soon")
+
+    assert isinstance(result, str) and result.startswith("Error:")
+    assert spy.recorder.calls == []
+
+
+def test_agents_cannot_approve_or_reject(registered):
+    """Decisions need a person in the app; the tool must not even offer them."""
+    from plane_mcp.tools.page import ACTIONS
+
+    names = {action.name for action in ACTIONS}
+    schema = registered["page"].parameters["properties"]["action"]
+    assert not names & {"approve", "reject"}
+    assert not set(schema["enum"]) & {"approve", "reject"}
+
+
+def test_page_approvals_is_a_project_feature(registered, spy):
+    registered["project"].fn(action="update_features", project_id="p", page_approvals=True)
+
+    data = spy.recorder.only().kwargs["data"]
+    assert data.model_dump(exclude_none=True) == {"page_approvals": True}

@@ -30,6 +30,7 @@ SAMPLES: dict[str, object] = {
     "network": 2,
     "timezone": "UTC",
     "workitem_identifier": "ENG-42",
+    "next_review_date": "2027-01-31",
 }
 
 # Actions that require *one of* several optional parameters -- a condition the

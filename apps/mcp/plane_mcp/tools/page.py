@@ -7,6 +7,7 @@ here is project scoped.
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any, Literal
 
 from fastmcp import FastMCP
@@ -45,6 +46,20 @@ ACTIONS = (
     ),
     Action("list_versions", ("project_id", "page_id"), ("cursor", "per_page"), read=True),
     Action("retrieve_version", ("project_id", "page_id", "version_id"), read=True),
+    Action(
+        "submit_for_review",
+        ("project_id", "page_id"),
+        ("comment",),
+        note="snapshots the page as it is now for the project's approvers",
+    ),
+    Action("approval_status", ("project_id", "page_id"), read=True),
+    Action("list_approvals", ("project_id",), ("cursor", "per_page"), read=True),
+    Action(
+        "set_review_date",
+        ("project_id", "page_id", "next_review_date"),
+        ("comment",),
+        note="page approvers and project admins only",
+    ),
 )
 
 FOOTER = (
@@ -54,8 +69,16 @@ FOOTER = (
     "parent is the UUID of the page to nest under; parent=null moves the page to the top level.\n"
     "A locked page refuses every change except a new parent, unlocking included; unlock it in Plane.\n"
     "Each body change is kept as a version: list_versions lists them newest first without their "
-    "bodies, retrieve_version returns one with the body it captured."
+    "bodies, retrieve_version returns one with the body it captured.\n"
+    "Approvals, for projects with the page_approvals feature: submit_for_review puts the page in review; "
+    "approval_status returns its status (draft, in_review, approved, rejected), the version in force, "
+    "the next review date and the approval log; list_approvals is the document register of the project. "
+    "Approving and rejecting need a person in the Paperplane app and cannot be done here. "
+    "next_review_date is YYYY-MM-DD."
 )
+
+# the latest approval events approval_status returns with the status
+APPROVAL_EVENTS_SHOWN = 50
 
 LEGACY = {
     "list_pages": "list",
@@ -71,7 +94,18 @@ def register(mcp: FastMCP) -> None:
         annotations=build_annotations(TITLE, ACTIONS),
     )
     def page(
-        action: Literal["list", "retrieve", "create", "update", "list_versions", "retrieve_version"],
+        action: Literal[
+            "list",
+            "retrieve",
+            "create",
+            "update",
+            "list_versions",
+            "retrieve_version",
+            "submit_for_review",
+            "approval_status",
+            "list_approvals",
+            "set_review_date",
+        ],
         project_id: str = "",
         page_id: str = "",
         version_id: str = "",
@@ -85,6 +119,8 @@ def register(mcp: FastMCP) -> None:
         is_locked: bool | None = None,
         external_source: str = "",
         external_id: str = "",
+        comment: str = "",
+        next_review_date: str = "",
         cursor: str = "",
         per_page: int = 0,
     ) -> Page | dict[str, Any] | str | None:
@@ -100,6 +136,13 @@ def register(mcp: FastMCP) -> None:
                 params=as_params(PaginatedQueryParams, cursor=cursor, per_page=per_page),
             )
             return envelope(response)
+
+        if action == "list_approvals":
+            return envelope(
+                client.pages._get(
+                    f"{workspace_slug}/projects/{project_id}/page-approvals", params=page_params(cursor, per_page)
+                )
+            )
 
         if action == "create":
             if error := needs(action, name=name, description_html=description_html):
@@ -145,6 +188,27 @@ def register(mcp: FastMCP) -> None:
             if not data:
                 return missing(action, "a field to change")
             return client.pages._patch(path, data)
+
+        # Approvals have no plane-sdk calls. There is deliberately no approve or reject: the API only
+        # takes those from a person signed in to the app.
+        if action == "submit_for_review":
+            return client.pages._post(f"{path}/approval/submit", {"comment": comment})
+
+        if action == "approval_status":
+            approval = client.pages._get(f"{path}/approval")
+            events = client.pages._get(f"{path}/approval/events", params={"per_page": APPROVAL_EVENTS_SHOWN})
+            return {"approval": approval, "events": events.get("results") if isinstance(events, dict) else events}
+
+        if action == "set_review_date":
+            if not next_review_date:
+                return missing(action, "next_review_date")
+            try:
+                date.fromisoformat(next_review_date)
+            except ValueError:
+                return f"Error: next_review_date must be a date as YYYY-MM-DD, not {next_review_date!r}"
+            return client.pages._post(
+                f"{path}/approval/review-date", {"next_review_date": next_review_date, "comment": comment}
+            )
 
         if action == "list_versions":
             return envelope(client.pages._get(f"{path}/versions", params=page_params(cursor, per_page)))
