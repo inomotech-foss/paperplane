@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+# Python imports
+import json
+
 # Django imports
 from django.db import transaction
 from django.db.models import Q
@@ -14,7 +17,10 @@ from drf_spectacular.utils import OpenApiResponse, OpenApiRequest
 # Module imports
 from plane.api.serializers import PageSerializer
 from plane.app.permissions import ProjectEntityPermission
+from plane.bgtasks.page_transaction_task import page_transaction
+from plane.bgtasks.page_version_task import track_page_version
 from plane.db.models import Page, Project, ProjectPage
+from plane.utils.live_content import notify_live_content_replaced
 from plane.utils.page_order import PagePlacementError, move_page, next_sort_order, placement_error_response
 from .base import BaseAPIView
 from plane.utils.openapi import (
@@ -260,6 +266,15 @@ class PageDetailAPIEndpoint(BaseAPIView):
                     status=status.HTTP_409_CONFLICT,
                 )
 
+            old_description_html = page.description_html
+            new_description_html = serializer.validated_data.get("description_html", old_description_html)
+            content_changed = new_description_html != old_description_html
+            # The editor loads description_binary in preference to the HTML, and the
+            # live server saves it back over the HTML. A new body therefore drops the
+            # stale binary and JSON, and live rebuilds them from the HTML, as it does
+            # for imported pages.
+            derived = {"description_binary": None, "description_json": {}} if content_changed else {}
+
             try:
                 with transaction.atomic():
                     if "parent" in serializer.validated_data:
@@ -268,8 +283,27 @@ class PageDetailAPIEndpoint(BaseAPIView):
                         if parent_id != page.parent_id:
                             # a new parent puts the page at the end of its new siblings
                             serializer.instance, _ = move_page(page.id, project_id, request.user, parent_id)
-                    serializer.save()
+                    serializer.save(**derived)
+                    if content_changed:
+                        # an open document would otherwise save its old body over this one
+                        notify_live_content_replaced(
+                            page=page.id, description_html=serializer.instance.description_html
+                        )
             except PagePlacementError as error:
                 return Response(placement_error_response(error), status=status.HTTP_400_BAD_REQUEST)
+
+            if content_changed:
+                # the same history and mention tracking an edit in the editor gets
+                page_transaction.delay(
+                    new_description_html=serializer.instance.description_html,
+                    old_description_html=old_description_html,
+                    page_id=str(page.id),
+                    actor_id=str(request.user.id),
+                )
+                track_page_version.delay(
+                    page_id=str(page.id),
+                    existing_instance=json.dumps({"description_html": old_description_html}),
+                    user_id=str(request.user.id),
+                )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

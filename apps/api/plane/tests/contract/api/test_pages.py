@@ -2,11 +2,15 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
+import json
+from unittest import mock
+
 import pytest
 from rest_framework import status
 from uuid import uuid4
 
 from plane.db.models import Page, Project, ProjectMember, ProjectPage
+from plane.utils import live_content
 
 
 @pytest.fixture
@@ -328,3 +332,122 @@ class TestPageDetailAPIEndpoint:
         response = api_key_client.patch(url, {"name": "New Name"}, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.fixture
+def live_events():
+    """The events the API hands to the live servers, and the background tasks it queues."""
+    redis = mock.Mock()
+    with (
+        mock.patch.object(live_content, "_redis", return_value=redis),
+        mock.patch("plane.api.views.page.track_page_version") as track_page_version,
+        mock.patch("plane.api.views.page.page_transaction") as page_transaction,
+    ):
+        yield mock.Mock(
+            published=lambda: [
+                json.loads(call.args[1])
+                for call in redis.publish.call_args_list
+                if call.args[0] == "paperplane:live-content"
+            ],
+            track_page_version=track_page_version,
+            page_transaction=page_transaction,
+        )
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestPageBodyUpdateKeepsTheEditorInStep:
+    """A body written through the API must reach the collaborative editor, not be overwritten by it."""
+
+    def url(self, workspace, project, page):
+        return f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/pages/{page.id}/"
+
+    @pytest.fixture
+    def opened_page(self, create_page):
+        """A page the editor has already saved, so it carries a binary and JSON copy of the old body."""
+        create_page.description_binary = b"stale yjs state"
+        create_page.description_json = {"type": "doc", "content": [{"type": "paragraph"}]}
+        create_page.save()
+        return create_page
+
+    def test_new_body_drops_the_stale_editor_copies(
+        self, api_key_client, workspace, project, opened_page, live_events, django_capture_on_commit_callbacks
+    ):
+        with django_capture_on_commit_callbacks(execute=True):
+            response = api_key_client.patch(
+                self.url(workspace, project, opened_page), {"description_html": "<p>Revised</p>"}, format="json"
+            )
+
+        assert response.status_code == status.HTTP_200_OK
+        opened_page.refresh_from_db()
+        assert opened_page.description_html == "<p>Revised</p>"
+        assert opened_page.description_stripped == "Revised"
+        # live rebuilds both from the HTML the next time the page loads
+        assert opened_page.description_binary is None
+        assert opened_page.description_json == {}
+
+    def test_new_body_is_handed_to_open_documents(
+        self, api_key_client, workspace, project, opened_page, live_events, django_capture_on_commit_callbacks
+    ):
+        with django_capture_on_commit_callbacks(execute=True):
+            api_key_client.patch(
+                self.url(workspace, project, opened_page), {"description_html": "<p>Revised</p>"}, format="json"
+            )
+
+        [event] = live_events.published()
+        assert event["page"] == str(opened_page.id)
+        assert event["html"] == "<p>Revised</p>"
+        assert event["id"]
+
+    def test_new_body_is_versioned_like_an_editor_save(
+        self, api_key_client, workspace, project, create_user, opened_page, live_events
+    ):
+        api_key_client.patch(
+            self.url(workspace, project, opened_page), {"description_html": "<p>Revised</p>"}, format="json"
+        )
+
+        live_events.track_page_version.delay.assert_called_once_with(
+            page_id=str(opened_page.id),
+            existing_instance=json.dumps({"description_html": "<p>Existing content</p>"}),
+            user_id=str(create_user.id),
+        )
+        live_events.page_transaction.delay.assert_called_once_with(
+            new_description_html="<p>Revised</p>",
+            old_description_html="<p>Existing content</p>",
+            page_id=str(opened_page.id),
+            actor_id=str(create_user.id),
+        )
+
+    @pytest.mark.parametrize(
+        "change",
+        [{"name": "Renamed"}, {"description_html": "<p>Existing content</p>"}],
+        ids=["name only", "same body"],
+    )
+    def test_unchanged_body_keeps_the_editor_copies(
+        self, api_key_client, workspace, project, opened_page, live_events, django_capture_on_commit_callbacks, change
+    ):
+        with django_capture_on_commit_callbacks(execute=True):
+            response = api_key_client.patch(self.url(workspace, project, opened_page), change, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        opened_page.refresh_from_db()
+        assert bytes(opened_page.description_binary) == b"stale yjs state"
+        assert opened_page.description_json == {"type": "doc", "content": [{"type": "paragraph"}]}
+        assert live_events.published() == []
+        live_events.track_page_version.delay.assert_not_called()
+
+    def test_refused_body_changes_nothing(
+        self, api_key_client, workspace, project, opened_page, live_events, django_capture_on_commit_callbacks
+    ):
+        opened_page.is_locked = True
+        opened_page.save()
+
+        with django_capture_on_commit_callbacks(execute=True):
+            response = api_key_client.patch(
+                self.url(workspace, project, opened_page), {"description_html": "<p>Revised</p>"}, format="json"
+            )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        opened_page.refresh_from_db()
+        assert bytes(opened_page.description_binary) == b"stale yjs state"
+        assert live_events.published() == []
