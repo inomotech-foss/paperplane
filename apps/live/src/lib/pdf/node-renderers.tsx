@@ -403,6 +403,15 @@ export const nodeRenderers: NodeRendererRegistry = {
     const kind = readString(node.attrs, "kind") || "recent";
     const labels = readString(node.attrs, "labels") || "";
 
+    // An include shows another page's content, which a PDF render has no access to.
+    if (kind === "include") {
+      return (
+        <View key={ctx.getKey()} style={pdfStyles.embed}>
+          <Text>Included page</Text>
+        </View>
+      );
+    }
+
     // The query runs against live data, which a PDF has none of, so name the
     // listing rather than leaving a blank where a block used to be.
     return (

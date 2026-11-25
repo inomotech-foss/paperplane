@@ -179,6 +179,12 @@
     "loading": "正在加载页面",
     "error": "无法加载页面",
     "unsupported": "此页面列表尚不可用",
+    "include": {
+      "loading": "正在加载嵌入的页面",
+      "error": "无法加载嵌入的页面",
+      "invalid": "此块未指定要嵌入的页面",
+      "source": "嵌入自"
+    },
     "empty_state": {
       "tree": "暂无子页面",
       "pages": "没有页面与此列表匹配",

@@ -179,6 +179,12 @@
     "loading": "Seiten werden geladen",
     "error": "Die Seiten konnten nicht geladen werden",
     "unsupported": "Diese Seitenliste ist noch nicht verfügbar",
+    "include": {
+      "loading": "Eingebundene Seite wird geladen",
+      "error": "Die eingebundene Seite konnte nicht geladen werden",
+      "invalid": "Dieser Block nennt keine Seite zum Einbinden",
+      "source": "Eingebunden aus"
+    },
     "empty_state": {
       "tree": "Noch keine Unterseiten",
       "pages": "Keine Seiten entsprechen dieser Liste",

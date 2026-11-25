@@ -179,6 +179,12 @@
     "loading": "Pagina's laden",
     "error": "Pagina's konden niet worden geladen",
     "unsupported": "Deze paginalijst is nog niet beschikbaar",
+    "include": {
+      "loading": "Ingevoegde pagina wordt geladen",
+      "error": "De ingevoegde pagina kon niet worden geladen",
+      "invalid": "Dit blok noemt geen pagina om in te voegen",
+      "source": "Ingevoegd uit"
+    },
     "unknown_user": "Onbekende gebruiker",
     "page_count": "{count, plural, one {# pagina} other {# pagina's}}",
     "empty_state": {

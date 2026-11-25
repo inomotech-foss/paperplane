@@ -179,6 +179,12 @@
     "loading": "Načítavanie stránok",
     "error": "Stránky sa nepodarilo načítať",
     "unsupported": "Tento zoznam stránok zatiaľ nie je k dispozícii",
+    "include": {
+      "loading": "Načítava sa vložená stránka",
+      "error": "Vloženú stránku sa nepodarilo načítať",
+      "invalid": "Tento blok neuvádza stránku na vloženie",
+      "source": "Vložené zo stránky"
+    },
     "empty_state": {
       "tree": "Zatiaľ žiadne podstránky",
       "pages": "Tomuto zoznamu nezodpovedajú žiadne stránky",

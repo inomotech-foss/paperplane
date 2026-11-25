@@ -179,6 +179,12 @@
     "loading": "Chargement des pages",
     "error": "Impossible de charger les pages",
     "unsupported": "Cette liste de pages n'est pas encore disponible",
+    "include": {
+      "loading": "Chargement de la page incluse",
+      "error": "Impossible de charger la page incluse",
+      "invalid": "Ce bloc n'indique aucune page à inclure",
+      "source": "Inclus depuis"
+    },
     "empty_state": {
       "tree": "Aucune sous-page pour le moment",
       "pages": "Aucune page ne correspond à cette liste",

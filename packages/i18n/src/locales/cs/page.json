@@ -179,6 +179,12 @@
     "loading": "Načítání stránek",
     "error": "Stránky se nepodařilo načíst",
     "unsupported": "Tento seznam stránek zatím není k dispozici",
+    "include": {
+      "loading": "Načítání vložené stránky",
+      "error": "Vloženou stránku se nepodařilo načíst",
+      "invalid": "Tento blok neuvádí stránku k vložení",
+      "source": "Vloženo ze stránky"
+    },
     "empty_state": {
       "tree": "Zatím žádné podstránky",
       "pages": "Tomuto seznamu neodpovídají žádné stránky",
