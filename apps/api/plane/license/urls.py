@@ -5,6 +5,8 @@
 from django.urls import path
 
 from plane.license.api.views import (
+    InstanceDataUpgradeEndpoint,
+    InstanceDataUpgradeRetryEndpoint,
     EmailCredentialCheckEndpoint,
     InstanceAdminEndpoint,
     InstanceAdminSignInEndpoint,
@@ -119,6 +121,12 @@ urlpatterns = [
         "users/<uuid:pk>/merge/preview/",
         InstanceUserMergePreviewEndpoint.as_view(),
         name="instance-user-merge-preview",
+    ),
+    path("data-upgrades/", InstanceDataUpgradeEndpoint.as_view(), name="instance-data-upgrades"),
+    path(
+        "data-upgrades/<str:name>/retry/",
+        InstanceDataUpgradeRetryEndpoint.as_view(),
+        name="instance-data-upgrade-retry",
     ),
     # OAuth clients, registered by an instance admin.
     path(

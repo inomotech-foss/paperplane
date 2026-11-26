@@ -183,6 +183,42 @@ paths:
       responses:
         '200':
           description: Disabled, with an empty body
+  /api/instances/data-upgrades/:
+    get:
+      operationId: data_upgrades_list
+      tags:
+      - data-upgrades
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataUpgrade'
+          description: ''
+  /api/instances/data-upgrades/{name}/retry/:
+    post:
+      operationId: data_upgrades_retry_create
+      parameters:
+      - in: path
+        name: name
+        schema:
+          type: string
+        required: true
+      tags:
+      - data-upgrades
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataUpgrade'
+          description: ''
   /api/instances/email-credentials-check/:
     post:
       operationId: email_credentials_check_create
@@ -681,6 +717,60 @@ components:
       - managed
       - created
       - client_secret
+    DataUpgrade:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/DataUpgradeStatusEnum'
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Totals of all batches so far
+        error:
+          type: string
+          description: Traceback of the last failure, empty otherwise
+        attempts:
+          type: integer
+          description: How often it was started, retries included
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - name
+      - description
+      - status
+      - counts
+      - error
+      - attempts
+      - started_at
+      - finished_at
+      - updated_at
+    DataUpgradeStatusEnum:
+      enum:
+      - pending
+      - running
+      - done
+      - failed
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `running` - Running
+        * `done` - Done
+        * `failed` - Failed
     EmailCredentialCheckRequest:
       type: object
       properties:

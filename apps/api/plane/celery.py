@@ -66,6 +66,10 @@ app.conf.beat_schedule = {
         "task": "plane.bgtasks.service_desk_task.service_desk_poll",
         "schedule": crontab(minute=os.environ.get("SERVICE_DESK_POLL_CRON_MINUTE", "*/2")),
     },
+    "check-every-five-minutes-to-run-data-upgrades": {
+        "task": "plane.bgtasks.data_upgrade_task.run_data_upgrades",
+        "schedule": crontab(minute="*/5"),
+    },
     "check-every-hour-service-desk-subscriptions": {
         "task": "plane.bgtasks.service_desk_task.service_desk_maintain_subscriptions",
         "schedule": crontab(minute="17"),  # Hourly

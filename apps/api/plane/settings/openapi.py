@@ -301,5 +301,6 @@ SPECTACULAR_SETTINGS = {
         "PageApprovalStatusEnum": "plane.db.models.page_approval.PageApproval.STATUS_CHOICES",
         "PageApprovalEventActionEnum": "plane.db.models.page_approval.PageApprovalEvent.ACTION_CHOICES",
         "PageApprovalInForceKindEnum": "plane.app.serializers.page_approval.IN_FORCE_KIND_CHOICES",
+        "DataUpgradeStatusEnum": "plane.db.models.data_upgrade.DataUpgradeState.Status",
     },
 }

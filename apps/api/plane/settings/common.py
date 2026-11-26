@@ -401,6 +401,7 @@ CELERY_IMPORTS = (
     "plane.bgtasks.page_mention_task",
     "plane.bgtasks.cleanup_task",
     "plane.bgtasks.service_desk_task",
+    "plane.bgtasks.data_upgrade_task",
     "plane.license.bgtasks.telemetry_metrics",
     # management tasks
     "plane.bgtasks.dummy_data_task",
