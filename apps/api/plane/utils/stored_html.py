@@ -8,7 +8,6 @@ and webhooks are not touched, and a row edited since it was read is left alone.
 """
 
 from dataclasses import dataclass
-from typing import Protocol
 
 from django.db.models import Model, QuerySet
 
@@ -25,14 +24,6 @@ from plane.db.models import (
     PageVersion,
 )
 from plane.utils.html_processor import strip_tags
-
-
-class StoredHtml(Protocol):
-    def rows(self) -> QuerySet[Model]: ...
-
-    def html_of(self, row: Model) -> str | None: ...
-
-    def write(self, row: Model, clean: str) -> bool: ...
 
 
 def _stripped(html: str, empty: str | None) -> str | None:
@@ -87,6 +78,8 @@ class AutomationTemplate:
         updated = {**config, template_field(row.action_type, config): clean}
         return bool(AutomationAction.all_objects.filter(pk=row.pk, config=config).update(config=updated))
 
+
+type StoredHtml = HtmlField | AutomationTemplate
 
 TARGETS: dict[str, StoredHtml] = {
     "page": HtmlField(Page),
