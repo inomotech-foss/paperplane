@@ -1,20 +1,24 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-from io import StringIO
+from collections import Counter
 
 import pytest
-from django.core.management import call_command
-from django.core.management.base import CommandError
+from django.db.models import Model, QuerySet
 
-from plane.db.models import Issue, IssueActivity, IssueComment, Label, Page, Project, State, User
+from plane.db.models import Issue, IssueActivity, IssueComment, Label, Page, Project, State, User, Workspace
+from plane.maintenance.upgrade import JsonValue
+from plane.maintenance.upgrades import backfill_creators
+from plane.maintenance.upgrades.backfill_creators import step
 from plane.utils.issue_type import link_starter_type
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.django_db]
+
+LAST_UUID = "ffffffff-ffff-ffff-ffff-ffffffffffff"
 
 
 @pytest.fixture
-def damage(db, workspace, create_user):
+def damage(workspace: Workspace, create_user: User) -> dict[str, Model]:
     other = User.objects.create(email="owner@plane.so", username="owner", display_name="owner")
     project = Project.objects.create(name="Damage", identifier="DMG", workspace=workspace)
     state = State.objects.create(name="Todo", project=project, group="backlog", default=True)
@@ -49,33 +53,28 @@ def damage(db, workspace, create_user):
     }
 
 
-def _creator(model, obj):
+def _creator(model: type[Model], obj: Model) -> object:
     return model._base_manager.values_list("created_by_id", flat=True).get(pk=obj.pk)
 
 
-def _run(*args):
-    out = StringIO()
-    call_command("backfill_creators", *args, stdout=out)
-    return out.getvalue()
+def _run() -> Counter[str]:
+    totals: Counter[str] = Counter()
+    cursor: JsonValue = None
+    while True:
+        batch = step(cursor)
+        totals.update(batch.counts)
+        cursor = batch.cursor
+        if cursor is None:
+            return totals
 
 
-def test_dry_run_counts_without_writing(damage):
-    out = _run("--model", "Issue", "--model", "IssueComment", "--model", "Page")
-
-    assert "Issue: would fill 1" in out
-    assert "IssueComment: would fill 1" in out
-    assert "Page: would fill 1" in out
-    assert _creator(Issue, damage["with_activity"]) is None
-    assert _creator(Page, damage["page"]) is None
-
-
-def test_apply_fills_from_the_inferred_source_and_keeps_the_rest(damage):
+def test_fills_from_the_inferred_source_and_keeps_the_rest(damage):
     page_before = Page._base_manager.values("updated_at", "updated_by_id").get(pk=damage["page"].pk)
 
-    out = _run("--apply", "--batch-size", "1")
+    counts = _run()
 
     other = damage["other"].pk
-    assert "Total: filled" in out
+    assert counts["filled"] >= 3
     assert _creator(Issue, damage["with_activity"]) == other
     assert _creator(IssueComment, damage["comment"]) == other
     assert _creator(Page, damage["page"]) == other
@@ -86,12 +85,46 @@ def test_apply_fills_from_the_inferred_source_and_keeps_the_rest(damage):
     assert Page._base_manager.values("updated_at", "updated_by_id").get(pk=damage["page"].pk) == page_before
 
 
-def test_a_second_apply_has_nothing_left(damage):
-    _run("--apply")
+def test_a_second_run_fills_nothing(damage):
+    _run()
 
-    assert _run("--apply", "--model", "Issue", "--model", "Page").strip().endswith("Total: filled 0")
+    assert _run()["filled"] == 0
 
 
-def test_rejects_models_without_a_source(damage):
-    with pytest.raises(CommandError, match="Label"):
-        _run("--model", "Label")
+def test_a_creator_set_during_the_run_is_kept(monkeypatch, damage):
+    original = backfill_creators.keyset_batch
+
+    def set_creator_then_batch(
+        queryset: QuerySet[Model], after: str | None, size: int
+    ) -> tuple[list[Model], str | None]:
+        rows, cursor = original(queryset, after, size)
+        Issue.all_objects.filter(pk=damage["with_activity"].pk).update(created_by=damage["user"])
+        return rows, cursor
+
+    monkeypatch.setattr(backfill_creators, "keyset_batch", set_creator_then_batch)
+
+    _run()
+
+    assert _creator(Issue, damage["with_activity"]) == damage["user"].pk
+
+
+def test_the_cursor_walks_each_model_in_turn(monkeypatch, damage):
+    monkeypatch.setattr(backfill_creators, "BATCH_SIZE", 1)
+    labels = list(backfill_creators._models())
+    issue = labels.index("db.Issue")
+
+    first = step({"model": "db.Issue", "after": None})
+    assert first.cursor == {"model": "db.Issue", "after": str(damage["with_activity"].pk)}
+    assert first.counts == {"filled": 1}
+
+    second = step(first.cursor)
+    assert second.cursor == {"model": labels[issue + 1], "after": None}
+    assert second.counts == {"filled": 0}
+
+    assert step({"model": labels[-1], "after": LAST_UUID}).cursor is None
+
+
+@pytest.mark.parametrize("cursor", [{"model": "db.Label", "after": None}, {"model": "db.Issue", "after": 1}, 3])
+def test_rejects_an_unexpected_cursor(cursor):
+    with pytest.raises(ValueError, match="Unexpected cursor"):
+        step(cursor)
