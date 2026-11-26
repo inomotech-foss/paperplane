@@ -26,7 +26,7 @@ import { DateSelect } from "@plane/blocks/property-select";
 import { setToast } from "@plane/blocks/toast";
 import { useTranslation } from "@plane/i18n";
 import { ApiError } from "@plane/services";
-import { renderFormattedPayloadDate } from "@plane/utils";
+import { getPageName, renderFormattedPayloadDate } from "@plane/utils";
 // services
 import { PageApprovalService } from "@/services/page";
 import type { TPageBaselineCandidate, TPageBaselinePreview } from "@/services/page";
@@ -63,10 +63,10 @@ const BaselineRow = observer(function BaselineRow(props: RowProps) {
         checked={selectable && selected}
         disabled={!selectable}
         onCheckedChange={(checked) => onToggle(row.page, checked)}
-        aria-label={t("page_approval_baseline.select_page", { name: row.name })}
+        aria-label={t("page_approval_baseline.select_page", { name: getPageName(row.name) })}
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-13 text-primary">{row.name}</span>
+        <span className="truncate text-13 text-primary">{getPageName(row.name)}</span>
         {reason ? (
           <span className="text-12 text-tertiary" title={row.skip_reason_label}>
             {reason}
