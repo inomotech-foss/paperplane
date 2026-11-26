@@ -19,7 +19,8 @@ const STATUS_BADGE: Record<TDataUpgradeStatus, { label: string; variant: BadgeVa
   failed: { label: "Failed", variant: "danger" },
 };
 
-const formatTime = (value: string | null) => renderFormattedDate(value, "MMM dd, yyyy HH:mm");
+const formatTime = (value: string | null) =>
+  value ? renderFormattedDate(new Date(value), "MMM dd, yyyy HH:mm") : undefined;
 
 type Props = {
   upgrade: TDataUpgrade;
