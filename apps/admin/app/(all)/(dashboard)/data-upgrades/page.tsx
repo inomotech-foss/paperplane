@@ -8,6 +8,7 @@ import useSWR from "swr";
 // plane imports
 import { setToast } from "@plane/blocks/toast";
 import { hasActiveDataUpgrade, InstanceDataUpgradeService } from "@plane/services";
+import type { TDataUpgrade } from "@plane/services";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { Skeleton } from "@/components/common/skeleton";
@@ -29,7 +30,7 @@ function DataUpgradesPage(_props: Route.ComponentProps) {
     data: upgrades,
     error,
     mutate,
-  } = useSWR("INSTANCE_DATA_UPGRADES", () => dataUpgradeService.list(), {
+  } = useSWR<TDataUpgrade[], unknown>("INSTANCE_DATA_UPGRADES", () => dataUpgradeService.list(), {
     refreshInterval: (latest) => (hasActiveDataUpgrade(latest) ? REFRESH_INTERVAL_MS : 0),
   });
 
