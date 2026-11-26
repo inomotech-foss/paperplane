@@ -171,15 +171,15 @@ def test_only_a_pristine_draft_can_be_baselined(workspace, project, page, author
         baseline(page, project, admin)
 
     assert refused.value.code == "NOT_A_PRISTINE_DRAFT"
-    assert page_approval.baseline_refusal(page) == "status in_review"
+    assert page_approval.baseline_refusal(page) == "in_review"
     approve(client_for(approver), workspace, project, page)
-    assert page_approval.baseline_refusal(page) == "already approved"
+    assert page_approval.baseline_refusal(page) == "already_approved"
 
 
 def test_a_page_is_baselined_once(workspace, project, page, admin):
     baseline(page, project, admin)
 
-    assert page_approval.baseline_refusal(page) == "already baselined"
+    assert page_approval.baseline_refusal(page) == "already_baselined"
     with pytest.raises(ApprovalError):
         baseline(page, project, admin)
     assert PageApprovalEvent.objects.filter(page=page).count() == 1
@@ -189,7 +189,7 @@ def test_a_rejected_draft_is_not_pristine(workspace, project, page, author, appr
     submit(client_for(author), workspace, project, page)
     reject(client_for(approver), workspace, project, page)
 
-    assert page_approval.baseline_refusal(page) == "status rejected"
+    assert page_approval.baseline_refusal(page) == "rejected"
 
 
 def test_archived_pages_are_not_baselined(workspace, project, page):

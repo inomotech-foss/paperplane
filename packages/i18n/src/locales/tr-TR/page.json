@@ -230,6 +230,7 @@
       "already_approved": "Zaten onaylandı",
       "in_review": "İncelemede",
       "rejected": "Reddedildi",
+      "already_submitted": "Zaten gönderildi",
       "has_approval_history": "Onay geçmişi var",
       "locked": "Kilitli"
     }

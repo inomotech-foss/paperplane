@@ -230,6 +230,7 @@
       "already_approved": "이미 승인됨",
       "in_review": "검토 중",
       "rejected": "반려됨",
+      "already_submitted": "이미 제출됨",
       "has_approval_history": "승인 기록 있음",
       "locked": "잠김"
     }

@@ -230,6 +230,7 @@
       "already_approved": "Bereits freigegeben",
       "in_review": "In Prüfung",
       "rejected": "Abgelehnt",
+      "already_submitted": "Bereits eingereicht",
       "has_approval_history": "Hat Freigabeverlauf",
       "locked": "Gesperrt"
     }

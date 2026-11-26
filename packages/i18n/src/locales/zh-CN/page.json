@@ -230,6 +230,7 @@
       "already_approved": "已批准",
       "in_review": "审核中",
       "rejected": "已拒绝",
+      "already_submitted": "已提交",
       "has_approval_history": "有批准记录",
       "locked": "已锁定"
     }

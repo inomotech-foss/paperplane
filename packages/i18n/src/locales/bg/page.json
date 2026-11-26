@@ -230,6 +230,7 @@
       "already_approved": "Вече одобрена",
       "in_review": "В преглед",
       "rejected": "Отхвърлена",
+      "already_submitted": "Вече изпратена",
       "has_approval_history": "Има история на одобрения",
       "locked": "Заключена"
     }

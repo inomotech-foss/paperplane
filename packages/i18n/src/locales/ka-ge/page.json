@@ -230,6 +230,7 @@
       "already_approved": "უკვე დამტკიცებული",
       "in_review": "განხილვაზე",
       "rejected": "უარყოფილი",
+      "already_submitted": "უკვე გაგზავნილი",
       "has_approval_history": "აქვს დამტკიცების ისტორია",
       "locked": "დაბლოკილი"
     }

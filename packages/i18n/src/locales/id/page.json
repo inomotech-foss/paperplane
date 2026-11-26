@@ -230,6 +230,7 @@
       "already_approved": "Sudah disetujui",
       "in_review": "Sedang ditinjau",
       "rejected": "Ditolak",
+      "already_submitted": "Sudah dikirim",
       "has_approval_history": "Memiliki riwayat persetujuan",
       "locked": "Dikunci"
     }

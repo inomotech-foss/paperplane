@@ -2,15 +2,21 @@
 # See the LICENSE file for details.
 
 from datetime import date
-from unittest.mock import patch
 
 import pytest
 
 from plane.bgtasks.page_baseline_task import baseline_pages
-from plane.db.models import Page, PageApproval, PageApprovalEvent, Project, ProjectMember, ProjectPage
+from plane.db.models import Page, PageApproval, PageApprovalEvent, Project, ProjectMember, ProjectPage, User
 from plane.utils import page_approval
 
 pytestmark = [pytest.mark.unit, pytest.mark.django_db]
+
+STATUS_TABLE = (
+    "<h1>Document status</h1><table><tbody>"
+    "<tr><th>Status</th><td>approved</td></tr>"
+    "<tr><th>Approved on</th><td>03.11.2025</td></tr>"
+    "<tr><th>Approved by</th><td>Roger Knecht</td></tr></tbody></table><p>Policy text</p>"
+)
 
 
 @pytest.fixture
@@ -65,14 +71,37 @@ def test_skips_pages_that_are_no_longer_eligible(project, make_page, create_user
 
 def test_a_refused_page_does_not_stop_the_run(project, make_page, create_user):
     raced, fine = make_page("A raced"), make_page("B fine")
+    # submitted after the POST checked it
     page_approval.submit(raced, project.id, create_user)
 
-    # the page was submitted after the eligibility check
-    with patch.object(page_approval, "baseline_skip_reason", return_value=None):
-        result = run(project, [raced, fine], create_user)
+    result = run(project, [raced, fine], create_user)
 
     assert result == {"baselined": 1, "skipped": 1}
+    assert PageApproval.objects.get(page=raced).status == "in_review"
     assert PageApproval.objects.get(page=fine).status == "baseline"
+
+
+def test_skips_a_page_made_private_by_someone_else(project, make_page, create_user, workspace):
+    page = make_page("Policy")
+    other = User.objects.create(email="owner@plane.so", username="owner")
+    Page.objects.filter(pk=page.pk).update(owned_by=other, access=Page.PRIVATE_ACCESS)
+
+    result = run(project, [page], create_user)
+
+    assert result == {"baselined": 0, "skipped": 1}
+    assert not PageApproval.objects.filter(page=page).exists()
+
+
+def test_reads_the_legacy_record_from_the_page_as_baselined(project, make_page, create_user):
+    page = make_page("Policy")
+    # the body changed after the POST: the record comes from what is baselined
+    Page.objects.filter(pk=page.pk).update(description_html=STATUS_TABLE)
+
+    run(project, [page], create_user)
+
+    approval = PageApproval.objects.get(page=page)
+    assert (approval.legacy_status, approval.legacy_approved_by) == ("approved", "Roger Knecht")
+    assert approval.baseline_version.description_html == STATUS_TABLE
 
 
 def test_includes_locked_pages_when_asked(project, make_page, create_user):
@@ -88,5 +117,5 @@ def test_ignores_pages_of_other_projects(project, make_page, create_user, worksp
 
     result = run(project, [stray], create_user)
 
-    assert result == {"baselined": 0, "skipped": 0}
+    assert result == {"baselined": 0, "skipped": 1}
     assert not PageApproval.objects.exists()

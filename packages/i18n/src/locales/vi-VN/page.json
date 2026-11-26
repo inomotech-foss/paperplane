@@ -230,6 +230,7 @@
       "already_approved": "Đã được phê duyệt",
       "in_review": "Đang xem xét",
       "rejected": "Đã bị từ chối",
+      "already_submitted": "Đã được gửi",
       "has_approval_history": "Có lịch sử phê duyệt",
       "locked": "Đã khóa"
     }

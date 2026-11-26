@@ -230,6 +230,7 @@
       "already_approved": "已核准",
       "in_review": "審核中",
       "rejected": "已拒絕",
+      "already_submitted": "已提交",
       "has_approval_history": "有核准記錄",
       "locked": "已鎖定"
     }

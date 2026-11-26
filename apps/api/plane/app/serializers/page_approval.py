@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from plane.db.models import Page, PageApproval, PageApprovalEvent, PageApprover
+from plane.importers.confluence.document_status import parse_document_status
 from plane.utils import page_approval
 
 STATUS_CHOICES = PageApproval.STATUS_CHOICES
@@ -343,33 +344,12 @@ class PageApproversUpdateSerializer(serializers.Serializer):
     )
 
 
-BASELINE_SKIP_CHOICES = (
-    ("archived", "Archived"),
-    ("already_baselined", "Already baselined"),
-    ("already_approved", "Already approved"),
-    ("in_review", "In review"),
-    ("rejected", "Rejected"),
-    ("has_approval_history", "Has approval history"),
-    ("locked", "Locked"),
-)
+BASELINE_SKIP_CHOICES = tuple((code, label.capitalize()) for code, label in page_approval.BASELINE_REFUSALS.items())
 LEGACY_KIND_CHOICES = (
     ("approved", "The page recorded an approval"),
     ("other", "The page recorded another status"),
     ("none", "The page recorded nothing"),
 )
-
-
-def baseline_skip_code(reason):
-    """The BASELINE_SKIP_CHOICES code of a page_approval.baseline_skip_reason text."""
-    codes = {
-        "archived": "archived",
-        "already baselined": "already_baselined",
-        "already approved": "already_approved",
-        "status in_review": "in_review",
-        "status rejected": "rejected",
-        page_approval.LOCKED: "locked",
-    }
-    return codes.get(reason, "has_approval_history")
 
 
 def legacy_kind(legacy):
@@ -390,7 +370,7 @@ class PageBaselineCandidateSerializer(serializers.Serializer):
         help_text="Why the page would not be baselined; null when it would. 'locked' pages are baselined "
         "with include_locked",
     )
-    skip_reason_label = serializers.CharField(allow_blank=True, help_text="skip_reason in words, with details")
+    skip_reason_label = serializers.CharField(allow_blank=True, help_text="skip_reason in words")
     legacy_kind = serializers.ChoiceField(
         choices=LEGACY_KIND_CHOICES,
         allow_null=True,
@@ -434,6 +414,11 @@ class PageBaselineRequestSerializer(serializers.Serializer):
     comment = serializers.CharField(required=False, allow_blank=True, default="", max_length=5000)
     include_locked = serializers.BooleanField(required=False, default=False, help_text="Also baseline locked pages")
 
+    def validate_next_review_date(self, value):
+        if value is not None and value < timezone.now().date():
+            raise serializers.ValidationError("The next review date cannot be in the past")
+        return value
+
 
 class PageBaselineQueuedSerializer(serializers.Serializer):
     queued = serializers.IntegerField(help_text="Pages queued for baselining")
@@ -449,29 +434,34 @@ def baseline_queryset(slug, project_id, user):
             project_pages__deleted_at__isnull=True,
         )
         .filter(Q(access=Page.PUBLIC_ACCESS) | Q(owned_by=user))
-        .only("id", "name", "is_locked", "archived_at", "description_html", "workspace_id")
+        .only("id", "name", "is_locked", "archived_at", "workspace_id")
         .distinct()
         .order_by("name", "id")
     )
 
 
-def baseline_candidate(page):
-    reason = page_approval.baseline_skip_reason(page)
-    eligible = reason is None or reason == page_approval.LOCKED
-    legacy = page_approval.page_legacy(page) if eligible else None
-    return {
-        "page": page.id,
-        "name": page.name,
-        "is_locked": page.is_locked,
-        "skip_reason": baseline_skip_code(reason) if reason else None,
-        "skip_reason_label": reason or "",
-        "legacy_kind": legacy_kind(legacy) if eligible else None,
-        "legacy_note": page_approval.legacy_note_of(legacy) if eligible else "",
-    }
-
-
 def baseline_preview(pages):
-    candidates = [baseline_candidate(page) for page in pages]
+    """The preview rows and totals, in a fixed number of queries. Only pages that can be baselined are parsed."""
+    pages = list(pages)
+    reasons = page_approval.baseline_skip_reasons(pages)
+    eligible_ids = [page.id for page in pages if reasons[page.id] in (None, page_approval.LOCKED)]
+    bodies = dict(Page.objects.filter(pk__in=eligible_ids).values_list("id", "description_html"))
+    candidates = []
+    for page in pages:
+        reason = reasons[page.id]
+        eligible = page.id in bodies
+        legacy = parse_document_status(bodies[page.id]) if eligible else None
+        candidates.append(
+            {
+                "page": page.id,
+                "name": page.name,
+                "is_locked": page.is_locked,
+                "skip_reason": reason,
+                "skip_reason_label": page_approval.BASELINE_REFUSALS[reason] if reason else "",
+                "legacy_kind": legacy_kind(legacy) if eligible else None,
+                "legacy_note": page_approval.legacy_note_of(legacy) if eligible else "",
+            }
+        )
     eligible = [row for row in candidates if row["skip_reason"] is None]
     return {
         "pages": candidates,

@@ -31,7 +31,13 @@ import { getPageName, renderFormattedPayloadDate } from "@plane/utils";
 import { PageApprovalService } from "@/services/page";
 import type { TPageBaselineCandidate, TPageBaselinePreview } from "@/services/page";
 // store
-import { BASELINE_SKIP_REASON_KEYS, baselineRequest, canBaseline, selectedPageIds } from "@/store/pages/page-baseline";
+import {
+  BASELINE_SKIP_REASON_KEYS,
+  baselineRequest,
+  canBaseline,
+  markQueued,
+  selectedPageIds,
+} from "@/store/pages/page-baseline";
 
 const service = new PageApprovalService();
 
@@ -80,8 +86,8 @@ const BaselineRow = observer(function BaselineRow(props: RowProps) {
 });
 
 /**
- * The form mounts fresh each time the modal opens (keyed by the parent), so its
- * state starts from the props instead of being reset by an effect.
+ * The modal renders the form only while it is open, so each opening mounts it
+ * fresh and its state starts from the props instead of being reset by an effect.
  */
 const BaselineForm = observer(function BaselineForm(
   props: Omit<Props, "isOpen" | "preview"> & {
@@ -127,8 +133,8 @@ const BaselineForm = observer(function BaselineForm(
         title: t("page_approval_baseline.done", { count: result.queued }),
         message: t("page_approval_baseline.done_message"),
       });
-      void mutate(baselinePreviewKey(projectId));
-      void mutate(`PAGE_APPROVAL_REGISTER_${projectId}`);
+      // The task has not run yet: refetching now would offer the same pages again.
+      void mutate(baselinePreviewKey(projectId), markQueued(preview, pageIds), { revalidate: false });
       onClose();
     } catch (error) {
       setToast({

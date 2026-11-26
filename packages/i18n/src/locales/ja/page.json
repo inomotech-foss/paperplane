@@ -230,6 +230,7 @@
       "already_approved": "承認済み",
       "in_review": "レビュー中",
       "rejected": "却下",
+      "already_submitted": "提出済み",
       "has_approval_history": "承認履歴あり",
       "locked": "ロック中"
     }

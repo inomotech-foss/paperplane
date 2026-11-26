@@ -269,7 +269,9 @@ class ProjectPageBaselineEndpoint(BaseAPIView):
         request=PageBaselineRequestSerializer,
         responses={
             202: PageBaselineQueuedSerializer,
-            400: OpenApiResponse(description="Refused: see error_code, or page_ids not in the project"),
+            400: OpenApiResponse(
+                description="Refused: see error_code, page_ids not in the project, or a next_review_date in the past"
+            ),
         },
     )
     @allow_permission([ROLE.ADMIN])
@@ -296,12 +298,9 @@ class ProjectPageBaselineEndpoint(BaseAPIView):
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        queued, skipped = [], 0
-        for page in pages:
-            if page_approval.baseline_skip_reason(page, data["include_locked"]):
-                skipped += 1
-            else:
-                queued.append(str(page.id))
+        reasons = page_approval.baseline_skip_reasons(list(pages), data["include_locked"])
+        queued = [str(page_id) for page_id, reason in reasons.items() if reason is None]
+        skipped = len(reasons) - len(queued)
         if queued:
             baseline_pages.delay(
                 project_id=str(project_id),

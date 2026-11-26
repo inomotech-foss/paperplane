@@ -230,6 +230,7 @@
       "already_approved": "Už schválená",
       "in_review": "V kontrole",
       "rejected": "Zamietnutá",
+      "already_submitted": "Už odoslaná",
       "has_approval_history": "Má históriu schvaľovania",
       "locked": "Zamknutá"
     }

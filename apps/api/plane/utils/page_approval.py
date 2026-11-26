@@ -181,45 +181,68 @@ def contributors(page, approval):
     return authors
 
 
-def baseline_refusal(page):
-    """Why the page cannot be baselined, as a short reason, or None.
-
-    Only a pristine draft can: no approval row, or one that never had a
-    submission, decision or baseline. A scheduled review date alone does not
-    count. Reads only, so a dry run can ask.
-    """
-    if page.archived_at:
-        return "archived"
-    approval = PageApproval.all_objects.filter(page_id=page.id).first()
-    if approval is not None:
-        if approval.baseline_version_id:
-            return "already baselined"
-        if approval.approved_version_id:
-            return "already approved"
-        if approval.status != PageApproval.DRAFT:
-            return f"status {approval.status}"
-        if approval.submitted_version_id:
-            return "already submitted"
-    history = (
-        PageApprovalEvent.all_objects.filter(page_id=page.id)
-        .exclude(action=PageApprovalEvent.REVIEW_DATE_SET)
-        .values_list("action", flat=True)
-        .first()
-    )
-    if history:
-        return f"has approval history ({history})"
-    return None
-
-
+# Why a page cannot be baselined: a stable code and its words.
+BASELINE_REFUSALS = {
+    "archived": "archived",
+    "already_baselined": "already baselined",
+    "already_approved": "already approved",
+    "in_review": "in review",
+    "rejected": "rejected",
+    "already_submitted": "already submitted",
+    "has_approval_history": "has approval history",
+    "locked": "locked",
+}
 LOCKED = "locked"
 
 
-def baseline_skip_reason(page, include_locked=False):
-    """baseline_refusal, plus LOCKED for a locked page unless include_locked."""
-    reason = baseline_refusal(page)
-    if reason is None and page.is_locked and not include_locked:
-        return LOCKED
-    return reason
+def _refusal(page, approval, has_history):
+    if page.archived_at:
+        return "archived"
+    if approval is not None:
+        if approval.baseline_version_id or approval.status == PageApproval.BASELINE:
+            return "already_baselined"
+        if approval.approved_version_id or approval.status == PageApproval.APPROVED:
+            return "already_approved"
+        if approval.status == PageApproval.IN_REVIEW:
+            return "in_review"
+        if approval.status == PageApproval.REJECTED:
+            return "rejected"
+        if approval.status != PageApproval.DRAFT:
+            return "has_approval_history"
+        if approval.submitted_version_id:
+            return "already_submitted"
+    if has_history:
+        return "has_approval_history"
+    return None
+
+
+def _history_events(page_ids):
+    return PageApprovalEvent.all_objects.filter(page_id__in=page_ids).exclude(action=PageApprovalEvent.REVIEW_DATE_SET)
+
+
+def baseline_refusal(page):
+    """Why the page cannot be baselined, as a BASELINE_REFUSALS code, or None.
+
+    Only a pristine draft can: no approval row, or one that never had a
+    submission, decision or baseline. A scheduled review date alone does not
+    count. Reads only, so a preview can ask.
+    """
+    approval = PageApproval.all_objects.filter(page_id=page.id).first()
+    return _refusal(page, approval, _history_events([page.id]).exists())
+
+
+def baseline_skip_reasons(pages, include_locked=False):
+    """baseline_refusal for many pages in two queries, plus LOCKED for locked pages unless include_locked."""
+    ids = [page.id for page in pages]
+    approvals = {approval.page_id: approval for approval in PageApproval.all_objects.filter(page_id__in=ids)}
+    history = set(_history_events(ids).values_list("page_id", flat=True).distinct())
+    reasons = {}
+    for page in pages:
+        reason = _refusal(page, approvals.get(page.id), page.id in history)
+        if reason is None and page.is_locked and not include_locked:
+            reason = LOCKED
+        reasons[page.id] = reason
+    return reasons
 
 
 def decision_refusal(user, page, approval, project_id):
@@ -394,7 +417,8 @@ def baseline(page, project_id, user, *, legacy=None, next_review_date=None, comm
     Snapshots the body as submit does and records it as baseline_version,
     with a "baselined" event naming the person who ran it. Nobody is recorded
     as approver and the revision stays 0. `legacy` (a LegacyApproval) is the
-    approval the page itself recorded before, stored as text for information.
+    approval the page itself recorded before, stored as text for information;
+    without one, it is read from the locked page's body.
     next_review_date, when given, replaces the scheduled review; otherwise the
     page keeps whatever it had (usually nothing).
     """
@@ -403,7 +427,9 @@ def baseline(page, project_id, user, *, legacy=None, next_review_date=None, comm
         page = _locked_page(page.id)
         reason = baseline_refusal(page)
         if reason:
-            raise ApprovalError("NOT_A_PRISTINE_DRAFT", f"The page cannot be baselined: {reason}")
+            raise ApprovalError("NOT_A_PRISTINE_DRAFT", f"The page cannot be baselined: {BASELINE_REFUSALS[reason]}")
+        if legacy is None:
+            legacy = parse_document_status(page.description_html)
         approval = approval_for(page, project_id, for_update=True)
         version = _snapshot(page, user)
         approval.status = PageApproval.BASELINE
@@ -470,11 +496,6 @@ def legacy_note(status_text, approved_by, approved_at, approved_at_raw):
     if when:
         parts.append(f"dated {when}")
     return f"Carried over from Confluence: {', '.join(parts)}; not recorded as approved"
-
-
-def page_legacy(page):
-    """The approval the page recorded itself (a Confluence "Document status" table), or None."""
-    return parse_document_status(page.description_html)
 
 
 def legacy_note_of(legacy):

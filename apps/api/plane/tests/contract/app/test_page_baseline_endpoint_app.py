@@ -122,7 +122,7 @@ def test_the_preview_lists_every_page_and_writes_nothing(workspace, project, mak
     assert rows["Locked"]["skip_reason"] == "locked"
     assert rows["Locked"]["legacy_note"] == NO_PRIOR
     assert (rows["Old"]["skip_reason"], rows["Old"]["legacy_note"]) == ("archived", "")
-    assert (rows["Reviewed"]["skip_reason"], rows["Reviewed"]["skip_reason_label"]) == ("in_review", "status in_review")
+    assert (rows["Reviewed"]["skip_reason"], rows["Reviewed"]["skip_reason_label"]) == ("in_review", "in review")
     assert data["totals"] == {
         "pages": 6,
         "eligible": 3,
@@ -241,6 +241,54 @@ def test_refuses_pages_of_other_projects(workspace, project, make_page, admin):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["page_ids"] == [str(stray.id)]
     delay.assert_not_called()
+
+
+def test_refuses_a_review_date_in_the_past(workspace, project, make_page, admin):
+    make_page("Policy")
+
+    with patch(DELAY) as delay:
+        response = client_for(admin).post(path(workspace, project), {"next_review_date": "2020-01-01"}, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["next_review_date"] == ["The next review date cannot be in the past"]
+    delay.assert_not_called()
+    assert not PageApproval.objects.exists()
+
+
+def test_other_users_private_pages_are_out_of_reach(workspace, project, make_page, admin):
+    author = add_member(workspace, project, make_user(), MEMBER)
+    secret = Page.objects.create(
+        name="Private notes",
+        workspace=workspace,
+        owned_by=author,
+        access=Page.PRIVATE_ACCESS,
+        description_html="<p>x</p>",
+    )
+    ProjectPage.objects.create(workspace=workspace, project=project, page=secret)
+    make_page("Policy")
+    client = client_for(admin)
+
+    preview = documented(client.get(path(workspace, project)))
+    with patch(DELAY) as delay:
+        response = client.post(path(workspace, project), {"page_ids": [str(secret.id)]}, format="json")
+
+    assert [row["name"] for row in preview["pages"]] == ["Policy"]
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["page_ids"] == [str(secret.id)]
+    delay.assert_not_called()
+
+
+def test_the_preview_queries_do_not_grow_with_the_pages(
+    workspace, project, make_page, admin, django_assert_max_num_queries
+):
+    for number in range(30):
+        make_page(f"Page {number}", STATUS_TABLE)
+    client = client_for(admin)
+
+    with django_assert_max_num_queries(25):
+        data = documented(client.get(path(workspace, project)))
+
+    assert data["totals"]["eligible"] == 30
 
 
 def test_baselined_pages_go_through_review_normally(workspace, project, make_page, admin):

@@ -230,6 +230,7 @@
       "already_approved": "Al goedgekeurd",
       "in_review": "In beoordeling",
       "rejected": "Afgewezen",
+      "already_submitted": "Al ingediend",
       "has_approval_history": "Heeft goedkeuringsgeschiedenis",
       "locked": "Vergrendeld"
     }

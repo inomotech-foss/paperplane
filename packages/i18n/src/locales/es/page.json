@@ -230,6 +230,7 @@
       "already_approved": "Ya aprobada",
       "in_review": "En revisión",
       "rejected": "Rechazada",
+      "already_submitted": "Ya enviada",
       "has_approval_history": "Tiene historial de aprobación",
       "locked": "Bloqueada"
     }

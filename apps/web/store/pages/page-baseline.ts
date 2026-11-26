@@ -16,6 +16,7 @@ export const BASELINE_SKIP_REASON_KEYS: Record<TPageBaselineSkipReason, string> 
   already_approved: "page_approval_baseline.skip_reason.already_approved",
   in_review: "page_approval_baseline.skip_reason.in_review",
   rejected: "page_approval_baseline.skip_reason.rejected",
+  already_submitted: "page_approval_baseline.skip_reason.already_submitted",
   has_approval_history: "page_approval_baseline.skip_reason.has_approval_history",
   locked: "page_approval_baseline.skip_reason.locked",
 };
@@ -45,3 +46,32 @@ export const baselineRequest = (form: {
   next_review_date: form.nextReviewDate,
   comment: form.comment.trim(),
 });
+
+/** The preview after pages were queued: they count as baselined until the server says otherwise. */
+export const markQueued = (preview: TPageBaselinePreview, pageIds: string[]): TPageBaselinePreview => {
+  const queued = new Set(pageIds);
+  const pages = preview.pages.map((row) =>
+    queued.has(row.page)
+      ? {
+          ...row,
+          skip_reason: "already_baselined" as const,
+          skip_reason_label: "already baselined",
+          legacy_kind: null,
+          legacy_note: "",
+        }
+      : row
+  );
+  const eligible = pages.filter((row) => row.skip_reason === null);
+  return {
+    pages,
+    totals: {
+      pages: pages.length,
+      eligible: eligible.length,
+      locked: pages.filter((row) => row.skip_reason === "locked").length,
+      skipped: pages.filter((row) => row.skip_reason !== null && row.skip_reason !== "locked").length,
+      legacy_approved: eligible.filter((row) => row.legacy_kind === "approved").length,
+      legacy_other: eligible.filter((row) => row.legacy_kind === "other").length,
+      legacy_none: eligible.filter((row) => row.legacy_kind === "none").length,
+    },
+  };
+};

@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { TPageBaselineCandidate } from "@/services/page";
-import { baselineRequest, canBaseline, eligibleCount, selectedPageIds } from "./page-baseline";
+import { baselineRequest, canBaseline, eligibleCount, markQueued, selectedPageIds } from "./page-baseline";
 
 const row = (page: string, skip_reason: TPageBaselineCandidate["skip_reason"]): TPageBaselineCandidate => ({
   page,
@@ -54,5 +54,28 @@ describe("baselineRequest", () => {
     expect(
       baselineRequest({ pageIds: ["a"], includeLocked: true, nextReviewDate: "2027-03-31", comment: "  Migrated " })
     ).toEqual({ page_ids: ["a"], include_locked: true, next_review_date: "2027-03-31", comment: "Migrated" });
+  });
+});
+
+describe("markQueued", () => {
+  it("counts queued pages as baselined so they cannot be queued again", () => {
+    const after = markQueued({ pages, totals }, ["a", "b"]);
+
+    expect(after.pages.map((page) => page.skip_reason)).toEqual([
+      "already_baselined",
+      "already_baselined",
+      "archived",
+      null,
+    ]);
+    expect(after.totals).toEqual({
+      pages: 4,
+      eligible: 1,
+      locked: 0,
+      skipped: 3,
+      legacy_approved: 0,
+      legacy_other: 0,
+      legacy_none: 1,
+    });
+    expect(selectedPageIds(after.pages, true, new Set())).toEqual(["d"]);
   });
 });

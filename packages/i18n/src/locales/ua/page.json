@@ -230,6 +230,7 @@
       "already_approved": "Вже затверджена",
       "in_review": "На перевірці",
       "rejected": "Відхилена",
+      "already_submitted": "Вже надіслана",
       "has_approval_history": "Має історію затверджень",
       "locked": "Заблокована"
     }

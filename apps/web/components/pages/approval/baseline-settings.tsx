@@ -31,8 +31,10 @@ export const PageBaselineSettings = observer(function PageBaselineSettings(props
   const { workspaceSlug, projectId } = props;
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: preview, error } = useSWR<TPageBaselinePreview, unknown>(baselinePreviewKey(projectId), () =>
-    service.baselinePreview(workspaceSlug, projectId)
+  const { data: preview, error } = useSWR<TPageBaselinePreview, unknown>(
+    baselinePreviewKey(projectId),
+    () => service.baselinePreview(workspaceSlug, projectId),
+    { revalidateOnFocus: false }
   );
   const available = preview ? eligibleCount(preview.totals, true) : 0;
 

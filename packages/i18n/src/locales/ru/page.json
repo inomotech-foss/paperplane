@@ -230,6 +230,7 @@
       "already_approved": "Уже утверждена",
       "in_review": "На проверке",
       "rejected": "Отклонена",
+      "already_submitted": "Уже отправлена",
       "has_approval_history": "Есть история утверждений",
       "locked": "Заблокирована"
     }
