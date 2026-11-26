@@ -71,9 +71,13 @@ FOOTER = (
     "Each body change is kept as a version: list_versions lists them newest first without their "
     "bodies, retrieve_version returns one with the body it captured.\n"
     "Approvals, for projects with the page_approvals feature: submit_for_review puts the page in review; "
-    "approval_status returns its status (draft, in_review, approved, rejected), the version in force, "
+    "approval_status returns its status (draft, in_review, approved, rejected, baseline), the version in force, "
     "the next review date and the approval log; list_approvals is the document register of the project. "
-    "Approving and rejecting need a person in the Paperplane app and cannot be done here. "
+    "A baseline (status baseline, in_force_kind baseline, event baselined) is content put in force without "
+    "review when approvals were switched on: it is not an approval and names no approver; legacy_note and "
+    "legacy_* carry what the page recorded before (e.g. Confluence), as text. "
+    "Approving, rejecting and baselining cannot be done here: decisions need a person in the Paperplane app, "
+    "baselines an admin command. "
     "next_review_date is YYYY-MM-DD."
 )
 
