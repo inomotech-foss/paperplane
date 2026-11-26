@@ -67,6 +67,68 @@ def test_resumes_from_the_saved_cursor(monkeypatch, calls):
     assert (resumed.status, resumed.counts, resumed.attempts) == (Status.DONE, {"changed": 4}, 1)
 
 
+def test_a_resume_is_counted_before_the_batch_runs_and_reset_once_it_commits(monkeypatch):
+    seen: list[int] = []
+
+    def step(cursor: JsonValue) -> Batch:
+        seen.append(state("2026_01_first").resumes)
+        return Batch(cursor=None, counts={"changed": 1})
+
+    monkeypatch.setattr(
+        "plane.maintenance.upgrades.UPGRADES",
+        (DataUpgrade(name="2026_01_first", description="First", step=step),),
+    )
+    DataUpgradeState.objects.create(name="2026_01_first", status=Status.RUNNING, cursor=1, resumes=1, attempts=1)
+
+    assert run_pending(BUDGET) is Outcome.DONE
+
+    assert seen == [2]
+    resumed = state("2026_01_first")
+    assert (resumed.resumes, resumed.attempts) == (0, 1)
+
+
+def test_a_batch_that_keeps_killing_the_worker_fails_instead_of_running(monkeypatch, calls):
+    register(monkeypatch, FakeUpgrade("2026_01_first", 3, calls), FakeUpgrade("2026_01_second", 1, calls))
+    DataUpgradeState.objects.create(
+        name="2026_01_first", status=Status.RUNNING, cursor=1, resumes=runner.MAX_RESUMES, attempts=1
+    )
+
+    assert run_pending(BUDGET) is Outcome.FAILED
+
+    assert calls == []
+    stuck = state("2026_01_first")
+    assert (stuck.status, stuck.cursor) == (Status.FAILED, 1)
+    assert "stopped at least 3 times in the same batch" in stuck.error
+    assert not DataUpgradeState.objects.filter(name="2026_01_second").exists()
+
+
+def test_retry_after_repeated_worker_deaths_starts_counting_again(monkeypatch, calls):
+    register(monkeypatch, FakeUpgrade("2026_01_first", 3, calls))
+    DataUpgradeState.objects.create(
+        name="2026_01_first", status=Status.RUNNING, cursor=1, resumes=runner.MAX_RESUMES, attempts=1
+    )
+    run_pending(BUDGET)
+
+    assert runner.retry("2026_01_first") is True
+    assert run_pending(BUDGET) is Outcome.DONE
+
+    assert calls == [("2026_01_first", 1), ("2026_01_first", 2)]
+    retried = state("2026_01_first")
+    assert (retried.status, retried.resumes, retried.attempts) == (Status.DONE, 0, 2)
+
+
+def test_a_time_budget_pause_does_not_use_up_resumes(monkeypatch, calls):
+    register(monkeypatch, FakeUpgrade("2026_01_first", 3, calls))
+
+    assert run_pending(timedelta(0)) is Outcome.MORE
+    assert state("2026_01_first").resumes == 0
+    assert run_pending(timedelta(0)) is Outcome.MORE
+    assert state("2026_01_first").resumes == 0
+    assert run_pending(BUDGET) is Outcome.DONE
+
+    assert calls == [("2026_01_first", 0), ("2026_01_first", 1), ("2026_01_first", 2)]
+
+
 def test_a_failure_stops_the_run_and_later_upgrades_wait(monkeypatch, calls):
     register(monkeypatch, FakeUpgrade("2026_01_first", 3, calls, fail_at=1), FakeUpgrade("2026_01_second", 1, calls))
 

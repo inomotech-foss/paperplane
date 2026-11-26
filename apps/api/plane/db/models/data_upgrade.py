@@ -19,6 +19,8 @@ class DataUpgradeState(models.Model):
     counts = models.JSONField(default=dict, blank=True)
     error = models.TextField(blank=True, default="")
     attempts = models.PositiveIntegerField(default=0)
+    # Runs resumed after a worker died, since the last committed batch.
+    resumes = models.PositiveIntegerField(default=0)
     started_at = models.DateTimeField(null=True, blank=True)
     finished_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)

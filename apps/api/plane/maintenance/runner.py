@@ -23,6 +23,11 @@ logger = logging.getLogger("plane.maintenance")
 # Any fixed number works, as long as every worker uses the same one.
 LOCK_KEY = 0x504C414E45_55
 ERROR_MAX_LENGTH = 20_000
+MAX_RESUMES = 3
+STUCK_ERROR = (
+    f"The worker stopped at least {MAX_RESUMES} times in the same batch, "
+    "for example out of memory or at its time limit. Retry once the cause is fixed."
+)
 
 Status = DataUpgradeState.Status
 
@@ -95,10 +100,18 @@ def _run_upgrade(upgrade: DataUpgrade, state: DataUpgradeState, deadline: float,
         state.attempts += 1
         state.started_at = timezone.now()
         state.finished_at = None
+        state.resumes = 0
         state.save()
         logger.info("Data upgrade %s started", upgrade.name)
+    elif state.resumes >= MAX_RESUMES:
+        logger.error("Data upgrade %s failed: %s", upgrade.name, STUCK_ERROR)
+        _fail(upgrade, STUCK_ERROR)
+        return Outcome.FAILED
     else:
-        logger.info("Data upgrade %s resumed", upgrade.name)
+        # Saved before the batch runs, so a batch that kills the worker is counted.
+        state.resumes += 1
+        state.save(update_fields=["resumes", "updated_at"])
+        logger.info("Data upgrade %s resumed (%s)", upgrade.name, state.resumes)
 
     while True:
         try:
@@ -106,15 +119,14 @@ def _run_upgrade(upgrade: DataUpgrade, state: DataUpgradeState, deadline: float,
                 batch = upgrade.step(state.cursor)
                 state.cursor = batch.cursor
                 state.counts = _added(state.counts, batch.counts)
+                state.resumes = 0
                 if batch.cursor is None:
                     state.status = Status.DONE
                     state.finished_at = timezone.now()
                 state.save()
         except Exception as error:
             logger.exception("Data upgrade %s failed", upgrade.name)
-            DataUpgradeState.objects.filter(name=upgrade.name).update(
-                status=Status.FAILED, error=_error_text(error), updated_at=timezone.now()
-            )
+            _fail(upgrade, _error_text(error))
             return Outcome.FAILED
         if state.status == Status.DONE:
             logger.info("Data upgrade %s done: %s", upgrade.name, state.counts)
@@ -123,11 +135,14 @@ def _run_upgrade(upgrade: DataUpgrade, state: DataUpgradeState, deadline: float,
             return Outcome.MORE
 
 
-def _added(totals: object, counts: Mapping[str, int]) -> dict[str, int]:
-    merged = {key: value for key, value in totals.items() if isinstance(value, int)} if isinstance(totals, dict) else {}
-    for key, value in counts.items():
-        merged[key] = merged.get(key, 0) + value
-    return merged
+def _added(totals: dict[str, int], counts: Mapping[str, int]) -> dict[str, int]:
+    return {**totals, **{key: totals.get(key, 0) + value for key, value in counts.items()}}
+
+
+def _fail(upgrade: DataUpgrade, error: str) -> None:
+    DataUpgradeState.objects.filter(name=upgrade.name).update(
+        status=Status.FAILED, error=error, updated_at=timezone.now()
+    )
 
 
 def _error_text(error: Exception) -> str:

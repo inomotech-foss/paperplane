@@ -31,6 +31,7 @@ class Migration(migrations.Migration):
                 ("counts", models.JSONField(blank=True, default=dict)),
                 ("error", models.TextField(blank=True, default="")),
                 ("attempts", models.PositiveIntegerField(default=0)),
+                ("resumes", models.PositiveIntegerField(default=0)),
                 ("started_at", models.DateTimeField(blank=True, null=True)),
                 ("finished_at", models.DateTimeField(blank=True, null=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
