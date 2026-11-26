@@ -12,7 +12,7 @@ from django.utils import timezone
 from plane.db.models import Page, PageApproval, PageVersion, Project, ProjectPage, User, Workspace
 from plane.maintenance.upgrade import JsonValue
 from plane.maintenance.upgrades import UPGRADES
-from plane.maintenance.upgrades import u2026_11_normalise_confluence_tables as upgrade
+from plane.maintenance.upgrades import normalise_confluence_tables as upgrade
 from plane.utils import live_content
 
 TABLE = '<table class="wrapped"><tbody><tr><th colspan="1">Frequency</th><td colspan="1">Year</td></tr></tbody></table>'
