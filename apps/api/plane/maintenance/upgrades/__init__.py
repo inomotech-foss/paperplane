@@ -8,5 +8,6 @@ an earlier one.
 """
 
 from plane.maintenance.upgrade import DataUpgrade
+from plane.maintenance.upgrades import normalise_confluence_tables
 
-UPGRADES: tuple[DataUpgrade, ...] = ()
+UPGRADES: tuple[DataUpgrade, ...] = (normalise_confluence_tables.UPGRADE,)

@@ -83,7 +83,7 @@ def test_ignores_the_legend_column():
 
 def test_reads_the_table_after_the_confluence_repair():
     """#441 rewrites the tables (paragraphs in cells, widths); the status still reads the same."""
-    repaired = repair_page_html(APPROVED, set()).html
+    repaired = repair_page_html(APPROVED).html
     assert "<p>Roger Knecht</p>" in repaired
     assert parse_document_status(repaired) == parse_document_status(APPROVED)
 
