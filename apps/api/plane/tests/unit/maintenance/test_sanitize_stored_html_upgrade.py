@@ -259,28 +259,35 @@ def test_the_cursor_walks_each_model_in_turn(monkeypatch, workspace, create_user
     page = _page(workspace, create_user, UNSAFE)
 
     first = step(None)
-    assert first.cursor == {"target": "page", "after": str(page.pk)}
+    assert first.cursor == {"name": "page", "after": str(page.pk)}
     assert first.counts["changed"] == 1
 
     second = step(first.cursor)
-    assert second.cursor == {"target": "page_version", "after": None}
+    assert second.cursor == {"name": "page_version", "after": None}
     assert second.counts["scanned"] == 0
 
     third = step(second.cursor)
-    assert third.cursor == {"target": "issue", "after": None}
+    assert third.cursor == {"name": "issue", "after": None}
 
     fourth = step(third.cursor)
-    assert fourth.cursor == {"target": "issue", "after": str(issue.pk)}
+    assert fourth.cursor == {"name": "issue", "after": str(issue.pk)}
     assert Issue.all_objects.get(pk=issue.pk).description_html == SAFE
 
-    last = step({"target": "automation", "after": None})
+    last = step({"name": "automation", "after": None})
     assert last.cursor is None
 
 
-@pytest.mark.parametrize("cursor", [{"target": "nothing", "after": None}, {"target": "page", "after": 1}, "page"])
-def test_rejects_an_unexpected_cursor(cursor):
-    with pytest.raises(ValueError, match="Unexpected cursor"):
-        step(cursor)
+@pytest.mark.parametrize("cursor", [{"name": "nothing", "after": None}, {"name": "page", "after": 1}, "page"])
+def test_an_unknown_cursor_starts_over_from_the_first_target(cursor, caplog, monkeypatch, workspace, create_user):
+    monkeypatch.setattr(sanitize_stored_html, "BATCH_SIZE", 1)
+    page = _page(workspace, create_user, UNSAFE)
+
+    with caplog.at_level("WARNING", logger="plane.maintenance"):
+        batch = step(cursor)
+
+    assert batch.cursor == {"name": "page", "after": str(page.pk)}
+    assert batch.counts["changed"] == 1
+    assert "starting over" in caplog.text
 
 
 def test_memory_does_not_grow_with_the_number_of_rows(workspace, create_user):

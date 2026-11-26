@@ -113,18 +113,31 @@ def test_the_cursor_walks_each_model_in_turn(monkeypatch, damage):
     labels = list(backfill_creators._models())
     issue = labels.index("db.Issue")
 
-    first = step({"model": "db.Issue", "after": None})
-    assert first.cursor == {"model": "db.Issue", "after": str(damage["with_activity"].pk)}
+    first = step({"name": "db.Issue", "after": None})
+    assert first.cursor == {"name": "db.Issue", "after": str(damage["with_activity"].pk)}
     assert first.counts == {"filled": 1}
 
     second = step(first.cursor)
-    assert second.cursor == {"model": labels[issue + 1], "after": None}
+    assert second.cursor == {"name": labels[issue + 1], "after": None}
     assert second.counts == {"filled": 0}
 
-    assert step({"model": labels[-1], "after": LAST_UUID}).cursor is None
+    assert step({"name": labels[-1], "after": LAST_UUID}).cursor is None
 
 
-@pytest.mark.parametrize("cursor", [{"model": "db.Label", "after": None}, {"model": "db.Issue", "after": 1}, 3])
-def test_rejects_an_unexpected_cursor(cursor):
-    with pytest.raises(ValueError, match="Unexpected cursor"):
-        step(cursor)
+@pytest.mark.parametrize("cursor", [{"name": "db.Label", "after": None}, {"name": "db.Issue", "after": 1}, 3])
+def test_an_unknown_cursor_starts_over_from_the_first_model(cursor, caplog, monkeypatch):
+    seen: list[tuple[str, str | None]] = []
+
+    def fill(label: str, model: type[Model], after: str | None) -> tuple[str | None, dict[str, int]]:
+        seen.append((label, after))
+        return None, {"filled": 0}
+
+    monkeypatch.setattr(backfill_creators, "_fill", fill)
+    labels = list(backfill_creators._models())
+
+    with caplog.at_level("WARNING", logger="plane.maintenance"):
+        batch = step(cursor)
+
+    assert seen == [(labels[0], None)]
+    assert batch.cursor == {"name": labels[1], "after": None}
+    assert "starting over" in caplog.text

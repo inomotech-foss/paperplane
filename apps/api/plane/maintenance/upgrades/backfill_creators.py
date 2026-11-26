@@ -3,7 +3,7 @@
 
 from django.db.models import Model
 
-from plane.maintenance.upgrade import Batch, DataUpgrade, JsonValue, keyset_batch
+from plane.maintenance.upgrade import Batch, DataUpgrade, JsonValue, keyset_batch, step_through
 from plane.utils.missing_creators import creator_models, inferred_creator
 
 BATCH_SIZE = 2000
@@ -14,21 +14,7 @@ def _models() -> dict[str, type[Model]]:
     return dict(sorted(found.items()))
 
 
-def _position(cursor: JsonValue, labels: list[str]) -> tuple[str, str | None]:
-    if cursor is None:
-        return labels[0], None
-    if isinstance(cursor, dict):
-        label, after = cursor.get("model"), cursor.get("after")
-        if label in labels and (after is None or isinstance(after, str)):
-            return label, after
-    raise ValueError(f"Unexpected cursor {cursor!r}")
-
-
-def step(cursor: JsonValue) -> Batch:
-    models = _models()
-    labels = list(models)
-    label, after = _position(cursor, labels)
-    model = models[label]
+def _fill(label: str, model: type[Model], after: str | None) -> tuple[str | None, dict[str, int]]:
     source = inferred_creator(model)
     missing = (
         model._base_manager.filter(created_by__isnull=True)
@@ -42,13 +28,11 @@ def step(cursor: JsonValue) -> Batch:
         filled = model._base_manager.filter(pk__in=[row.pk for row in rows], created_by__isnull=True).update(
             created_by_id=source
         )
-    counts = {"filled": filled}
-    if after is not None:
-        return Batch(cursor={"model": label, "after": after}, counts=counts)
-    following = labels.index(label) + 1
-    if following == len(labels):
-        return Batch(cursor=None, counts=counts)
-    return Batch(cursor={"model": labels[following], "after": None}, counts=counts)
+    return after, {"filled": filled}
+
+
+def step(cursor: JsonValue) -> Batch:
+    return step_through(_models(), cursor, _fill)
 
 
 UPGRADE = DataUpgrade(

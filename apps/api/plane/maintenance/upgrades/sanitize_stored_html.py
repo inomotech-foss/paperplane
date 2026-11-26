@@ -5,7 +5,7 @@ import logging
 
 from django.db.models import Model
 
-from plane.maintenance.upgrade import Batch, DataUpgrade, JsonValue, keyset_batch
+from plane.maintenance.upgrade import Batch, DataUpgrade, JsonValue, keyset_batch, step_through
 from plane.utils.content_validator import validate_html_content
 from plane.utils.stored_html import TARGETS, StoredHtml
 
@@ -13,18 +13,6 @@ logger = logging.getLogger("plane.maintenance")
 
 # Stored HTML can be megabytes per row, so a batch holds only a few rows.
 BATCH_SIZE = 10
-
-NAMES = list(TARGETS)
-
-
-def _position(cursor: JsonValue) -> tuple[str, str | None]:
-    if cursor is None:
-        return NAMES[0], None
-    if isinstance(cursor, dict):
-        target, after = cursor.get("target"), cursor.get("after")
-        if target in TARGETS and (after is None or isinstance(after, str)):
-            return target, after
-    raise ValueError(f"Unexpected cursor {cursor!r}")
 
 
 def _sanitize(name: str, target: StoredHtml, row: Model, counts: dict[str, int]) -> None:
@@ -39,19 +27,16 @@ def _sanitize(name: str, target: StoredHtml, row: Model, counts: dict[str, int])
         counts["changed" if target.write(row, clean) else "skipped"] += 1
 
 
-def step(cursor: JsonValue) -> Batch:
-    name, after = _position(cursor)
-    target = TARGETS[name]
+def _sanitize_batch(name: str, target: StoredHtml, after: str | None) -> tuple[str | None, dict[str, int]]:
     rows, after = keyset_batch(target.rows(), after, BATCH_SIZE)
     counts = {"scanned": len(rows), "changed": 0, "skipped": 0, "failed": 0}
     for row in rows:
         _sanitize(name, target, row, counts)
-    if after is not None:
-        return Batch(cursor={"target": name, "after": after}, counts=counts)
-    following = NAMES.index(name) + 1
-    if following == len(NAMES):
-        return Batch(cursor=None, counts=counts)
-    return Batch(cursor={"target": NAMES[following], "after": None}, counts=counts)
+    return after, counts
+
+
+def step(cursor: JsonValue) -> Batch:
+    return step_through(TARGETS, cursor, _sanitize_batch)
 
 
 UPGRADE = DataUpgrade(
