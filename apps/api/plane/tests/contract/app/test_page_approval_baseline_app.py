@@ -61,7 +61,7 @@ def plain_project(workspace, create_user):
 
 @pytest.fixture
 def admin(create_user):
-    """The project admin who runs the baseline command."""
+    """The project admin who runs the baseline."""
     return create_user
 
 
@@ -171,15 +171,15 @@ def test_only_a_pristine_draft_can_be_baselined(workspace, project, page, author
         baseline(page, project, admin)
 
     assert refused.value.code == "NOT_A_PRISTINE_DRAFT"
-    assert page_approval.baseline_refusal(page) == "status in_review"
+    assert page_approval.baseline_refusal(page) == "in_review"
     approve(client_for(approver), workspace, project, page)
-    assert page_approval.baseline_refusal(page) == "already approved"
+    assert page_approval.baseline_refusal(page) == "already_approved"
 
 
 def test_a_page_is_baselined_once(workspace, project, page, admin):
     baseline(page, project, admin)
 
-    assert page_approval.baseline_refusal(page) == "already baselined"
+    assert page_approval.baseline_refusal(page) == "already_baselined"
     with pytest.raises(ApprovalError):
         baseline(page, project, admin)
     assert PageApprovalEvent.objects.filter(page=page).count() == 1
@@ -189,7 +189,7 @@ def test_a_rejected_draft_is_not_pristine(workspace, project, page, author, appr
     submit(client_for(author), workspace, project, page)
     reject(client_for(approver), workspace, project, page)
 
-    assert page_approval.baseline_refusal(page) == "status rejected"
+    assert page_approval.baseline_refusal(page) == "rejected"
 
 
 def test_archived_pages_are_not_baselined(workspace, project, page):
@@ -332,8 +332,8 @@ def test_the_register_labels_baselines(workspace, project, page, author, approve
     assert backup["has_unapproved_changes"] is True
 
 
-def test_no_api_route_baselines_a_page(workspace, project, page, admin, api_key_client):
-    """Baselining is admin maintenance through the management command only."""
+def test_no_page_route_baselines_a_page(workspace, project, page, admin, api_key_client):
+    """Baselining is project-level in the app only; API v1 offers no way to do it."""
     for path in ("baseline", "baselined"):
         response = client_for(admin).post(url(workspace, project, page, path), {}, format="json")
         assert response.status_code == status.HTTP_404_NOT_FOUND

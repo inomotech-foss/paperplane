@@ -77,7 +77,7 @@ FOOTER = (
     "review when approvals were switched on: it is not an approval and names no approver; legacy_note and "
     "legacy_* carry what the page recorded before (e.g. Confluence), as text. "
     "Approving, rejecting and baselining cannot be done here: decisions need a person in the Paperplane app, "
-    "baselines an admin command. "
+    "baselines a project admin in the app. "
     "next_review_date is YYYY-MM-DD."
 )
 

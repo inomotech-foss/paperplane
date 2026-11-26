@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "Werkitem laden",
     "error": "Dit werkitem kon niet worden geladen"
+  },
+  "page_approval_baseline": {
+    "title": "Basisversie vastleggen voor bestaande pagina's",
+    "description": "Een basisversie stelt de huidige inhoud van een pagina zonder beoordeling in werking en wordt daarom nooit als goedkeuring getoond.",
+    "eligible": "{count, plural, one {# pagina kan een basisversie krijgen.} other {# pagina's kunnen een basisversie krijgen.}}",
+    "none_eligible": "Geen enkele pagina kan een basisversie krijgen.",
+    "open": "Basisversies vastleggen",
+    "load_failed": "De pagina's konden niet worden geladen.",
+    "selected": "{count, plural, one {# pagina geselecteerd} other {# pagina's geselecteerd}}",
+    "skipped": "{count, plural, one {# pagina overgeslagen} other {# pagina's overgeslagen}}",
+    "next_review": "Volgende beoordeling",
+    "no_review_date": "Geen beoordelingsdatum",
+    "comment_placeholder": "Opmerking voor het logboek (optioneel)",
+    "include_locked": "Vergrendelde pagina's meenemen",
+    "confirm": "{count, plural, one {Basisversie vastleggen voor # pagina} other {Basisversie vastleggen voor # pagina's}}",
+    "done": "{count, plural, one {Basisversie wordt vastgelegd voor # pagina.} other {Basisversie wordt vastgelegd voor # pagina's.}}",
+    "done_message": "Het register wordt bijgewerkt zodra dit klaar is.",
+    "failed": "De basisversies konden niet worden vastgelegd.",
+    "select_page": "{name} selecteren",
+    "skip_reason": {
+      "archived": "Gearchiveerd",
+      "already_baselined": "Heeft al een basisversie",
+      "already_approved": "Al goedgekeurd",
+      "in_review": "In beoordeling",
+      "rejected": "Afgewezen",
+      "already_submitted": "Al ingediend",
+      "has_approval_history": "Heeft goedkeuringsgeschiedenis",
+      "locked": "Vergrendeld"
+    }
   }
 }

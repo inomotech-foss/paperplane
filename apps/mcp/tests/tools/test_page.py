@@ -138,7 +138,7 @@ def test_agents_cannot_approve_or_reject(registered):
 
 
 def test_agents_cannot_baseline_either(registered):
-    """A baseline puts content in force without review; only the admin command does it."""
+    """A baseline puts content in force without review; only a project admin in the app does it."""
     from plane_mcp.tools.page import ACTIONS
 
     forbidden = {"approve", "reject", "baseline", "baselined", "baseline_page", "mark_baseline"}

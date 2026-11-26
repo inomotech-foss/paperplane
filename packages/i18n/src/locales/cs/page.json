@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "Načítání pracovní položky",
     "error": "Tuto pracovní položku se nepodařilo načíst"
+  },
+  "page_approval_baseline": {
+    "title": "Nastavit výchozí verzi existujících stránek",
+    "description": "Výchozí verze uvede aktuální obsah stránky v platnost bez kontroly, proto se nikdy nezobrazuje jako schválení.",
+    "eligible": "{count, plural, one {# stránka může získat výchozí verzi.} few {# stránky mohou získat výchozí verzi.} many {# stránky může získat výchozí verzi.} other {# stránek může získat výchozí verzi.}}",
+    "none_eligible": "Žádná stránka nemůže získat výchozí verzi.",
+    "open": "Nastavit výchozí verze",
+    "load_failed": "Stránky se nepodařilo načíst.",
+    "selected": "{count, plural, one {Vybrána # stránka} few {Vybrány # stránky} many {Vybráno # stránky} other {Vybráno # stránek}}",
+    "skipped": "{count, plural, one {Přeskočena # stránka} few {Přeskočeny # stránky} many {Přeskočeno # stránky} other {Přeskočeno # stránek}}",
+    "next_review": "Další kontrola",
+    "no_review_date": "Bez data kontroly",
+    "comment_placeholder": "Komentář do protokolu (volitelné)",
+    "include_locked": "Zahrnout zamčené stránky",
+    "confirm": "{count, plural, one {Nastavit výchozí verzi pro # stránku} few {Nastavit výchozí verzi pro # stránky} many {Nastavit výchozí verzi pro # stránky} other {Nastavit výchozí verzi pro # stránek}}",
+    "done": "{count, plural, one {Výchozí verze se nastavuje pro # stránku.} few {Výchozí verze se nastavuje pro # stránky.} many {Výchozí verze se nastavuje pro # stránky.} other {Výchozí verze se nastavuje pro # stránek.}}",
+    "done_message": "Registr se aktualizuje po dokončení.",
+    "failed": "Výchozí verze se nepodařilo nastavit.",
+    "select_page": "Vybrat {name}",
+    "skip_reason": {
+      "archived": "Archivována",
+      "already_baselined": "Již má výchozí verzi",
+      "already_approved": "Již schválena",
+      "in_review": "V kontrole",
+      "rejected": "Zamítnuta",
+      "already_submitted": "Již odeslána",
+      "has_approval_history": "Má historii schvalování",
+      "locked": "Zamčena"
+    }
   }
 }

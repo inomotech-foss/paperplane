@@ -8,8 +8,8 @@ cookie alone, and page_approval.approve/reject refuse token-authenticated
 requests and bots on top of that. API v1 offers status, submit, review dates
 and the register, never a decision.
 
-Baselining is not offered by any view: it is admin maintenance through the
-baseline_page_approvals management command.
+Baselining is project-level and for project admins only: a preview, then a
+background task that baselines the chosen pages.
 """
 
 from django.db import transaction
@@ -29,10 +29,16 @@ from plane.app.serializers.page_approval import (
     PageApprovalSubmitSerializer,
     PageApproverSerializer,
     PageApproversUpdateSerializer,
+    PageBaselinePreviewSerializer,
+    PageBaselineQueuedSerializer,
+    PageBaselineRequestSerializer,
+    baseline_preview,
+    baseline_queryset,
     register_queryset,
     register_rows,
     status_payload,
 )
+from plane.bgtasks.page_baseline_task import baseline_pages
 from plane.db.models import Page, PageApprovalEvent, PageApprover, Project, ProjectMember
 from plane.utils import page_approval
 from plane.utils.page_approval import ApprovalError
@@ -243,3 +249,68 @@ class ProjectPageApproversEndpoint(BaseAPIView):
                 PageApprover.objects.create(project_id=project_id, workspace_id=project.workspace_id, member_id=member)
         approvers = PageApprover.objects.filter(project_id=project_id)
         return Response(PageApproverSerializer(approvers, many=True).data, status=status.HTTP_200_OK)
+
+
+class ProjectPageBaselineEndpoint(BaseAPIView):
+    """Baseline existing pages: put their current content in force without a review. Project admins only."""
+
+    @extend_schema(responses={200: PageBaselinePreviewSerializer, 400: APPROVAL_ERROR})
+    @allow_permission([ROLE.ADMIN])
+    def get(self, request, slug, project_id):
+        """What baselining would do for each page of the project. Writes nothing."""
+        try:
+            page_approval.require_enabled(project_id)
+        except ApprovalError as error:
+            return refused(error)
+        preview = baseline_preview(baseline_queryset(slug, project_id, request.user))
+        return Response(PageBaselinePreviewSerializer(preview).data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=PageBaselineRequestSerializer,
+        responses={
+            202: PageBaselineQueuedSerializer,
+            400: OpenApiResponse(
+                description="Refused: see error_code, page_ids not in the project, or a next_review_date in the past"
+            ),
+        },
+    )
+    @allow_permission([ROLE.ADMIN])
+    def post(self, request, slug, project_id):
+        """Queue the given pages, or every eligible page, for baselining. Pages that cannot be baselined are skipped."""
+        try:
+            page_approval.require_enabled(project_id)
+        except ApprovalError as error:
+            return refused(error)
+        serializer = PageBaselineRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        pages = baseline_queryset(slug, project_id, request.user)
+        if data["page_ids"]:
+            wanted = set(data["page_ids"])
+            pages = pages.filter(pk__in=wanted)
+            missing = wanted - {page.id for page in pages}
+            if missing:
+                return Response(
+                    {
+                        "error_code": "PAGES_NOT_IN_PROJECT",
+                        "error": "Some pages are not pages of this project",
+                        "page_ids": sorted(str(page_id) for page_id in missing),
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        reasons = page_approval.baseline_skip_reasons(list(pages), data["include_locked"])
+        queued = [str(page_id) for page_id, reason in reasons.items() if reason is None]
+        skipped = len(reasons) - len(queued)
+        if queued:
+            baseline_pages.delay(
+                project_id=str(project_id),
+                page_ids=queued,
+                actor_id=str(request.user.id),
+                next_review_date=data["next_review_date"].isoformat() if data["next_review_date"] else None,
+                comment=data["comment"],
+                include_locked=data["include_locked"],
+            )
+        return Response(
+            PageBaselineQueuedSerializer({"queued": len(queued), "skipped": skipped}).data,
+            status=status.HTTP_202_ACCEPTED,
+        )

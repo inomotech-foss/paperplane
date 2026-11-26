@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "Se încarcă activitatea",
     "error": "Această activitate nu a putut fi încărcată"
+  },
+  "page_approval_baseline": {
+    "title": "Stabiliți versiunea de referință pentru paginile existente",
+    "description": "O versiune de referință pune în vigoare conținutul actual al unei pagini fără revizuire, deci nu este afișată niciodată ca aprobare.",
+    "eligible": "{count, plural, one {# pagină poate primi o versiune de referință.} few {# pagini pot primi o versiune de referință.} other {# de pagini pot primi o versiune de referință.}}",
+    "none_eligible": "Nicio pagină nu poate primi o versiune de referință.",
+    "open": "Stabiliți versiunile de referință",
+    "load_failed": "Paginile nu au putut fi încărcate.",
+    "selected": "{count, plural, one {# pagină selectată} few {# pagini selectate} other {# de pagini selectate}}",
+    "skipped": "{count, plural, one {# pagină omisă} few {# pagini omise} other {# de pagini omise}}",
+    "next_review": "Următoarea revizuire",
+    "no_review_date": "Fără dată de revizuire",
+    "comment_placeholder": "Comentariu pentru jurnal (opțional)",
+    "include_locked": "Includeți paginile blocate",
+    "confirm": "{count, plural, one {Stabiliți referința pentru # pagină} few {Stabiliți referința pentru # pagini} other {Stabiliți referința pentru # de pagini}}",
+    "done": "{count, plural, one {Se stabilește versiunea de referință pentru # pagină.} few {Se stabilește versiunea de referință pentru # pagini.} other {Se stabilește versiunea de referință pentru # de pagini.}}",
+    "done_message": "Registrul se actualizează când procesul se încheie.",
+    "failed": "Versiunile de referință nu au putut fi stabilite.",
+    "select_page": "Selectați {name}",
+    "skip_reason": {
+      "archived": "Arhivată",
+      "already_baselined": "Are deja versiune de referință",
+      "already_approved": "Deja aprobată",
+      "in_review": "În revizuire",
+      "rejected": "Respinsă",
+      "already_submitted": "Deja trimisă",
+      "has_approval_history": "Are istoric de aprobare",
+      "locked": "Blocată"
+    }
   }
 }

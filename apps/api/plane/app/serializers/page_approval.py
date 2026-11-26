@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from plane.db.models import Page, PageApproval, PageApprovalEvent, PageApprover
+from plane.importers.confluence.document_status import parse_document_status
 from plane.utils import page_approval
 
 STATUS_CHOICES = PageApproval.STATUS_CHOICES
@@ -341,3 +342,136 @@ class PageApproversUpdateSerializer(serializers.Serializer):
         allow_empty=True,
         help_text="The full list of approvers; replaces the current one",
     )
+
+
+BASELINE_SKIP_CHOICES = tuple((code, label.capitalize()) for code, label in page_approval.BASELINE_REFUSALS.items())
+LEGACY_KIND_CHOICES = (
+    ("approved", "The page recorded an approval"),
+    ("other", "The page recorded another status"),
+    ("none", "The page recorded nothing"),
+)
+
+
+def legacy_kind(legacy):
+    if legacy is None:
+        return "none"
+    return "approved" if legacy.is_approved else "other"
+
+
+class PageBaselineCandidateSerializer(serializers.Serializer):
+    """One page in the baseline preview."""
+
+    page = serializers.UUIDField()
+    name = serializers.CharField(allow_blank=True)
+    is_locked = serializers.BooleanField()
+    skip_reason = serializers.ChoiceField(
+        choices=BASELINE_SKIP_CHOICES,
+        allow_null=True,
+        help_text="Why the page would not be baselined; null when it would. 'locked' pages are baselined "
+        "with include_locked",
+    )
+    skip_reason_label = serializers.CharField(allow_blank=True, help_text="skip_reason in words")
+    legacy_kind = serializers.ChoiceField(
+        choices=LEGACY_KIND_CHOICES,
+        allow_null=True,
+        help_text="What the page recorded itself before; null for pages that cannot be baselined",
+    )
+    legacy_note = serializers.CharField(
+        allow_blank=True, help_text="The note the baseline would carry; empty for pages that cannot be baselined"
+    )
+
+
+class PageBaselineTotalsSerializer(serializers.Serializer):
+    pages = serializers.IntegerField(help_text="Pages scanned")
+    eligible = serializers.IntegerField(help_text="Pages that would be baselined, locked pages not counted")
+    locked = serializers.IntegerField(help_text="Locked pages that would be baselined with include_locked")
+    skipped = serializers.IntegerField(help_text="Pages that cannot be baselined, locked pages not counted")
+    legacy_approved = serializers.IntegerField(help_text="Eligible pages carrying over a recorded approval")
+    legacy_other = serializers.IntegerField(help_text="Eligible pages carrying over another recorded status")
+    legacy_none = serializers.IntegerField(help_text="Eligible pages with nothing recorded")
+
+
+class PageBaselinePreviewSerializer(serializers.Serializer):
+    """What baselining the project would do. Locked pages count as locked, not eligible."""
+
+    pages = PageBaselineCandidateSerializer(many=True)
+    totals = PageBaselineTotalsSerializer()
+
+
+class PageBaselineRequestSerializer(serializers.Serializer):
+    page_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        required=False,
+        default=list,
+        help_text="Pages to baseline; empty or missing means every eligible page",
+    )
+    next_review_date = serializers.DateField(
+        required=False,
+        allow_null=True,
+        default=None,
+        help_text="Schedule the first real review of every baselined page; null leaves review dates as they are",
+    )
+    comment = serializers.CharField(required=False, allow_blank=True, default="", max_length=5000)
+    include_locked = serializers.BooleanField(required=False, default=False, help_text="Also baseline locked pages")
+
+    def validate_next_review_date(self, value):
+        if value is not None and value < timezone.now().date():
+            raise serializers.ValidationError("The next review date cannot be in the past")
+        return value
+
+
+class PageBaselineQueuedSerializer(serializers.Serializer):
+    queued = serializers.IntegerField(help_text="Pages queued for baselining")
+    skipped = serializers.IntegerField(help_text="Requested pages that cannot be baselined")
+
+
+def baseline_queryset(slug, project_id, user):
+    """The project's live pages the user can see, archived ones included, for the baseline."""
+    return (
+        Page.objects.filter(
+            workspace__slug=slug,
+            project_pages__project_id=project_id,
+            project_pages__deleted_at__isnull=True,
+        )
+        .filter(Q(access=Page.PUBLIC_ACCESS) | Q(owned_by=user))
+        .only("id", "name", "is_locked", "archived_at", "workspace_id")
+        .distinct()
+        .order_by("name", "id")
+    )
+
+
+def baseline_preview(pages):
+    """The preview rows and totals, in a fixed number of queries. Only pages that can be baselined are parsed."""
+    pages = list(pages)
+    reasons = page_approval.baseline_skip_reasons(pages)
+    eligible_ids = [page.id for page in pages if reasons[page.id] in (None, page_approval.LOCKED)]
+    bodies = dict(Page.objects.filter(pk__in=eligible_ids).values_list("id", "description_html"))
+    candidates = []
+    for page in pages:
+        reason = reasons[page.id]
+        eligible = page.id in bodies
+        legacy = parse_document_status(bodies[page.id]) if eligible else None
+        candidates.append(
+            {
+                "page": page.id,
+                "name": page.name,
+                "is_locked": page.is_locked,
+                "skip_reason": reason,
+                "skip_reason_label": page_approval.BASELINE_REFUSALS[reason] if reason else "",
+                "legacy_kind": legacy_kind(legacy) if eligible else None,
+                "legacy_note": page_approval.legacy_note_of(legacy) if eligible else "",
+            }
+        )
+    eligible = [row for row in candidates if row["skip_reason"] is None]
+    return {
+        "pages": candidates,
+        "totals": {
+            "pages": len(candidates),
+            "eligible": len(eligible),
+            "locked": sum(row["skip_reason"] == "locked" for row in candidates),
+            "skipped": sum(row["skip_reason"] not in (None, "locked") for row in candidates),
+            "legacy_approved": sum(row["legacy_kind"] == "approved" for row in eligible),
+            "legacy_other": sum(row["legacy_kind"] == "other" for row in eligible),
+            "legacy_none": sum(row["legacy_kind"] == "none" for row in eligible),
+        },
+    }

@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "Načítavanie pracovnej položky",
     "error": "Túto pracovnú položku sa nepodarilo načítať"
+  },
+  "page_approval_baseline": {
+    "title": "Nastaviť východiskovú verziu existujúcich stránok",
+    "description": "Východisková verzia uvedie aktuálny obsah stránky do platnosti bez kontroly, preto sa nikdy nezobrazuje ako schválenie.",
+    "eligible": "{count, plural, one {# stránka môže získať východiskovú verziu.} few {# stránky môžu získať východiskovú verziu.} many {# stránky môže získať východiskovú verziu.} other {# stránok môže získať východiskovú verziu.}}",
+    "none_eligible": "Žiadna stránka nemôže získať východiskovú verziu.",
+    "open": "Nastaviť východiskové verzie",
+    "load_failed": "Stránky sa nepodarilo načítať.",
+    "selected": "{count, plural, one {Vybraná # stránka} few {Vybrané # stránky} many {Vybraných # stránky} other {Vybraných # stránok}}",
+    "skipped": "{count, plural, one {Preskočená # stránka} few {Preskočené # stránky} many {Preskočených # stránky} other {Preskočených # stránok}}",
+    "next_review": "Ďalšia kontrola",
+    "no_review_date": "Bez dátumu kontroly",
+    "comment_placeholder": "Komentár do denníka (voliteľné)",
+    "include_locked": "Zahrnúť zamknuté stránky",
+    "confirm": "{count, plural, one {Nastaviť východiskovú verziu pre # stránku} few {Nastaviť východiskovú verziu pre # stránky} many {Nastaviť východiskovú verziu pre # stránky} other {Nastaviť východiskovú verziu pre # stránok}}",
+    "done": "{count, plural, one {Východisková verzia sa nastavuje pre # stránku.} few {Východisková verzia sa nastavuje pre # stránky.} many {Východisková verzia sa nastavuje pre # stránky.} other {Východisková verzia sa nastavuje pre # stránok.}}",
+    "done_message": "Register sa aktualizuje po dokončení.",
+    "failed": "Východiskové verzie sa nepodarilo nastaviť.",
+    "select_page": "Vybrať {name}",
+    "skip_reason": {
+      "archived": "Archivovaná",
+      "already_baselined": "Už má východiskovú verziu",
+      "already_approved": "Už schválená",
+      "in_review": "V kontrole",
+      "rejected": "Zamietnutá",
+      "already_submitted": "Už odoslaná",
+      "has_approval_history": "Má históriu schvaľovania",
+      "locked": "Zamknutá"
+    }
   }
 }

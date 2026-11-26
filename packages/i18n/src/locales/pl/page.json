@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "Ładowanie elementu pracy",
     "error": "Nie udało się załadować tego elementu pracy"
+  },
+  "page_approval_baseline": {
+    "title": "Ustal wersję bazową istniejących stron",
+    "description": "Wersja bazowa wprowadza w życie bieżącą treść strony bez przeglądu, dlatego nigdy nie jest pokazywana jako zatwierdzenie.",
+    "eligible": "{count, plural, one {# strona może otrzymać wersję bazową.} few {# strony mogą otrzymać wersję bazową.} many {# stron może otrzymać wersję bazową.} other {# strony może otrzymać wersję bazową.}}",
+    "none_eligible": "Żadna strona nie może otrzymać wersji bazowej.",
+    "open": "Ustal wersje bazowe",
+    "load_failed": "Nie udało się wczytać stron.",
+    "selected": "{count, plural, one {Wybrano # stronę} few {Wybrano # strony} many {Wybrano # stron} other {Wybrano # strony}}",
+    "skipped": "{count, plural, one {Pominięto # stronę} few {Pominięto # strony} many {Pominięto # stron} other {Pominięto # strony}}",
+    "next_review": "Następny przegląd",
+    "no_review_date": "Brak daty przeglądu",
+    "comment_placeholder": "Komentarz do dziennika (opcjonalnie)",
+    "include_locked": "Uwzględnij zablokowane strony",
+    "confirm": "{count, plural, one {Ustal wersję bazową dla # strony} few {Ustal wersję bazową dla # stron} many {Ustal wersję bazową dla # stron} other {Ustal wersję bazową dla # strony}}",
+    "done": "{count, plural, one {Trwa ustalanie wersji bazowej dla # strony.} few {Trwa ustalanie wersji bazowej dla # stron.} many {Trwa ustalanie wersji bazowej dla # stron.} other {Trwa ustalanie wersji bazowej dla # strony.}}",
+    "done_message": "Rejestr zaktualizuje się po zakończeniu.",
+    "failed": "Nie udało się ustalić wersji bazowych.",
+    "select_page": "Wybierz {name}",
+    "skip_reason": {
+      "archived": "Zarchiwizowana",
+      "already_baselined": "Ma już wersję bazową",
+      "already_approved": "Już zatwierdzona",
+      "in_review": "W przeglądzie",
+      "rejected": "Odrzucona",
+      "already_submitted": "Już przesłana",
+      "has_approval_history": "Ma historię zatwierdzeń",
+      "locked": "Zablokowana"
+    }
   }
 }

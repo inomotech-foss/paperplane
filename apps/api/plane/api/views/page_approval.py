@@ -9,8 +9,8 @@ made in the app (plane.app.views.page.approval), which takes session
 cookies only.
 
 Nor is there a way to baseline a page here: a baseline puts content in force
-without review, so only an admin running the baseline_page_approvals
-command can do it. The read endpoints report baselines as such.
+without review, so only a project admin can do it, in the app's approval
+settings. The read endpoints report baselines as such.
 """
 
 from drf_spectacular.utils import OpenApiRequest, OpenApiResponse

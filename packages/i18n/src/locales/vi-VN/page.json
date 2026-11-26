@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "Đang tải mục công việc",
     "error": "Không thể tải mục công việc này"
+  },
+  "page_approval_baseline": {
+    "title": "Đặt phiên bản cơ sở cho các trang hiện có",
+    "description": "Phiên bản cơ sở đưa nội dung hiện tại của trang vào hiệu lực mà không cần xem xét, vì vậy nó không bao giờ được hiển thị như một phê duyệt.",
+    "eligible": "{count, plural, one {# trang có thể đặt phiên bản cơ sở.} other {# trang có thể đặt phiên bản cơ sở.}}",
+    "none_eligible": "Không có trang nào có thể đặt phiên bản cơ sở.",
+    "open": "Đặt phiên bản cơ sở",
+    "load_failed": "Không thể tải các trang.",
+    "selected": "{count, plural, one {Đã chọn # trang} other {Đã chọn # trang}}",
+    "skipped": "{count, plural, one {Đã bỏ qua # trang} other {Đã bỏ qua # trang}}",
+    "next_review": "Lần xem xét tiếp theo",
+    "no_review_date": "Không có ngày xem xét",
+    "comment_placeholder": "Bình luận cho nhật ký (tùy chọn)",
+    "include_locked": "Bao gồm các trang bị khóa",
+    "confirm": "{count, plural, one {Đặt phiên bản cơ sở cho # trang} other {Đặt phiên bản cơ sở cho # trang}}",
+    "done": "{count, plural, one {Đang đặt phiên bản cơ sở cho # trang.} other {Đang đặt phiên bản cơ sở cho # trang.}}",
+    "done_message": "Sổ đăng ký sẽ cập nhật khi xử lý xong.",
+    "failed": "Không thể đặt phiên bản cơ sở cho các trang.",
+    "select_page": "Chọn {name}",
+    "skip_reason": {
+      "archived": "Đã lưu trữ",
+      "already_baselined": "Đã có phiên bản cơ sở",
+      "already_approved": "Đã được phê duyệt",
+      "in_review": "Đang xem xét",
+      "rejected": "Đã bị từ chối",
+      "already_submitted": "Đã được gửi",
+      "has_approval_history": "Có lịch sử phê duyệt",
+      "locked": "Đã khóa"
+    }
   }
 }

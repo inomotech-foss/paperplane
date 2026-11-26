@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "Caricamento dell'elemento di lavoro",
     "error": "Impossibile caricare questo elemento di lavoro"
+  },
+  "page_approval_baseline": {
+    "title": "Impostare una versione di riferimento per le pagine esistenti",
+    "description": "Una versione di riferimento mette in vigore il contenuto attuale di una pagina senza revisione, quindi non viene mai mostrata come un'approvazione.",
+    "eligible": "{count, plural, one {# pagina può ricevere una versione di riferimento.} many {# pagine possono ricevere una versione di riferimento.} other {# pagine possono ricevere una versione di riferimento.}}",
+    "none_eligible": "Nessuna pagina può ricevere una versione di riferimento.",
+    "open": "Imposta versioni di riferimento",
+    "load_failed": "Impossibile caricare le pagine.",
+    "selected": "{count, plural, one {# pagina selezionata} many {# pagine selezionate} other {# pagine selezionate}}",
+    "skipped": "{count, plural, one {# pagina saltata} many {# pagine saltate} other {# pagine saltate}}",
+    "next_review": "Prossima revisione",
+    "no_review_date": "Nessuna data di revisione",
+    "comment_placeholder": "Commento per il registro (facoltativo)",
+    "include_locked": "Includi pagine bloccate",
+    "confirm": "{count, plural, one {Imposta # pagina come riferimento} many {Imposta # pagine come riferimento} other {Imposta # pagine come riferimento}}",
+    "done": "{count, plural, one {# pagina in elaborazione.} many {# pagine in elaborazione.} other {# pagine in elaborazione.}}",
+    "done_message": "Il registro si aggiorna al termine dell'elaborazione.",
+    "failed": "Impossibile impostare le versioni di riferimento.",
+    "select_page": "Seleziona {name}",
+    "skip_reason": {
+      "archived": "Archiviata",
+      "already_baselined": "Ha già una versione di riferimento",
+      "already_approved": "Già approvata",
+      "in_review": "In revisione",
+      "rejected": "Rifiutata",
+      "already_submitted": "Già inviata",
+      "has_approval_history": "Ha una cronologia di approvazione",
+      "locked": "Bloccata"
+    }
   }
 }

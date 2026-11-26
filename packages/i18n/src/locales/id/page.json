@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "Memuat item kerja",
     "error": "Tidak dapat memuat item kerja ini"
+  },
+  "page_approval_baseline": {
+    "title": "Tetapkan versi acuan untuk halaman yang ada",
+    "description": "Versi acuan memberlakukan konten halaman saat ini tanpa peninjauan, sehingga tidak pernah ditampilkan sebagai persetujuan.",
+    "eligible": "{count, plural, one {# halaman dapat diberi versi acuan.} other {# halaman dapat diberi versi acuan.}}",
+    "none_eligible": "Tidak ada halaman yang dapat diberi versi acuan.",
+    "open": "Tetapkan versi acuan",
+    "load_failed": "Tidak dapat memuat halaman.",
+    "selected": "{count, plural, one {# halaman dipilih} other {# halaman dipilih}}",
+    "skipped": "{count, plural, one {# halaman dilewati} other {# halaman dilewati}}",
+    "next_review": "Peninjauan berikutnya",
+    "no_review_date": "Tanpa tanggal peninjauan",
+    "comment_placeholder": "Komentar untuk log (opsional)",
+    "include_locked": "Sertakan halaman yang dikunci",
+    "confirm": "{count, plural, one {Tetapkan versi acuan untuk # halaman} other {Tetapkan versi acuan untuk # halaman}}",
+    "done": "{count, plural, one {Versi acuan sedang ditetapkan untuk # halaman.} other {Versi acuan sedang ditetapkan untuk # halaman.}}",
+    "done_message": "Register diperbarui setelah proses selesai.",
+    "failed": "Tidak dapat menetapkan versi acuan.",
+    "select_page": "Pilih {name}",
+    "skip_reason": {
+      "archived": "Diarsipkan",
+      "already_baselined": "Sudah memiliki versi acuan",
+      "already_approved": "Sudah disetujui",
+      "in_review": "Sedang ditinjau",
+      "rejected": "Ditolak",
+      "already_submitted": "Sudah dikirim",
+      "has_approval_history": "Memiliki riwayat persetujuan",
+      "locked": "Dikunci"
+    }
   }
 }

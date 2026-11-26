@@ -13,6 +13,13 @@ export type TPageApprovalEvent = ApiSchema<"PageApprovalEvent">;
 export type TPageApprovalRegisterRow = ApiSchema<"PageApprovalRegisterRow">;
 export type TPageApprover = ApiSchema<"PageApprover">;
 
+export type TPageBaselineSkipReason = ApiSchema<"SkipReasonEnum">;
+export type TPageBaselineLegacyKind = ApiSchema<"LegacyKindEnum">;
+export type TPageBaselineCandidate = ApiSchema<"PageBaselineCandidate">;
+export type TPageBaselinePreview = ApiSchema<"PageBaselinePreview">;
+export type TPageBaselineRequest = ApiSchema<"PageBaselineRequestRequest">;
+export type TPageBaselineQueued = ApiSchema<"PageBaselineQueued">;
+
 const pagePath = (slug: string, project_id: string, page_id: string) => ({ path: { slug, project_id, page_id } });
 const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
 
@@ -97,6 +104,25 @@ export class PageApprovalService {
     return unwrap(
       apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/page-approvals/", {
         params: projectPath(workspaceSlug, projectId),
+      })
+    );
+  }
+
+  /** What baselining would do for each page of the project. Project admins only; writes nothing. */
+  async baselinePreview(workspaceSlug: string, projectId: string): Promise<TPageBaselinePreview> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/page-approvals/baseline/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
+  }
+
+  /** Queues the pages for baselining; the work runs in the background. */
+  async baseline(workspaceSlug: string, projectId: string, data: TPageBaselineRequest): Promise<TPageBaselineQueued> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/page-approvals/baseline/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: data,
       })
     );
   }

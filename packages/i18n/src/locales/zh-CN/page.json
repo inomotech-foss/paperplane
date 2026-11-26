@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "正在加载工作项",
     "error": "无法加载此工作项"
+  },
+  "page_approval_baseline": {
+    "title": "为现有页面设置基线",
+    "description": "基线会在未经审核的情况下使页面的当前内容生效，因此绝不会显示为批准。",
+    "eligible": "{count, plural, one {可为 # 个页面设置基线。} other {可为 # 个页面设置基线。}}",
+    "none_eligible": "没有可设置基线的页面。",
+    "open": "设置基线",
+    "load_failed": "无法加载页面。",
+    "selected": "{count, plural, one {已选择 # 个页面} other {已选择 # 个页面}}",
+    "skipped": "{count, plural, one {已跳过 # 个页面} other {已跳过 # 个页面}}",
+    "next_review": "下次审核",
+    "no_review_date": "无审核日期",
+    "comment_placeholder": "日志备注（可选）",
+    "include_locked": "包括已锁定的页面",
+    "confirm": "{count, plural, one {为 # 个页面设置基线} other {为 # 个页面设置基线}}",
+    "done": "{count, plural, one {正在为 # 个页面设置基线。} other {正在为 # 个页面设置基线。}}",
+    "done_message": "处理完成后，登记册会更新。",
+    "failed": "无法设置基线。",
+    "select_page": "选择 {name}",
+    "skip_reason": {
+      "archived": "已归档",
+      "already_baselined": "已设置基线",
+      "already_approved": "已批准",
+      "in_review": "审核中",
+      "rejected": "已拒绝",
+      "already_submitted": "已提交",
+      "has_approval_history": "有批准记录",
+      "locked": "已锁定"
+    }
   }
 }

@@ -205,5 +205,34 @@
   "page_work_item_embed": {
     "loading": "正在載入工作事項",
     "error": "無法載入此工作事項"
+  },
+  "page_approval_baseline": {
+    "title": "為現有頁面設定基準版本",
+    "description": "基準版本會在未經審核的情況下使頁面的目前內容生效，因此絕不會顯示為核准。",
+    "eligible": "{count, plural, one {可為 # 個頁面設定基準版本。} other {可為 # 個頁面設定基準版本。}}",
+    "none_eligible": "沒有可設定基準版本的頁面。",
+    "open": "設定基準版本",
+    "load_failed": "無法載入頁面。",
+    "selected": "{count, plural, one {已選取 # 個頁面} other {已選取 # 個頁面}}",
+    "skipped": "{count, plural, one {已略過 # 個頁面} other {已略過 # 個頁面}}",
+    "next_review": "下次審核",
+    "no_review_date": "無審核日期",
+    "comment_placeholder": "記錄備註（選填）",
+    "include_locked": "包含已鎖定的頁面",
+    "confirm": "{count, plural, one {為 # 個頁面設定基準版本} other {為 # 個頁面設定基準版本}}",
+    "done": "{count, plural, one {正在為 # 個頁面設定基準版本。} other {正在為 # 個頁面設定基準版本。}}",
+    "done_message": "處理完成後，登記簿會更新。",
+    "failed": "無法設定基準版本。",
+    "select_page": "選取 {name}",
+    "skip_reason": {
+      "archived": "已封存",
+      "already_baselined": "已設定基準版本",
+      "already_approved": "已核准",
+      "in_review": "審核中",
+      "rejected": "已拒絕",
+      "already_submitted": "已提交",
+      "has_approval_history": "有核准記錄",
+      "locked": "已鎖定"
+    }
   }
 }
