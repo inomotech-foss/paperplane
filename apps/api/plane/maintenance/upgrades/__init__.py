@@ -9,4 +9,6 @@ an earlier one.
 
 from plane.maintenance.upgrade import DataUpgrade
 
-UPGRADES: tuple[DataUpgrade, ...] = ()
+from . import u2026_11_normalise_confluence_tables
+
+UPGRADES: tuple[DataUpgrade, ...] = (u2026_11_normalise_confluence_tables.UPGRADE,)
