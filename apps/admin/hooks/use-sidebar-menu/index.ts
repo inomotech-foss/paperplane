@@ -13,6 +13,7 @@ export function useSidebarMenu(): TSidebarMenuItem[] {
   const { t } = useTranslation();
   return [
     coreSidebarMenuLinks.general,
+    coreSidebarMenuLinks["data-upgrades"],
     coreSidebarMenuLinks.email,
     coreSidebarMenuLinks["service-desk"],
     coreSidebarMenuLinks.authentication,

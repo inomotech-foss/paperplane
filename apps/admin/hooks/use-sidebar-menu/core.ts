@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { BrainCog, Gauge, Headset, Plug, Users } from "lucide-react";
+import { BrainCog, DatabaseZap, Gauge, Headset, Plug, Users } from "lucide-react";
 // plane imports
 import { ImageOutline, LockOutline, MailOutline, SettingsOutline, WorkspaceOutline } from "@makeplane/propel/icons";
 // types
@@ -12,6 +12,7 @@ import type { TSidebarMenuItem } from "./types";
 
 export type TCoreSidebarMenuKey =
   | "general"
+  | "data-upgrades"
   | "email"
   | "service-desk"
   | "workspace"
@@ -28,6 +29,12 @@ export const coreSidebarMenuLinks: Record<TCoreSidebarMenuKey, TSidebarMenuItem>
     name: "General",
     description: "Identify your instances and get key details.",
     href: `/general/`,
+  },
+  "data-upgrades": {
+    Icon: DatabaseZap,
+    name: "Data upgrades",
+    description: "Check the data upgrades that run after a deploy.",
+    href: `/data-upgrades/`,
   },
   email: {
     Icon: MailOutline,

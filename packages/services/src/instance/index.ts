@@ -4,6 +4,7 @@
  * See the LICENSE file for details.
  */
 
+export * from "./data-upgrade.service";
 export * from "./instance.service";
 export * from "./oauth-application.service";
 export * from "./user.service";
