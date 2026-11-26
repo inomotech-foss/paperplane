@@ -6,6 +6,8 @@
 from drf_spectacular.utils import PolymorphicProxySerializer
 from rest_framework import serializers
 
+from plane.db.models import DataUpgradeState
+
 from .admin import InstanceAdminMeSerializer
 from .instance import InstanceSerializer
 
@@ -144,3 +146,15 @@ class OAuthApplicationSerializer(serializers.Serializer):
 
 class CreatedOAuthApplicationSerializer(OAuthApplicationSerializer):
     client_secret = serializers.CharField(help_text="Shown once, it cannot be read again")
+
+
+class DataUpgradeSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    description = serializers.CharField()
+    status = serializers.ChoiceField(choices=DataUpgradeState.Status.choices)
+    counts = serializers.DictField(child=serializers.IntegerField(), help_text="Totals of all batches so far")
+    error = serializers.CharField(allow_blank=True, help_text="Traceback of the last failure, empty otherwise")
+    attempts = serializers.IntegerField(help_text="How often it was started, retries included")
+    started_at = serializers.DateTimeField(allow_null=True)
+    finished_at = serializers.DateTimeField(allow_null=True)
+    updated_at = serializers.DateTimeField(allow_null=True)

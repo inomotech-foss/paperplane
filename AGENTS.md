@@ -32,6 +32,12 @@ Frontend API types are generated from the backend's OpenAPI schemas. After chang
 
 New service code calls the API through `createApiClient` and `unwrap` from `@plane/services` (see `apps/web/services/project/project-state.service.ts`). Describe paginated responses with `paginated_response()` from `plane.utils.openapi.pagination`.
 
+## Data upgrades
+
+Data that has to change after a deploy goes into a module in `apps/api/plane/maintenance/upgrades/`, appended to `UPGRADES`. Do not write a management command or a `RunPython` migration for it. Migrations block the deploy and must not import app code that keeps changing. The Celery worker runs upgrades in batches, resumes them after a restart and shows their progress to instance admins.
+
+See `apps/api/plane/maintenance/upgrade.py` for the contract. Never rename, reuse or reorder an upgrade.
+
 ## Backend dependencies (uv)
 
 `apps/api` dependencies are managed with [uv](https://docs.astral.sh/uv/): declared in `apps/api/pyproject.toml`, pinned in `apps/api/uv.lock` (commit both). Groups: `dev` and `test` (installed by default; they use `psycopg-binary`), `production` (gunicorn + the source-built `psycopg-c`; production image and migration-check only). Lint config lives in `apps/api/ruff.toml`.

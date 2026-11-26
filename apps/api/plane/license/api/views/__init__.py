@@ -39,3 +39,4 @@ from .user import (
     InstanceUserMergePreviewEndpoint,
     InstanceUserReactivateEndpoint,
 )
+from .data_upgrade import InstanceDataUpgradeEndpoint, InstanceDataUpgradeRetryEndpoint

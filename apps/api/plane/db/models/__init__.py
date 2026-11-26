@@ -6,6 +6,7 @@ from .analytic import AnalyticView
 from .api import APIActivityLog, APIToken
 from .asset import FileAsset
 from .dashboard import Dashboard, DashboardWidget
+from .data_upgrade import DataUpgradeState
 from .automation import (
     Automation,
     AutomationAction,
