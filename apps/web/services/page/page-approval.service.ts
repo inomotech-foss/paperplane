@@ -13,44 +13,12 @@ export type TPageApprovalEvent = ApiSchema<"PageApprovalEvent">;
 export type TPageApprovalRegisterRow = ApiSchema<"PageApprovalRegisterRow">;
 export type TPageApprover = ApiSchema<"PageApprover">;
 
-// Hand-written until the API types are regenerated: PageBaselinePreview, PageBaselineRequest, PageBaselineQueued.
-export type TPageBaselineSkipReason =
-  | "archived"
-  | "already_baselined"
-  | "already_approved"
-  | "in_review"
-  | "rejected"
-  | "has_approval_history"
-  | "locked";
-export type TPageBaselineLegacyKind = "approved" | "other" | "none";
-export type TPageBaselineCandidate = {
-  page: string;
-  name: string;
-  is_locked: boolean;
-  skip_reason: TPageBaselineSkipReason | null;
-  skip_reason_label: string;
-  legacy_kind: TPageBaselineLegacyKind | null;
-  legacy_note: string;
-};
-export type TPageBaselinePreview = {
-  pages: TPageBaselineCandidate[];
-  totals: {
-    pages: number;
-    eligible: number;
-    locked: number;
-    skipped: number;
-    legacy_approved: number;
-    legacy_other: number;
-    legacy_none: number;
-  };
-};
-export type TPageBaselineRequest = {
-  page_ids?: string[];
-  next_review_date?: string | null;
-  comment?: string;
-  include_locked?: boolean;
-};
-export type TPageBaselineQueued = { queued: number; skipped: number };
+export type TPageBaselineSkipReason = ApiSchema<"SkipReasonEnum">;
+export type TPageBaselineLegacyKind = ApiSchema<"LegacyKindEnum">;
+export type TPageBaselineCandidate = ApiSchema<"PageBaselineCandidate">;
+export type TPageBaselinePreview = ApiSchema<"PageBaselinePreview">;
+export type TPageBaselineRequest = ApiSchema<"PageBaselineRequestRequest">;
+export type TPageBaselineQueued = ApiSchema<"PageBaselineQueued">;
 
 const pagePath = (slug: string, project_id: string, page_id: string) => ({ path: { slug, project_id, page_id } });
 const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });

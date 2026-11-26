@@ -13,6 +13,7 @@ import { useTranslation } from "@plane/i18n";
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 // services
 import { PageApprovalService } from "@/services/page";
+import type { TPageBaselinePreview } from "@/services/page/page-approval.service";
 // store
 import { eligibleCount } from "@/store/pages/page-baseline";
 // local imports
@@ -30,16 +31,16 @@ export const PageBaselineSettings = observer(function PageBaselineSettings(props
   const { workspaceSlug, projectId } = props;
   const { t } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: preview, error } = useSWR(baselinePreviewKey(projectId), () =>
+  const { data: preview, error } = useSWR<TPageBaselinePreview, unknown>(baselinePreviewKey(projectId), () =>
     service.baselinePreview(workspaceSlug, projectId)
   );
-  const canOpen = !!preview && eligibleCount(preview.totals, true) > 0;
+  const available = preview ? eligibleCount(preview.totals, true) : 0;
 
   let status = "";
   if (error) status = t("page_approval_baseline.load_failed");
   else if (preview)
-    status = preview.totals.eligible
-      ? t("page_approval_baseline.eligible", { count: preview.totals.eligible })
+    status = available
+      ? t("page_approval_baseline.eligible", { count: available })
       : t("page_approval_baseline.none_eligible");
 
   return (
@@ -55,7 +56,8 @@ export const PageBaselineSettings = observer(function PageBaselineSettings(props
           <Button
             variant="secondary"
             size="md"
-            disabled={!canOpen}
+            stretch="auto"
+            disabled={available === 0}
             onClick={() => setIsModalOpen(true)}
             label={t("page_approval_baseline.open")}
           />

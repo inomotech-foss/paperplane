@@ -13548,6 +13548,72 @@ paths:
           description: ''
         '400':
           description: 'Refused: see error_code'
+  /api/workspaces/{slug}/projects/{project_id}/page-approvals/baseline/:
+    get:
+      operationId: workspaces_projects_page_approvals_baseline_retrieve
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - sessionAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageBaselinePreview'
+          description: ''
+        '400':
+          description: 'Refused: see error_code'
+    post:
+      operationId: workspaces_projects_page_approvals_baseline_create
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageBaselineRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageBaselineRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageBaselineRequestRequest'
+      security:
+      - sessionAuth: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageBaselineQueued'
+          description: ''
+        '400':
+          description: 'Refused: see error_code, or page_ids not in the project'
   /api/workspaces/{slug}/projects/{project_id}/page-approvers/:
     get:
       operationId: workspaces_projects_page_approvers_list
@@ -27502,6 +27568,16 @@ components:
       oneOf:
       - $ref: '#/components/schemas/WorkSpace'
       - $ref: '#/components/schemas/EmptyObject'
+    LegacyKindEnum:
+      enum:
+      - approved
+      - other
+      - none
+      type: string
+      description: |-
+        * `approved` - The page recorded an approval
+        * `other` - The page recorded another status
+        * `none` - The page recorded nothing
     MagicKey:
       type: object
       properties:
@@ -29247,6 +29323,136 @@ components:
       - asset_id
       - asset_url
       - attachment
+    PageBaselineCandidate:
+      type: object
+      properties:
+        page:
+          type: string
+          format: uuid
+        name:
+          type: string
+        is_locked:
+          type: boolean
+        skip_reason:
+          nullable: true
+          description: |-
+            Why the page would not be baselined; null when it would. 'locked' pages are baselined with include_locked
+
+            * `archived` - Archived
+            * `already_baselined` - Already baselined
+            * `already_approved` - Already approved
+            * `in_review` - In review
+            * `rejected` - Rejected
+            * `has_approval_history` - Has approval history
+            * `locked` - Locked
+          oneOf:
+          - $ref: '#/components/schemas/SkipReasonEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        skip_reason_label:
+          type: string
+          description: skip_reason in words, with details
+        legacy_kind:
+          nullable: true
+          description: |-
+            What the page recorded itself before; null for pages that cannot be baselined
+
+            * `approved` - The page recorded an approval
+            * `other` - The page recorded another status
+            * `none` - The page recorded nothing
+          oneOf:
+          - $ref: '#/components/schemas/LegacyKindEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        legacy_note:
+          type: string
+          description: The note the baseline would carry; empty for pages that cannot
+            be baselined
+      required:
+      - page
+      - name
+      - is_locked
+      - skip_reason
+      - skip_reason_label
+      - legacy_kind
+      - legacy_note
+    PageBaselinePreview:
+      type: object
+      properties:
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/PageBaselineCandidate'
+        totals:
+          $ref: '#/components/schemas/PageBaselineTotals'
+      required:
+      - pages
+      - totals
+    PageBaselineQueued:
+      type: object
+      properties:
+        queued:
+          type: integer
+          description: Pages queued for baselining
+        skipped:
+          type: integer
+          description: Requested pages that cannot be baselined
+      required:
+      - queued
+      - skipped
+    PageBaselineRequestRequest:
+      type: object
+      properties:
+        page_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Pages to baseline; empty or missing means every eligible page
+        next_review_date:
+          type: string
+          format: date
+          nullable: true
+          description: Schedule the first real review of every baselined page; null
+            leaves review dates as they are
+        comment:
+          type: string
+          default: ''
+          maxLength: 5000
+        include_locked:
+          type: boolean
+          default: false
+          description: Also baseline locked pages
+    PageBaselineTotals:
+      type: object
+      properties:
+        pages:
+          type: integer
+          description: Pages scanned
+        eligible:
+          type: integer
+          description: Pages that would be baselined, locked pages not counted
+        locked:
+          type: integer
+          description: Locked pages that would be baselined with include_locked
+        skipped:
+          type: integer
+          description: Pages that cannot be baselined, locked pages not counted
+        legacy_approved:
+          type: integer
+          description: Eligible pages carrying over a recorded approval
+        legacy_other:
+          type: integer
+          description: Eligible pages carrying over another recorded status
+        legacy_none:
+          type: integer
+          description: Eligible pages with nothing recorded
+      required:
+      - pages
+      - eligible
+      - locked
+      - skipped
+      - legacy_approved
+      - legacy_other
+      - legacy_none
     PageComment:
       type: object
       properties:
@@ -34805,6 +35011,24 @@ components:
           description: Must pass the password strength check
       required:
       - password
+    SkipReasonEnum:
+      enum:
+      - archived
+      - already_baselined
+      - already_approved
+      - in_review
+      - rejected
+      - has_approval_history
+      - locked
+      type: string
+      description: |-
+        * `archived` - Archived
+        * `already_baselined` - Already baselined
+        * `already_approved` - Already approved
+        * `in_review` - In review
+        * `rejected` - Rejected
+        * `has_approval_history` - Has approval history
+        * `locked` - Locked
     SlugAvailability:
       type: object
       properties:
