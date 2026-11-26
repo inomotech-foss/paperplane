@@ -23,6 +23,18 @@ Who may do what:
   in a human session (session cookie, no token, not a bot), and who neither
   submitted the version nor edited the page since the last approval.
 - review date: an approver or a project admin, through either API.
+
+Baseline: a page can also be put in force without a review, once, when
+approvals are switched on for an existing wiki. Only the admin command
+baseline_page_approvals does it; no API offers it. The baseline is a version
+in force like an approved one (readers see it, edits show as unapproved
+changes, it is frozen), but its status is "baseline", it names no approver
+and its revision is 0. It accepts submit (with or without changes), and the
+first approval replaces it:
+
+    draft ──baseline (command)──▶ baseline ──submit──▶ in_review ──approve──▶ approved
+                                                          │
+                                                        reject──▶ rejected (baseline stays in force)
 """
 
 from datetime import date, timedelta
@@ -31,6 +43,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import status
 
+from plane.importers.confluence.document_status import APPROVED_STATUSES
 from plane.db.models import (
     Page,
     PageApproval,
@@ -106,7 +119,7 @@ def is_project_admin(user_id, project_id):
 
 def approval_for(page, project_id, *, for_update=False):
     """The page's approval row, created as a draft the first time it is needed."""
-    queryset = PageApproval.all_objects.select_related("approved_version", "submitted_version")
+    queryset = PageApproval.all_objects.select_related("approved_version", "submitted_version", "baseline_version")
     if for_update:
         queryset = queryset.select_for_update(of=("self",))
     approval = queryset.filter(page_id=page.id).first()
@@ -136,9 +149,11 @@ def frozen_version_ids(page_id):
 
 
 def has_unapproved_changes(page, approval):
-    if approval is None or approval.approved_version_id is None:
+    """The page body differs from the version in force (approved or baseline), or nothing is in force."""
+    in_force = approval.in_force_version if approval is not None else None
+    if in_force is None:
         return True
-    return (page.description_html or "") != (approval.approved_version.description_html or "")
+    return (page.description_html or "") != (in_force.description_html or "")
 
 
 def is_review_overdue(approval, today=None):
@@ -163,6 +178,36 @@ def contributors(page, approval):
     if approval.submitted_by_id:
         authors.add(approval.submitted_by_id)
     return authors
+
+
+def baseline_refusal(page):
+    """Why the page cannot be baselined, as a short reason, or None.
+
+    Only a pristine draft can: no approval row, or one that never had a
+    submission, decision or baseline. A scheduled review date alone does not
+    count. Reads only, so a dry run can ask.
+    """
+    if page.archived_at:
+        return "archived"
+    approval = PageApproval.all_objects.filter(page_id=page.id).first()
+    if approval is not None:
+        if approval.baseline_version_id:
+            return "already baselined"
+        if approval.approved_version_id:
+            return "already approved"
+        if approval.status != PageApproval.DRAFT:
+            return f"status {approval.status}"
+        if approval.submitted_version_id:
+            return "already submitted"
+    history = (
+        PageApprovalEvent.all_objects.filter(page_id=page.id)
+        .exclude(action=PageApprovalEvent.REVIEW_DATE_SET)
+        .values_list("action", flat=True)
+        .first()
+    )
+    if history:
+        return f"has approval history ({history})"
+    return None
 
 
 def decision_refusal(user, page, approval, project_id):
@@ -196,7 +241,15 @@ def _snapshot(page, user):
     )
 
 
-def _log(approval, action, user, *, version=None, comment="", revision=None, next_review_date=None):
+def _log(approval, action, user, *, version=None, comment="", revision=None, next_review_date=None, legacy=None):
+    legacy_fields = {}
+    if legacy is not None:
+        legacy_fields = {
+            "legacy_status": legacy.status,
+            "legacy_approved_by": legacy.approved_by,
+            "legacy_approved_at": legacy.approved_at,
+            "legacy_approved_at_raw": legacy.approved_at_raw,
+        }
     return PageApprovalEvent.objects.create(
         workspace_id=approval.workspace_id,
         project_id=approval.project_id,
@@ -207,6 +260,7 @@ def _log(approval, action, user, *, version=None, comment="", revision=None, nex
         comment=comment or "",
         revision=revision,
         next_review_date=next_review_date,
+        **legacy_fields,
     )
 
 
@@ -221,6 +275,7 @@ def submit(page, project_id, user, comment=""):
         if page.archived_at:
             raise ApprovalError("PAGE_ARCHIVED", "An archived page cannot be submitted for review")
         approval = approval_for(page, project_id, for_update=True)
+        # A baseline may be submitted unchanged: reviewing it is how it becomes approved.
         if approval.status == PageApproval.APPROVED and not has_unapproved_changes(page, approval):
             raise ApprovalError("NOTHING_TO_REVIEW", "The page has no changes since it was approved")
         version = _snapshot(page, user)
@@ -319,3 +374,108 @@ def set_review_date(page, project_id, user, next_review_date, comment=""):
         approval.save(update_fields=["next_review_date", "updated_at"])
         _log(approval, PageApprovalEvent.REVIEW_DATE_SET, user, comment=comment, next_review_date=next_review_date)
     return approval
+
+
+def baseline(page, project_id, user, *, legacy=None, next_review_date=None, comment=""):
+    """Put the page's current content in force without a review. Admin maintenance only.
+
+    Snapshots the body as submit does and records it as baseline_version,
+    with a "baselined" event naming the person who ran it. Nobody is recorded
+    as approver and the revision stays 0. `legacy` (a LegacyApproval) is the
+    approval the page itself recorded before, stored as text for information.
+    next_review_date, when given, replaces the scheduled review; otherwise the
+    page keeps whatever it had (usually nothing).
+    """
+    require_enabled(project_id)
+    with transaction.atomic():
+        page = _locked_page(page.id)
+        reason = baseline_refusal(page)
+        if reason:
+            raise ApprovalError("NOT_A_PRISTINE_DRAFT", f"The page cannot be baselined: {reason}")
+        approval = approval_for(page, project_id, for_update=True)
+        version = _snapshot(page, user)
+        approval.status = PageApproval.BASELINE
+        approval.baseline_version = version
+        approval.baselined_by_id = user.id
+        approval.baselined_at = timezone.now()
+        approval.legacy_status = legacy.status if legacy else ""
+        approval.legacy_approved_by = legacy.approved_by if legacy else ""
+        approval.legacy_approved_at = legacy.approved_at if legacy else None
+        approval.legacy_approved_at_raw = legacy.approved_at_raw if legacy else ""
+        if next_review_date is not None:
+            approval.next_review_date = next_review_date
+        approval.save(
+            update_fields=[
+                "status",
+                "baseline_version",
+                "baselined_by",
+                "baselined_at",
+                "legacy_status",
+                "legacy_approved_by",
+                "legacy_approved_at",
+                "legacy_approved_at_raw",
+                "next_review_date",
+                "updated_at",
+            ]
+        )
+        _log(
+            approval,
+            PageApprovalEvent.BASELINED,
+            user,
+            version=version,
+            comment=comment,
+            next_review_date=approval.next_review_date,
+            legacy=legacy,
+        )
+    return approval
+
+
+# --- labels -------------------------------------------------------------------
+# The API returns these next to the codes, so every reader (the app, API v1,
+# MCP) says the same thing, and a baseline is never called an approval.
+
+STATUS_LABELS = dict(PageApproval.STATUS_CHOICES)
+NO_PRIOR_APPROVAL = "Baseline, no prior approval recorded"
+
+
+def legacy_note(status_text, approved_by, approved_at, approved_at_raw):
+    """One sentence on the approval a page recorded before it was baselined."""
+    when = approved_at_raw or (approved_at.strftime("%d.%m.%Y") if approved_at else "")
+    if not (status_text or approved_by or when):
+        return NO_PRIOR_APPROVAL
+    if status_text.strip().lower() in APPROVED_STATUSES:
+        words = "approved"
+        if approved_by:
+            words += f" by {approved_by}"
+        if when:
+            words += f", {when}"
+        if not approved_by:
+            words += " (approver not recorded)" if when else " (approver and date not recorded)"
+        return f"Carried over from Confluence: {words}"
+    parts = [f"status {status_text}" if status_text else "no status"]
+    if approved_by:
+        parts.append(f"approved by {approved_by}")
+    if when:
+        parts.append(f"dated {when}")
+    return f"Carried over from Confluence: {', '.join(parts)}; not recorded as approved"
+
+
+def approval_legacy_note(approval):
+    """The legacy note of a baselined page, or "" for a page that was never baselined."""
+    if approval is None or not approval.baseline_version_id:
+        return ""
+    return legacy_note(
+        approval.legacy_status,
+        approval.legacy_approved_by,
+        approval.legacy_approved_at,
+        approval.legacy_approved_at_raw,
+    )
+
+
+def in_force_label(kind, revision):
+    """What the version in force rests on, in words."""
+    if kind == PageApproval.IN_FORCE_APPROVED:
+        return f"Approved, Rev {revision}"
+    if kind == PageApproval.IN_FORCE_BASELINE:
+        return STATUS_LABELS[PageApproval.BASELINE]
+    return "Nothing in force"

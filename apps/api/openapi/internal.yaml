@@ -28677,6 +28677,25 @@ components:
           format: date
           readOnly: true
           nullable: true
+        legacy_status:
+          type: string
+          readOnly: true
+        legacy_approved_by:
+          type: string
+          readOnly: true
+        legacy_approved_at:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        legacy_approved_at_raw:
+          type: string
+          readOnly: true
+        legacy_note:
+          type: string
+          readOnly: true
+          description: For a baselined event, the approval the page recorded before,
+            in words; otherwise empty
         created_at:
           type: string
           format: date-time
@@ -28690,6 +28709,11 @@ components:
       - comment
       - revision
       - next_review_date
+      - legacy_status
+      - legacy_approved_by
+      - legacy_approved_at
+      - legacy_approved_at_raw
+      - legacy_note
       - created_at
     PageApprovalEventActionEnum:
       enum:
@@ -28697,15 +28721,81 @@ components:
       - approved
       - rejected
       - review_date_set
+      - baselined
       type: string
       description: |-
         * `submitted` - Submitted
         * `approved` - Approved
         * `rejected` - Rejected
         * `review_date_set` - Review date set
+        * `baselined` - Baselined (migrated, not reviewed in Paperplane)
+    PageApprovalInForceKindEnum:
+      enum:
+      - approved
+      - baseline
+      type: string
+      description: |-
+        * `approved` - Approved in Paperplane
+        * `baseline` - Baseline (migrated, not reviewed in Paperplane)
     PageApprovalRegisterRow:
       type: object
       properties:
+        in_force_kind:
+          nullable: true
+          description: |-
+            What the version in force rests on: approved (reviewed in Paperplane), baseline (put in force without review when approvals were switched on) or null
+
+            * `approved` - Approved in Paperplane
+            * `baseline` - Baseline (migrated, not reviewed in Paperplane)
+          oneOf:
+          - $ref: '#/components/schemas/PageApprovalInForceKindEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        in_force_version:
+          type: string
+          format: uuid
+          nullable: true
+          description: 'Page version in force: the approved version, else the baseline'
+        in_force_label:
+          type: string
+          description: in_force_kind in words, e.g. 'Approved, Rev 2'
+        status_label:
+          type: string
+          description: status in words; a baseline is never called approved
+        baseline_version:
+          type: string
+          format: uuid
+          nullable: true
+          description: Page version put in force without review; superseded by the
+            first approval
+        baselined_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: Who ran the baseline. Not an approver
+        baselined_at:
+          type: string
+          format: date-time
+          nullable: true
+        legacy_status:
+          type: string
+          description: Document status the page recorded before (e.g. Confluence),
+            as written
+        legacy_approved_by:
+          type: string
+          description: Approver named in the page before, as written. Not a Paperplane
+            user
+        legacy_approved_at:
+          type: string
+          format: date
+          nullable: true
+          description: legacy_approved_at_raw, when readable
+        legacy_approved_at_raw:
+          type: string
+          description: Approval date as written
+        legacy_note:
+          type: string
+          description: The carried-over approval in words, for baselined pages; empty
+            for pages never baselined
         page:
           type: string
           format: uuid
@@ -28743,6 +28833,18 @@ components:
         has_unapproved_changes:
           type: boolean
       required:
+      - in_force_kind
+      - in_force_version
+      - in_force_label
+      - status_label
+      - baseline_version
+      - baselined_by
+      - baselined_at
+      - legacy_status
+      - legacy_approved_by
+      - legacy_approved_at
+      - legacy_approved_at_raw
+      - legacy_note
       - page
       - name
       - owned_by
@@ -28785,15 +28887,73 @@ components:
       - in_review
       - approved
       - rejected
+      - baseline
       type: string
       description: |-
         * `draft` - Draft
         * `in_review` - In review
         * `approved` - Approved
         * `rejected` - Rejected
+        * `baseline` - Baseline (migrated, not reviewed in Paperplane)
     PageApprovalStatusWithAbilities:
       type: object
       properties:
+        in_force_kind:
+          nullable: true
+          description: |-
+            What the version in force rests on: approved (reviewed in Paperplane), baseline (put in force without review when approvals were switched on) or null
+
+            * `approved` - Approved in Paperplane
+            * `baseline` - Baseline (migrated, not reviewed in Paperplane)
+          oneOf:
+          - $ref: '#/components/schemas/PageApprovalInForceKindEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        in_force_version:
+          type: string
+          format: uuid
+          nullable: true
+          description: 'Page version in force: the approved version, else the baseline'
+        in_force_label:
+          type: string
+          description: in_force_kind in words, e.g. 'Approved, Rev 2'
+        status_label:
+          type: string
+          description: status in words; a baseline is never called approved
+        baseline_version:
+          type: string
+          format: uuid
+          nullable: true
+          description: Page version put in force without review; superseded by the
+            first approval
+        baselined_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: Who ran the baseline. Not an approver
+        baselined_at:
+          type: string
+          format: date-time
+          nullable: true
+        legacy_status:
+          type: string
+          description: Document status the page recorded before (e.g. Confluence),
+            as written
+        legacy_approved_by:
+          type: string
+          description: Approver named in the page before, as written. Not a Paperplane
+            user
+        legacy_approved_at:
+          type: string
+          format: date
+          nullable: true
+          description: legacy_approved_at_raw, when readable
+        legacy_approved_at_raw:
+          type: string
+          description: Approval date as written
+        legacy_note:
+          type: string
+          description: The carried-over approval in words, for baselined pages; empty
+            for pages never baselined
         page:
           type: string
           format: uuid
@@ -28804,12 +28964,13 @@ components:
           $ref: '#/components/schemas/PageApprovalStatusEnum'
         revision:
           type: integer
-          description: Number of approvals so far; the version in force is this revision
+          description: Number of approvals so far; an approved version in force is
+            this revision. 0 for a baseline
         approved_version:
           type: string
           format: uuid
           nullable: true
-          description: Page version in force
+          description: Approved page version; null for a baseline (see in_force_version)
         approved_by:
           type: string
           format: uuid
@@ -28844,8 +29005,8 @@ components:
           type: boolean
         has_unapproved_changes:
           type: boolean
-          description: The page body differs from the version in force, or nothing
-            is approved yet
+          description: The page body differs from the version in force (approved or
+            baseline), or nothing is in force
         can_decide:
           type: boolean
           description: The current user may approve or reject the version under review
@@ -28858,6 +29019,18 @@ components:
         is_approver:
           type: boolean
       required:
+      - in_force_kind
+      - in_force_version
+      - in_force_label
+      - status_label
+      - baseline_version
+      - baselined_by
+      - baselined_at
+      - legacy_status
+      - legacy_approved_by
+      - legacy_approved_at
+      - legacy_approved_at_raw
+      - legacy_note
       - page
       - enabled
       - status

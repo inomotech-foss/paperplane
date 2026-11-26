@@ -20,7 +20,9 @@ from plane.db.models import (
     WorkspaceMember,
 )
 from plane.db.models.api import APIToken
+from plane.importers.confluence.document_status import LegacyApproval
 from plane.tests.openapi import documented
+from plane.utils import page_approval
 
 pytestmark = [pytest.mark.contract, pytest.mark.django_db]
 
@@ -120,6 +122,38 @@ def test_the_register(api_key_client, workspace, project, page):
         "draft",
         False,
     )
+
+
+def test_a_baseline_reads_as_a_baseline_everywhere(api_key_client, workspace, project, page, create_user):
+    """What MCP's approval_status and list_approvals relay: never an approval, the legacy record as text."""
+    legacy = LegacyApproval(status="approved", approved_by="Frank Wagner", approved_at_raw="2024-11-27")
+    page_approval.baseline(page, project.id, create_user, legacy=legacy)
+
+    data = documented(api_key_client.get(page_url(workspace, project, page)), surface="v1")
+    events = documented(api_key_client.get(page_url(workspace, project, page, "events")), surface="v1")
+    register = documented(
+        api_key_client.get(f"/api/v1/workspaces/{workspace.slug}/projects/{project.id}/page-approvals/"), surface="v1"
+    )
+
+    label = "Baseline (migrated, not reviewed in Paperplane)"
+    assert (data["status"], data["status_label"], data["in_force_kind"]) == ("baseline", label, "baseline")
+    assert data["approved_version"] is None and data["approved_by"] is None and data["revision"] == 0
+    assert data["in_force_version"] == data["baseline_version"]
+    assert data["legacy_note"] == "Carried over from Confluence: approved by Frank Wagner, 2024-11-27"
+    [event] = events["results"]
+    assert (event["action"], event["legacy_approved_by"], event["legacy_approved_at"]) == (
+        "baselined",
+        "Frank Wagner",
+        None,
+    )
+    [row] = register["results"]
+    assert (row["status"], row["status_label"], row["in_force_kind"], row["approved_by"]) == (
+        "baseline",
+        label,
+        "baseline",
+        None,
+    )
+    assert row["legacy_note"] == data["legacy_note"]
 
 
 def test_the_feature_is_off_by_default_and_can_be_switched_on(api_key_client, workspace, create_user):

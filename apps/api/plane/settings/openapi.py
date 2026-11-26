@@ -300,5 +300,6 @@ SPECTACULAR_SETTINGS = {
         "AutomationNotificationRecipientEnum": "plane.automation.registry.NOTIFICATION_RECIPIENTS",
         "PageApprovalStatusEnum": "plane.db.models.page_approval.PageApproval.STATUS_CHOICES",
         "PageApprovalEventActionEnum": "plane.db.models.page_approval.PageApprovalEvent.ACTION_CHOICES",
+        "PageApprovalInForceKindEnum": "plane.app.serializers.page_approval.IN_FORCE_KIND_CHOICES",
     },
 }

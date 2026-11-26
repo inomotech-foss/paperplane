@@ -9396,6 +9396,13 @@ export interface components {
             readonly revision: number | null;
             /** Format: date */
             readonly next_review_date: string | null;
+            readonly legacy_status: string;
+            readonly legacy_approved_by: string;
+            /** Format: date */
+            readonly legacy_approved_at: string | null;
+            readonly legacy_approved_at_raw: string;
+            /** @description For a baselined event, the approval the page recorded before, in words; otherwise empty */
+            readonly legacy_note: string;
             /** Format: date-time */
             readonly created_at: string;
         };
@@ -9404,10 +9411,58 @@ export interface components {
          *     * `approved` - Approved
          *     * `rejected` - Rejected
          *     * `review_date_set` - Review date set
+         *     * `baselined` - Baselined (migrated, not reviewed in Paperplane)
          * @enum {string}
          */
-        PageApprovalEventActionEnum: "submitted" | "approved" | "rejected" | "review_date_set";
+        PageApprovalEventActionEnum: "submitted" | "approved" | "rejected" | "review_date_set" | "baselined";
+        /**
+         * @description * `approved` - Approved in Paperplane
+         *     * `baseline` - Baseline (migrated, not reviewed in Paperplane)
+         * @enum {string}
+         */
+        PageApprovalInForceKindEnum: "approved" | "baseline";
         PageApprovalRegisterRow: {
+            /**
+             * @description What the version in force rests on: approved (reviewed in Paperplane), baseline (put in force without review when approvals were switched on) or null
+             *
+             *     * `approved` - Approved in Paperplane
+             *     * `baseline` - Baseline (migrated, not reviewed in Paperplane)
+             */
+            in_force_kind: (components["schemas"]["PageApprovalInForceKindEnum"] | components["schemas"]["NullEnum"]) | null;
+            /**
+             * Format: uuid
+             * @description Page version in force: the approved version, else the baseline
+             */
+            in_force_version: string | null;
+            /** @description in_force_kind in words, e.g. 'Approved, Rev 2' */
+            in_force_label: string;
+            /** @description status in words; a baseline is never called approved */
+            status_label: string;
+            /**
+             * Format: uuid
+             * @description Page version put in force without review; superseded by the first approval
+             */
+            baseline_version: string | null;
+            /**
+             * Format: uuid
+             * @description Who ran the baseline. Not an approver
+             */
+            baselined_by: string | null;
+            /** Format: date-time */
+            baselined_at: string | null;
+            /** @description Document status the page recorded before (e.g. Confluence), as written */
+            legacy_status: string;
+            /** @description Approver named in the page before, as written. Not a Paperplane user */
+            legacy_approved_by: string;
+            /**
+             * Format: date
+             * @description legacy_approved_at_raw, when readable
+             */
+            legacy_approved_at: string | null;
+            /** @description Approval date as written */
+            legacy_approved_at_raw: string;
+            /** @description The carried-over approval in words, for baselined pages; empty for pages never baselined */
+            legacy_note: string;
             /** Format: uuid */
             page: string;
             name: string;
@@ -9446,20 +9501,62 @@ export interface components {
          *     * `in_review` - In review
          *     * `approved` - Approved
          *     * `rejected` - Rejected
+         *     * `baseline` - Baseline (migrated, not reviewed in Paperplane)
          * @enum {string}
          */
-        PageApprovalStatusEnum: "draft" | "in_review" | "approved" | "rejected";
+        PageApprovalStatusEnum: "draft" | "in_review" | "approved" | "rejected" | "baseline";
         PageApprovalStatusWithAbilities: {
+            /**
+             * @description What the version in force rests on: approved (reviewed in Paperplane), baseline (put in force without review when approvals were switched on) or null
+             *
+             *     * `approved` - Approved in Paperplane
+             *     * `baseline` - Baseline (migrated, not reviewed in Paperplane)
+             */
+            in_force_kind: (components["schemas"]["PageApprovalInForceKindEnum"] | components["schemas"]["NullEnum"]) | null;
+            /**
+             * Format: uuid
+             * @description Page version in force: the approved version, else the baseline
+             */
+            in_force_version: string | null;
+            /** @description in_force_kind in words, e.g. 'Approved, Rev 2' */
+            in_force_label: string;
+            /** @description status in words; a baseline is never called approved */
+            status_label: string;
+            /**
+             * Format: uuid
+             * @description Page version put in force without review; superseded by the first approval
+             */
+            baseline_version: string | null;
+            /**
+             * Format: uuid
+             * @description Who ran the baseline. Not an approver
+             */
+            baselined_by: string | null;
+            /** Format: date-time */
+            baselined_at: string | null;
+            /** @description Document status the page recorded before (e.g. Confluence), as written */
+            legacy_status: string;
+            /** @description Approver named in the page before, as written. Not a Paperplane user */
+            legacy_approved_by: string;
+            /**
+             * Format: date
+             * @description legacy_approved_at_raw, when readable
+             */
+            legacy_approved_at: string | null;
+            /** @description Approval date as written */
+            legacy_approved_at_raw: string;
+            /** @description The carried-over approval in words, for baselined pages; empty for pages never baselined */
+            legacy_note: string;
             /** Format: uuid */
             page: string;
             /** @description Whether the page's project has page approvals switched on */
             enabled: boolean;
             status: components["schemas"]["PageApprovalStatusEnum"];
-            /** @description Number of approvals so far; the version in force is this revision */
+            /** @description Number of approvals so far; an approved version in force is this revision. 0 for a baseline */
             revision: number;
             /**
              * Format: uuid
-             * @description Page version in force
+             * @description Approved page version; null for a baseline (see in_force_version)
              */
             approved_version: string | null;
             /** Format: uuid */
@@ -9481,7 +9578,7 @@ export interface components {
             /** Format: date */
             next_review_date: string | null;
             is_review_overdue: boolean;
-            /** @description The page body differs from the version in force, or nothing is approved yet */
+            /** @description The page body differs from the version in force (approved or baseline), or nothing is in force */
             has_unapproved_changes: boolean;
             /** @description The current user may approve or reject the version under review */
             can_decide: boolean;
@@ -28162,8 +28259,9 @@ export const networkEnumValues: ReadonlyArray<FlattenedDeepRequired<components>[
 export const notificationViewModeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NotificationViewModeEnum"]> = ["full", "compact"];
 export const notifyModeEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["NotifyModeEnum"]> = ["NONE", "ADMINS", "MEMBERS", "CUSTOM"];
 export const pageAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageAccessEnum"]> = [0, 1];
-export const pageApprovalEventActionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalEventActionEnum"]> = ["submitted", "approved", "rejected", "review_date_set"];
-export const pageApprovalStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalStatusEnum"]> = ["draft", "in_review", "approved", "rejected"];
+export const pageApprovalEventActionEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalEventActionEnum"]> = ["submitted", "approved", "rejected", "review_date_set", "baselined"];
+export const pageApprovalInForceKindEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalInForceKindEnum"]> = ["approved", "baseline"];
+export const pageApprovalStatusEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageApprovalStatusEnum"]> = ["draft", "in_review", "approved", "rejected", "baseline"];
 export const pageLiveAccessAccessEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PageLiveAccessAccessEnum"]> = ["edit", "read"];
 export const pqlDialectEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PqlDialectEnum"]> = ["jql", "plane"];
 export const priorityEnumValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["PriorityEnum"]> = ["urgent", "high", "medium", "low", "none"];

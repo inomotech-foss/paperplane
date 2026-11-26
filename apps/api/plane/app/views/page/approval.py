@@ -7,6 +7,9 @@ Approving and rejecting live here only: these views authenticate by session
 cookie alone, and page_approval.approve/reject refuse token-authenticated
 requests and bots on top of that. API v1 offers status, submit, review dates
 and the register, never a decision.
+
+Baselining is not offered by any view: it is admin maintenance through the
+baseline_page_approvals management command.
 """
 
 from django.db import transaction
