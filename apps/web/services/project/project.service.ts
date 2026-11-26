@@ -59,6 +59,7 @@ export const projectUpdateBody = (data: Partial<TProject>): TProjectUpdateBody =
   issue_view: data.issue_view,
   inbox_view: data.inbox_view,
   guest_view_all_features: data.guest_view_all_features,
+  is_page_approval_enabled: data.is_page_approval_enabled,
   archive_in: data.archive_in,
   close_in: data.close_in,
   cover_image: data.cover_image,
