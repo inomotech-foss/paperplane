@@ -11,7 +11,7 @@ import { Button } from "@makeplane/propel/components/button";
 import { Tooltip } from "@makeplane/propel/components/tooltip";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
-import { approvalBadge, canSubmitForReview, decisionBlockedMessage } from "@/store/pages/page-approval";
+import { approvalBadge, BASELINE_LABEL, canSubmitForReview, decisionBlockedMessage } from "@/store/pages/page-approval";
 // local imports
 import { PageApprovalActionModal } from "./action-modal";
 import type { TPageApprovalAction } from "./action-modal";
@@ -34,10 +34,13 @@ export const PageApprovalHeaderControl = observer(function PageApprovalHeaderCon
   const badge = approvalBadge(status);
   const blocked = status.status === "in_review" && status.is_approver ? decisionBlockedMessage(status) : undefined;
   const canSubmit = canSubmitForReview(status, page.canCurrentUserEditPage);
+  // a baseline says in full what it is, and what was recorded before
+  const baselineNote = status.status === "baseline" ? `${BASELINE_LABEL}. ${status.legacy_note}` : "";
+  const tooltip = blocked || status.rejection_comment || baselineNote;
 
   return (
     <div className="flex items-center gap-1.5">
-      <Tooltip label={blocked ?? status.rejection_comment ?? ""} disabled={!blocked && !status.rejection_comment}>
+      <Tooltip label={tooltip} disabled={!tooltip}>
         <Badge variant={badge.variant} size="sm" label={badge.label} />
       </Tooltip>
       {status.is_review_overdue && <Badge variant="danger" size="sm" label="Review overdue" />}

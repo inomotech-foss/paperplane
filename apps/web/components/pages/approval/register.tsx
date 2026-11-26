@@ -18,7 +18,7 @@ import { useMember } from "@/hooks/store/use-member";
 import { PageApprovalService } from "@/services/page";
 import type { TPageApprovalRegisterRow } from "@/services/page";
 // store
-import { approvalBadge } from "@/store/pages/page-approval";
+import { approvalBadge, BASELINE_LABEL } from "@/store/pages/page-approval";
 
 const service = new PageApprovalService();
 
@@ -55,17 +55,30 @@ const registerColumns = (
     tdRender: (row) => (row.revision ? String(row.revision) : "–"),
   },
   {
-    key: "approved",
-    content: "Approved",
-    tdRender: (row) =>
-      row.approved_at
-        ? `${renderFormattedDate(row.approved_at)}${row.approved_by ? ` by ${nameOf(row.approved_by)}` : ""}`
-        : "–",
+    key: "in_force",
+    content: "In force",
+    tdRender: (row) => {
+      if (row.in_force_kind === "baseline")
+        return (
+          <span title={BASELINE_LABEL}>
+            Baseline, not reviewed{row.baselined_at ? ` (${renderFormattedDate(row.baselined_at)})` : ""}
+          </span>
+        );
+      if (row.in_force_kind === "approved" && row.approved_at)
+        return `Approved ${renderFormattedDate(row.approved_at)}${row.approved_by ? ` by ${nameOf(row.approved_by)}` : ""}`;
+      return "–";
+    },
+  },
+  {
+    key: "carried_over",
+    content: "Before Paperplane",
+    // what the page recorded itself before it was baselined: information, not an approval
+    tdRender: (row) => (row.legacy_note ? <span className="text-secondary">{row.legacy_note}</span> : "–"),
   },
   {
     key: "changes",
     content: "Unapproved changes",
-    tdRender: (row) => (row.approved_version ? (row.has_unapproved_changes ? "Yes" : "No") : "–"),
+    tdRender: (row) => (row.in_force_version ? (row.has_unapproved_changes ? "Yes" : "No") : "–"),
   },
   {
     key: "review",

@@ -27,6 +27,8 @@ const status = (overrides: Record<string, unknown> = {}) => ({
   status: "approved",
   revision: 1,
   approved_version: "v1",
+  in_force_version: "v1",
+  in_force_kind: "approved",
   ...overrides,
 });
 
@@ -69,6 +71,23 @@ describe("PageApprovalStore", () => {
     expect(store.showsApproved(true)).toBe(false);
     store.setViewMode("approved");
     expect(store.showsApproved(true)).toBe(true);
+  });
+
+  it("shows readers a baseline as the version in force", async () => {
+    service.getStatus.mockResolvedValue(
+      status({
+        status: "baseline",
+        revision: 0,
+        approved_version: null,
+        in_force_version: "b1",
+        in_force_kind: "baseline",
+      })
+    );
+    const store = new PageApprovalStore("acme", "project", "page");
+    await store.fetch();
+
+    expect(store.showsApproved(false)).toBe(true);
+    expect(store.showsApproved(true)).toBe(false);
   });
 
   it("refuses to call the API without a page", async () => {

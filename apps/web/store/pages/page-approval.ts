@@ -5,7 +5,10 @@
 
 import type { TPageApprovalEvent, TPageApprovalState, TPageApprovalStatus } from "@/services/page";
 
-/** Which body of a page is on screen: the version in force, or the working draft. */
+/**
+ * Which body of a page is on screen: the version in force, or the working draft.
+ * "approved" means the version in force, which may also be a baseline.
+ */
 export type TPageApprovalViewMode = "approved" | "draft";
 
 type TStatusPresentation = {
@@ -18,7 +21,12 @@ const STATUS_PRESENTATION: Record<TPageApprovalState, TStatusPresentation> = {
   in_review: { label: "In review", variant: "warning" },
   approved: { label: "Approved", variant: "success" },
   rejected: { label: "Rejected", variant: "danger" },
+  // never "approved" and never green: nobody reviewed a baseline
+  baseline: { label: "Baseline · not reviewed", variant: "brand" },
 };
+
+/** What a baseline is, in full, wherever there is room for it. */
+export const BASELINE_LABEL = "Baseline (migrated, not reviewed in Paperplane)";
 
 /** The badge for a page's approval state; an approved page names its revision. */
 export const approvalBadge = (status: Pick<TPageApprovalStatus, "status" | "revision">): TStatusPresentation => {
@@ -28,18 +36,18 @@ export const approvalBadge = (status: Pick<TPageApprovalStatus, "status" | "revi
 };
 
 /**
- * Whether the approved version is shown instead of the draft.
+ * Whether the version in force is shown instead of the draft.
  *
- * Only when approvals are on and something is approved. Then an explicit choice wins, and
- * otherwise people who cannot edit the page read the version in force while editors work on the
- * draft.
+ * Only when approvals are on and a version is in force, approved or baseline. Then an explicit
+ * choice wins, and otherwise people who cannot edit the page read the version in force while
+ * editors work on the draft.
  */
 export const showsApprovedVersion = (
-  status: Pick<TPageApprovalStatus, "enabled" | "approved_version"> | undefined,
+  status: Pick<TPageApprovalStatus, "enabled" | "in_force_version"> | undefined,
   canEdit: boolean,
   viewMode: TPageApprovalViewMode | undefined
 ): boolean => {
-  if (!status?.enabled || !status.approved_version) return false;
+  if (!status?.enabled || !status.in_force_version) return false;
   if (viewMode) return viewMode === "approved";
   return !canEdit;
 };
@@ -68,6 +76,7 @@ const EVENT_LABEL: Record<TPageApprovalEvent["action"], string> = {
   approved: "Approved",
   rejected: "Rejected",
   review_date_set: "Review date set",
+  baselined: "Baselined (migrated, not reviewed in Paperplane)",
 };
 
 /** One line of the approval history. */
@@ -78,3 +87,7 @@ export const approvalEventLabel = (event: Pick<TPageApprovalEvent, "action" | "r
     return event.next_review_date ? `${label}: ${event.next_review_date}` : "Review date cleared";
   return label;
 };
+
+/** Whether the version in force is a baseline rather than an approved version. */
+export const isBaselineInForce = (status: Pick<TPageApprovalStatus, "in_force_kind"> | undefined): boolean =>
+  status?.in_force_kind === "baseline";

@@ -16,7 +16,7 @@ import { useMember } from "@/hooks/store/use-member";
 import { useQueryParams } from "@/hooks/use-query-params";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
-import { approvalBadge, approvalEventLabel } from "@/store/pages/page-approval";
+import { approvalBadge, approvalEventLabel, BASELINE_LABEL, isBaselineInForce } from "@/store/pages/page-approval";
 // local imports
 import { PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM } from "../navigation-pane";
 import { usePageApproval } from "./use-page-approval";
@@ -40,6 +40,7 @@ export const PageApprovalHistory = observer(function PageApprovalHistory({ page 
 
   const badge = approvalBadge(status);
   const approver = status.approved_by ? getUserDetails(status.approved_by) : undefined;
+  const baseline = isBaselineInForce(status);
 
   const handleReviewDate = async (date: Date | null) => {
     try {
@@ -57,21 +58,32 @@ export const PageApprovalHistory = observer(function PageApprovalHistory({ page 
           <span className="text-tertiary">Status</span>
           <Badge variant={badge.variant} size="sm" label={badge.label} />
         </div>
-        {status.approved_version && (
+        {status.in_force_version && (
           <div className="flex items-center justify-between gap-2">
             <span className="text-tertiary">In force</span>
             <Link
               className="truncate hover:underline"
+              title={baseline ? BASELINE_LABEL : undefined}
               href={updateQueryParams({
-                paramsToAdd: { [PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM]: status.approved_version },
+                paramsToAdd: { [PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM]: status.in_force_version },
               })}
             >
-              Rev {status.revision}
-              {status.approved_at ? `, ${renderFormattedDate(status.approved_at)}` : ""}
-              {approver ? ` by ${approver.display_name}` : ""}
+              {baseline ? (
+                <>
+                  Baseline, not reviewed
+                  {status.baselined_at ? ` (${renderFormattedDate(status.baselined_at)})` : ""}
+                </>
+              ) : (
+                <>
+                  Rev {status.revision}
+                  {status.approved_at ? `, ${renderFormattedDate(status.approved_at)}` : ""}
+                  {approver ? ` by ${approver.display_name}` : ""}
+                </>
+              )}
             </Link>
           </div>
         )}
+        {baseline && <p className="text-11 text-tertiary">{status.legacy_note}</p>}
         <div className="flex items-center justify-between gap-2">
           <span className={status.is_review_overdue ? "text-danger-primary" : "text-tertiary"}>
             {status.is_review_overdue ? "Review overdue" : "Next review"}
@@ -101,6 +113,7 @@ export const PageApprovalHistory = observer(function PageApprovalHistory({ page 
                   {actor?.display_name ?? "Unknown user"} · {renderFormattedDate(event.created_at)},{" "}
                   {renderFormattedTime(event.created_at)}
                 </p>
+                {event.legacy_note && <p className="mt-1 text-secondary">{event.legacy_note}</p>}
                 {event.comment && <p className="mt-1 whitespace-pre-wrap text-secondary">{event.comment}</p>}
               </li>
             );
