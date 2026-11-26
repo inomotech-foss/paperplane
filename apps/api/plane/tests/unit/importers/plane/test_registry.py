@@ -18,6 +18,7 @@ NOT_FROM_PLANE = {
     "page_approvals",
     "page_approval_events",
     "page_approvers",
+    "data_upgrades",
 }
 
 
