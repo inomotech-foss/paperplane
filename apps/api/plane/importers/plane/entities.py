@@ -17,10 +17,10 @@ from itertools import islice
 
 from django.db import models
 
-from plane.db.management.commands.sanitize_stored_html import TARGETS, HtmlField
 from plane.db.models import Module, Project, Sticky, Workspace
 from plane.utils.content_validator import validate_html_content
 from plane.utils.html_processor import strip_tags
+from plane.utils.stored_html import TARGETS, HtmlField
 
 BATCH_SIZE = 500
 
@@ -30,7 +30,7 @@ OUTSIDE_SELECTION = "outside selection"
 
 _TEXT_FIELDS = (models.TextField, models.CharField, models.JSONField)
 
-# The user HTML that `sanitize_stored_html` cleans, by model, plus the HTML
+# The user HTML that is sanitized at rest, by model, plus the HTML
 # an import also brings in that the app never sanitized at rest.
 _HTML_FIELDS = {target.model: target for target in TARGETS.values() if isinstance(target, HtmlField)}
 _HTML_FIELDS.update(

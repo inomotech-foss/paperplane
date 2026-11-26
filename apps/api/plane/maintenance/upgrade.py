@@ -13,11 +13,14 @@ transaction.on_commit.
 Running an upgrade again after it finished must change nothing.
 """
 
+import logging
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
 from django.db.models import Model, QuerySet
+
+logger = logging.getLogger("plane.maintenance")
 
 type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 
@@ -59,3 +62,37 @@ def keyset_batch[M: Model](queryset: QuerySet[M], after: str | None, size: int) 
     if len(batch) < size:
         return batch, None
     return batch, str(batch[-1].pk)
+
+
+type PartStep[T] = Callable[[str, T, str | None], tuple[str | None, Mapping[str, int]]]
+
+
+def step_through[T](parts: Mapping[str, T], cursor: JsonValue, step: PartStep[T]) -> Batch:
+    """One batch of an upgrade that walks several parts, such as models, in the order of `parts`.
+
+    `step` gets the part's name, the part and its keyset cursor, and returns the next keyset cursor
+    (None when the part is done) with its counts. The upgrade's cursor is {"name": ..., "after": ...}.
+    A cursor that names no part starts over from the first one, which is safe as upgrades are idempotent.
+    """
+    names = list(parts)
+    if not names:
+        return Batch(cursor=None)
+    name, after = _position(cursor, names)
+    following, counts = step(name, parts[name], after)
+    if following is not None:
+        return Batch(cursor={"name": name, "after": following}, counts=counts)
+    index = names.index(name) + 1
+    if index == len(names):
+        return Batch(cursor=None, counts=counts)
+    return Batch(cursor={"name": names[index], "after": None}, counts=counts)
+
+
+def _position(cursor: JsonValue, names: list[str]) -> tuple[str, str | None]:
+    if cursor is None:
+        return names[0], None
+    if isinstance(cursor, dict):
+        name, after = cursor.get("name"), cursor.get("after")
+        if isinstance(name, str) and name in names and (after is None or isinstance(after, str)):
+            return name, after
+    logger.warning("Data upgrade cursor %r names no known part, starting over from %s", cursor, names[0])
+    return names[0], None
