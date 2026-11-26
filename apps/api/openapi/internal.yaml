@@ -13613,7 +13613,8 @@ paths:
                 $ref: '#/components/schemas/PageBaselineQueued'
           description: ''
         '400':
-          description: 'Refused: see error_code, or page_ids not in the project'
+          description: 'Refused: see error_code, page_ids not in the project, or a
+            next_review_date in the past'
   /api/workspaces/{slug}/projects/{project_id}/page-approvers/:
     get:
       operationId: workspaces_projects_page_approvers_list
@@ -29343,6 +29344,7 @@ components:
             * `already_approved` - Already approved
             * `in_review` - In review
             * `rejected` - Rejected
+            * `already_submitted` - Already submitted
             * `has_approval_history` - Has approval history
             * `locked` - Locked
           oneOf:
@@ -29350,7 +29352,7 @@ components:
           - $ref: '#/components/schemas/NullEnum'
         skip_reason_label:
           type: string
-          description: skip_reason in words, with details
+          description: skip_reason in words
         legacy_kind:
           nullable: true
           description: |-
@@ -35018,6 +35020,7 @@ components:
       - already_approved
       - in_review
       - rejected
+      - already_submitted
       - has_approval_history
       - locked
       type: string
@@ -35027,6 +35030,7 @@ components:
         * `already_approved` - Already approved
         * `in_review` - In review
         * `rejected` - Rejected
+        * `already_submitted` - Already submitted
         * `has_approval_history` - Has approval history
         * `locked` - Locked
     SlugAvailability:
