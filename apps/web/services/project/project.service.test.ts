@@ -16,6 +16,11 @@ describe("projectUpdateBody", () => {
     ).toEqual({ name: "P", inbox_view: true });
   });
 
+  it("sends the page approval flag, so the settings toggle is saved", () => {
+    expect(projectUpdateBody({ is_page_approval_enabled: true })).toMatchObject({ is_page_approval_enabled: true });
+    expect(projectUpdateBody({ is_page_approval_enabled: false })).toMatchObject({ is_page_approval_enabled: false });
+  });
+
   it("sends the ids of expanded users", () => {
     expect(projectUpdateBody({ project_lead: lead, default_assignee: null })).toMatchObject({
       project_lead: "u1",
