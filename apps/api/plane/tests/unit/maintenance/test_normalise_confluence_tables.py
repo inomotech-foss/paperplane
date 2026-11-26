@@ -159,9 +159,9 @@ class TestNormaliseConfluenceTables:
         page = make_page("9.1 General", TABLE)
         edited = TABLE + "<p>new</p>"
 
-        def edit_first(page_: Page, approval: PageApproval | None) -> str:
+        def edit_first(page_: Page, has_binary: bool, in_force_html: str | None) -> str:
             Page.objects.filter(pk=page_.pk).update(description_html=edited)
-            return original(page_, approval)
+            return original(page_, has_binary, in_force_html)
 
         original = upgrade._upgrade_page
         with mock.patch.object(upgrade, "_upgrade_page", edit_first):
@@ -212,6 +212,15 @@ class TestNormaliseConfluenceTables:
         assert (totals["failed"], totals["rewritten"]) == (1, 1)
         assert _page(broken).description_html == TABLE + "<p>broken</p>"
         assert "wrapped" not in _page(fine).description_html
+
+    def test_batches_leave_the_document_columns_unloaded(
+        self, make_page: MakePage, publish: mock.MagicMock, django_capture_on_commit_callbacks: CaptureOnCommit
+    ) -> None:
+        make_page("9.1 General", TABLE)
+
+        pages, _ = upgrade.keyset_batch(upgrade._pages(), None, upgrade.BATCH_SIZE)
+
+        assert {"description_json", "description_binary"} <= pages[0].get_deferred_fields()
 
     def test_walks_every_page_in_small_batches(
         self,
