@@ -205,5 +205,33 @@
   "page_work_item_embed": {
     "loading": "İş öğesi yükleniyor",
     "error": "Bu iş öğesi yüklenemedi"
+  },
+  "page_approval_baseline": {
+    "title": "Mevcut sayfalar için temel sürüm belirleyin",
+    "description": "Temel sürüm, bir sayfanın mevcut içeriğini inceleme olmadan yürürlüğe koyar, bu nedenle hiçbir zaman onay olarak gösterilmez.",
+    "eligible": "{count, plural, one {# sayfa için temel sürüm belirlenebilir.} other {# sayfa için temel sürüm belirlenebilir.}}",
+    "none_eligible": "Hiçbir sayfa için temel sürüm belirlenemez.",
+    "open": "Temel sürüm belirle",
+    "load_failed": "Sayfalar yüklenemedi.",
+    "selected": "{count, plural, one {# sayfa seçildi} other {# sayfa seçildi}}",
+    "skipped": "{count, plural, one {# sayfa atlandı} other {# sayfa atlandı}}",
+    "next_review": "Sonraki inceleme",
+    "no_review_date": "İnceleme tarihi yok",
+    "comment_placeholder": "Günlük için yorum (isteğe bağlı)",
+    "include_locked": "Kilitli sayfaları dahil et",
+    "confirm": "{count, plural, one {# sayfa için temel sürüm belirle} other {# sayfa için temel sürüm belirle}}",
+    "done": "{count, plural, one {# sayfa için temel sürüm belirleniyor.} other {# sayfa için temel sürüm belirleniyor.}}",
+    "done_message": "İşlem tamamlandığında kayıt güncellenir.",
+    "failed": "Temel sürümler belirlenemedi.",
+    "select_page": "{name} seç",
+    "skip_reason": {
+      "archived": "Arşivlendi",
+      "already_baselined": "Zaten temel sürümü var",
+      "already_approved": "Zaten onaylandı",
+      "in_review": "İncelemede",
+      "rejected": "Reddedildi",
+      "has_approval_history": "Onay geçmişi var",
+      "locked": "Kilitli"
+    }
   }
 }

@@ -205,5 +205,33 @@
   "page_work_item_embed": {
     "loading": "Loading work item",
     "error": "Could not load this work item"
+  },
+  "page_approval_baseline": {
+    "title": "Baseline existing pages",
+    "description": "A baseline puts the current content of a page in force without a review, so it is never shown as an approval.",
+    "eligible": "{count, plural, one {# page can be baselined.} other {# pages can be baselined.}}",
+    "none_eligible": "No page can be baselined.",
+    "open": "Baseline pages",
+    "load_failed": "Could not load the pages.",
+    "selected": "{count, plural, one {# page selected} other {# pages selected}}",
+    "skipped": "{count, plural, one {# page skipped} other {# pages skipped}}",
+    "next_review": "Next review",
+    "no_review_date": "No review date",
+    "comment_placeholder": "Comment for the log (optional)",
+    "include_locked": "Include locked pages",
+    "confirm": "{count, plural, one {Baseline # page} other {Baseline # pages}}",
+    "done": "{count, plural, one {# page is being baselined.} other {# pages are being baselined.}}",
+    "done_message": "The register updates when the work is done.",
+    "failed": "Could not baseline the pages.",
+    "select_page": "Select {name}",
+    "skip_reason": {
+      "archived": "Archived",
+      "already_baselined": "Already baselined",
+      "already_approved": "Already approved",
+      "in_review": "In review",
+      "rejected": "Rejected",
+      "has_approval_history": "Has approval history",
+      "locked": "Locked"
+    }
   }
 }

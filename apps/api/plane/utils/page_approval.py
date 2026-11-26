@@ -25,14 +25,15 @@ Who may do what:
 - review date: an approver or a project admin, through either API.
 
 Baseline: a page can also be put in force without a review, once, when
-approvals are switched on for an existing wiki. Only the admin command
-baseline_page_approvals does it; no API offers it. The baseline is a version
+approvals are switched on for an existing wiki. Only project admins do it, in
+the app's approval settings (a project-level endpoint, run as a background
+task); API v1 and MCP offer no way to baseline. The baseline is a version
 in force like an approved one (readers see it, edits show as unapproved
 changes, it is frozen), but its status is "baseline", it names no approver
 and its revision is 0. It accepts submit (with or without changes), and the
 first approval replaces it:
 
-    draft ──baseline (command)──▶ baseline ──submit──▶ in_review ──approve──▶ approved
+    draft ──baseline (admin)──▶ baseline ──submit──▶ in_review ──approve──▶ approved
                                                           │
                                                         reject──▶ rejected (baseline stays in force)
 """
@@ -43,7 +44,7 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import status
 
-from plane.importers.confluence.document_status import APPROVED_STATUSES
+from plane.importers.confluence.document_status import APPROVED_STATUSES, parse_document_status
 from plane.db.models import (
     Page,
     PageApproval,
@@ -208,6 +209,17 @@ def baseline_refusal(page):
     if history:
         return f"has approval history ({history})"
     return None
+
+
+LOCKED = "locked"
+
+
+def baseline_skip_reason(page, include_locked=False):
+    """baseline_refusal, plus LOCKED for a locked page unless include_locked."""
+    reason = baseline_refusal(page)
+    if reason is None and page.is_locked and not include_locked:
+        return LOCKED
+    return reason
 
 
 def decision_refusal(user, page, approval, project_id):
@@ -377,7 +389,7 @@ def set_review_date(page, project_id, user, next_review_date, comment=""):
 
 
 def baseline(page, project_id, user, *, legacy=None, next_review_date=None, comment=""):
-    """Put the page's current content in force without a review. Admin maintenance only.
+    """Put the page's current content in force without a review. Project admins only.
 
     Snapshots the body as submit does and records it as baseline_version,
     with a "baselined" event naming the person who ran it. Nobody is recorded
@@ -458,6 +470,18 @@ def legacy_note(status_text, approved_by, approved_at, approved_at_raw):
     if when:
         parts.append(f"dated {when}")
     return f"Carried over from Confluence: {', '.join(parts)}; not recorded as approved"
+
+
+def page_legacy(page):
+    """The approval the page recorded itself (a Confluence "Document status" table), or None."""
+    return parse_document_status(page.description_html)
+
+
+def legacy_note_of(legacy):
+    """legacy_note for a LegacyApproval or None."""
+    if legacy is None:
+        return NO_PRIOR_APPROVAL
+    return legacy_note(legacy.status, legacy.approved_by, legacy.approved_at, legacy.approved_at_raw)
 
 
 def approval_legacy_note(approval):

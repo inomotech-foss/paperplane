@@ -205,5 +205,33 @@
   "page_work_item_embed": {
     "loading": "作業項目を読み込んでいます",
     "error": "この作業項目を読み込めませんでした"
+  },
+  "page_approval_baseline": {
+    "title": "既存のページにベースラインを設定",
+    "description": "ベースラインはページの現在の内容をレビューなしで有効にするもので、承認として表示されることはありません。",
+    "eligible": "{count, plural, one {# 件のページにベースラインを設定できます。} other {# 件のページにベースラインを設定できます。}}",
+    "none_eligible": "ベースラインを設定できるページはありません。",
+    "open": "ベースラインを設定",
+    "load_failed": "ページを読み込めませんでした。",
+    "selected": "{count, plural, one {# 件のページを選択済み} other {# 件のページを選択済み}}",
+    "skipped": "{count, plural, one {# 件のページをスキップ} other {# 件のページをスキップ}}",
+    "next_review": "次回のレビュー",
+    "no_review_date": "レビュー日なし",
+    "comment_placeholder": "ログ用のコメント（任意）",
+    "include_locked": "ロックされたページを含める",
+    "confirm": "{count, plural, one {# 件のページにベースラインを設定} other {# 件のページにベースラインを設定}}",
+    "done": "{count, plural, one {# 件のページにベースラインを設定しています。} other {# 件のページにベースラインを設定しています。}}",
+    "done_message": "処理が完了すると台帳が更新されます。",
+    "failed": "ベースラインを設定できませんでした。",
+    "select_page": "{name} を選択",
+    "skip_reason": {
+      "archived": "アーカイブ済み",
+      "already_baselined": "ベースライン設定済み",
+      "already_approved": "承認済み",
+      "in_review": "レビュー中",
+      "rejected": "却下",
+      "has_approval_history": "承認履歴あり",
+      "locked": "ロック中"
+    }
   }
 }

@@ -205,5 +205,33 @@
   "page_work_item_embed": {
     "loading": "작업 항목을 불러오는 중입니다",
     "error": "이 작업 항목을 불러올 수 없습니다"
+  },
+  "page_approval_baseline": {
+    "title": "기존 페이지에 기준 버전 설정",
+    "description": "기준 버전은 검토 없이 페이지의 현재 내용을 적용하므로 승인으로 표시되지 않습니다.",
+    "eligible": "{count, plural, one {페이지 #개에 기준 버전을 설정할 수 있습니다.} other {페이지 #개에 기준 버전을 설정할 수 있습니다.}}",
+    "none_eligible": "기준 버전을 설정할 수 있는 페이지가 없습니다.",
+    "open": "기준 버전 설정",
+    "load_failed": "페이지를 불러올 수 없습니다.",
+    "selected": "{count, plural, one {페이지 #개 선택됨} other {페이지 #개 선택됨}}",
+    "skipped": "{count, plural, one {페이지 #개 건너뜀} other {페이지 #개 건너뜀}}",
+    "next_review": "다음 검토",
+    "no_review_date": "검토 날짜 없음",
+    "comment_placeholder": "로그용 댓글(선택 사항)",
+    "include_locked": "잠긴 페이지 포함",
+    "confirm": "{count, plural, one {페이지 #개에 기준 버전 설정} other {페이지 #개에 기준 버전 설정}}",
+    "done": "{count, plural, one {페이지 #개에 기준 버전을 설정하는 중입니다.} other {페이지 #개에 기준 버전을 설정하는 중입니다.}}",
+    "done_message": "처리가 완료되면 등록부가 업데이트됩니다.",
+    "failed": "기준 버전을 설정할 수 없습니다.",
+    "select_page": "{name} 선택",
+    "skip_reason": {
+      "archived": "보관됨",
+      "already_baselined": "이미 기준 버전 있음",
+      "already_approved": "이미 승인됨",
+      "in_review": "검토 중",
+      "rejected": "반려됨",
+      "has_approval_history": "승인 기록 있음",
+      "locked": "잠김"
+    }
   }
 }

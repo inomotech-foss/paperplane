@@ -205,5 +205,33 @@
   "page_work_item_embed": {
     "loading": "Carregando item de trabalho",
     "error": "Não foi possível carregar este item de trabalho"
+  },
+  "page_approval_baseline": {
+    "title": "Definir linha de base para páginas existentes",
+    "description": "Uma linha de base coloca em vigor o conteúdo atual de uma página sem revisão, por isso nunca aparece como uma aprovação.",
+    "eligible": "{count, plural, one {# página pode receber linha de base.} many {# páginas podem receber linha de base.} other {# páginas podem receber linha de base.}}",
+    "none_eligible": "Nenhuma página pode receber linha de base.",
+    "open": "Definir linha de base",
+    "load_failed": "Não foi possível carregar as páginas.",
+    "selected": "{count, plural, one {# página selecionada} many {# páginas selecionadas} other {# páginas selecionadas}}",
+    "skipped": "{count, plural, one {# página ignorada} many {# páginas ignoradas} other {# páginas ignoradas}}",
+    "next_review": "Próxima revisão",
+    "no_review_date": "Sem data de revisão",
+    "comment_placeholder": "Comentário para o registro (opcional)",
+    "include_locked": "Incluir páginas bloqueadas",
+    "confirm": "{count, plural, one {Definir linha de base em # página} many {Definir linha de base em # páginas} other {Definir linha de base em # páginas}}",
+    "done": "{count, plural, one {A linha de base de # página está sendo definida.} many {A linha de base de # páginas está sendo definida.} other {A linha de base de # páginas está sendo definida.}}",
+    "done_message": "O registro é atualizado quando o processo terminar.",
+    "failed": "Não foi possível definir a linha de base das páginas.",
+    "select_page": "Selecionar {name}",
+    "skip_reason": {
+      "archived": "Arquivada",
+      "already_baselined": "Já tem linha de base",
+      "already_approved": "Já aprovada",
+      "in_review": "Em revisão",
+      "rejected": "Rejeitada",
+      "has_approval_history": "Tem histórico de aprovação",
+      "locked": "Bloqueada"
+    }
   }
 }

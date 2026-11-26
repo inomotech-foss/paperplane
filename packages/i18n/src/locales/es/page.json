@@ -205,5 +205,33 @@
   "page_work_item_embed": {
     "loading": "Cargando elemento de trabajo",
     "error": "No se pudo cargar este elemento de trabajo"
+  },
+  "page_approval_baseline": {
+    "title": "Establecer línea base para páginas existentes",
+    "description": "Una línea base pone en vigor el contenido actual de una página sin revisión, por lo que nunca se muestra como una aprobación.",
+    "eligible": "{count, plural, one {# página puede recibir línea base.} other {# páginas pueden recibir línea base.}}",
+    "none_eligible": "Ninguna página puede recibir línea base.",
+    "open": "Establecer línea base",
+    "load_failed": "No se pudieron cargar las páginas.",
+    "selected": "{count, plural, one {# página seleccionada} other {# páginas seleccionadas}}",
+    "skipped": "{count, plural, one {# página omitida} other {# páginas omitidas}}",
+    "next_review": "Próxima revisión",
+    "no_review_date": "Sin fecha de revisión",
+    "comment_placeholder": "Comentario para el registro (opcional)",
+    "include_locked": "Incluir páginas bloqueadas",
+    "confirm": "{count, plural, one {Establecer línea base en # página} other {Establecer línea base en # páginas}}",
+    "done": "{count, plural, one {Se está estableciendo la línea base de # página.} other {Se está estableciendo la línea base de # páginas.}}",
+    "done_message": "El registro se actualiza cuando termina el proceso.",
+    "failed": "No se pudo establecer la línea base de las páginas.",
+    "select_page": "Seleccionar {name}",
+    "skip_reason": {
+      "archived": "Archivada",
+      "already_baselined": "Ya tiene línea base",
+      "already_approved": "Ya aprobada",
+      "in_review": "En revisión",
+      "rejected": "Rechazada",
+      "has_approval_history": "Tiene historial de aprobación",
+      "locked": "Bloqueada"
+    }
   }
 }

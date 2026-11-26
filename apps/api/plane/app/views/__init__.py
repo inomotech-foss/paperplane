@@ -217,6 +217,7 @@ from .page.approval import (
     PageApprovalSubmitEndpoint,
     ProjectPageApprovalRegisterEndpoint,
     ProjectPageApproversEndpoint,
+    ProjectPageBaselineEndpoint,
 )
 from .page.mention import PageMentionEndpoint
 from .page.comment import PageCommentViewSet, PageCommentReactionViewSet

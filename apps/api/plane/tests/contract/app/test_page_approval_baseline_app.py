@@ -61,7 +61,7 @@ def plain_project(workspace, create_user):
 
 @pytest.fixture
 def admin(create_user):
-    """The project admin who runs the baseline command."""
+    """The project admin who runs the baseline."""
     return create_user
 
 
@@ -332,8 +332,8 @@ def test_the_register_labels_baselines(workspace, project, page, author, approve
     assert backup["has_unapproved_changes"] is True
 
 
-def test_no_api_route_baselines_a_page(workspace, project, page, admin, api_key_client):
-    """Baselining is admin maintenance through the management command only."""
+def test_no_page_route_baselines_a_page(workspace, project, page, admin, api_key_client):
+    """Baselining is project-level in the app only; API v1 offers no way to do it."""
     for path in ("baseline", "baselined"):
         response = client_for(admin).post(url(workspace, project, page, path), {}, format="json")
         assert response.status_code == status.HTTP_404_NOT_FOUND

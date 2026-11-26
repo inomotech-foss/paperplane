@@ -26,6 +26,7 @@ from plane.app.views import (
     PageApprovalSubmitEndpoint,
     ProjectPageApprovalRegisterEndpoint,
     ProjectPageApproversEndpoint,
+    ProjectPageBaselineEndpoint,
 )
 
 urlpatterns = [
@@ -155,6 +156,11 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/page-approvals/",
         ProjectPageApprovalRegisterEndpoint.as_view(),
         name="project-page-approval-register",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/page-approvals/baseline/",
+        ProjectPageBaselineEndpoint.as_view(),
+        name="project-page-approval-baseline",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/page-approvers/",

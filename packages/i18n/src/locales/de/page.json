@@ -205,5 +205,33 @@
   "page_work_item_embed": {
     "loading": "Arbeitselement wird geladen",
     "error": "Dieses Arbeitselement konnte nicht geladen werden"
+  },
+  "page_approval_baseline": {
+    "title": "Bestehende Seiten als Baseline festlegen",
+    "description": "Eine Baseline setzt den aktuellen Inhalt einer Seite ohne Prüfung in Kraft und wird daher nie als Freigabe angezeigt.",
+    "eligible": "{count, plural, one {# Seite kann als Baseline festgelegt werden.} other {# Seiten können als Baseline festgelegt werden.}}",
+    "none_eligible": "Keine Seite kann als Baseline festgelegt werden.",
+    "open": "Seiten als Baseline festlegen",
+    "load_failed": "Die Seiten konnten nicht geladen werden.",
+    "selected": "{count, plural, one {# Seite ausgewählt} other {# Seiten ausgewählt}}",
+    "skipped": "{count, plural, one {# Seite übersprungen} other {# Seiten übersprungen}}",
+    "next_review": "Nächste Prüfung",
+    "no_review_date": "Kein Prüfdatum",
+    "comment_placeholder": "Kommentar für das Protokoll (optional)",
+    "include_locked": "Gesperrte Seiten einbeziehen",
+    "confirm": "{count, plural, one {# Seite als Baseline festlegen} other {# Seiten als Baseline festlegen}}",
+    "done": "{count, plural, one {# Seite wird als Baseline festgelegt.} other {# Seiten werden als Baseline festgelegt.}}",
+    "done_message": "Das Register wird aktualisiert, sobald der Vorgang abgeschlossen ist.",
+    "failed": "Die Seiten konnten nicht als Baseline festgelegt werden.",
+    "select_page": "{name} auswählen",
+    "skip_reason": {
+      "archived": "Archiviert",
+      "already_baselined": "Bereits Baseline",
+      "already_approved": "Bereits freigegeben",
+      "in_review": "In Prüfung",
+      "rejected": "Abgelehnt",
+      "has_approval_history": "Hat Freigabeverlauf",
+      "locked": "Gesperrt"
+    }
   }
 }

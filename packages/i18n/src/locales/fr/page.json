@@ -205,5 +205,33 @@
   "page_work_item_embed": {
     "loading": "Chargement de l'élément de travail",
     "error": "Impossible de charger cet élément de travail"
+  },
+  "page_approval_baseline": {
+    "title": "Définir une version de référence pour les pages existantes",
+    "description": "Une version de référence met en vigueur le contenu actuel d'une page sans révision et n'est jamais présentée comme une approbation.",
+    "eligible": "{count, plural, one {# page peut recevoir une version de référence.} many {# pages peuvent recevoir une version de référence.} other {# pages peuvent recevoir une version de référence.}}",
+    "none_eligible": "Aucune page ne peut recevoir de version de référence.",
+    "open": "Définir les versions de référence",
+    "load_failed": "Impossible de charger les pages.",
+    "selected": "{count, plural, one {# page sélectionnée} many {# pages sélectionnées} other {# pages sélectionnées}}",
+    "skipped": "{count, plural, one {# page ignorée} many {# pages ignorées} other {# pages ignorées}}",
+    "next_review": "Prochaine révision",
+    "no_review_date": "Aucune date de révision",
+    "comment_placeholder": "Commentaire pour le journal (facultatif)",
+    "include_locked": "Inclure les pages verrouillées",
+    "confirm": "{count, plural, one {Définir # page comme référence} many {Définir # pages comme référence} other {Définir # pages comme référence}}",
+    "done": "{count, plural, one {# page est en cours de traitement.} many {# pages sont en cours de traitement.} other {# pages sont en cours de traitement.}}",
+    "done_message": "Le registre se met à jour une fois le traitement terminé.",
+    "failed": "Impossible de définir les versions de référence.",
+    "select_page": "Sélectionner {name}",
+    "skip_reason": {
+      "archived": "Archivée",
+      "already_baselined": "Déjà une version de référence",
+      "already_approved": "Déjà approuvée",
+      "in_review": "En révision",
+      "rejected": "Rejetée",
+      "has_approval_history": "Possède un historique d'approbation",
+      "locked": "Verrouillée"
+    }
   }
 }

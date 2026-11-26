@@ -14,7 +14,7 @@ removes everything.
 
 A baseline is not an approval. When approvals are switched on for an existing
 wiki, an admin can mark a page's current content as the version in force
-without anyone reviewing it (the baseline_page_approvals command). That
+without anyone reviewing it (from the project's approval settings). That
 version is kept in baseline_version, never in approved_version, and nobody is
 recorded as its approver. A Confluence approval found in the page is carried
 over as text in the legacy_* fields, for information only. The first real

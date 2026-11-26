@@ -13,6 +13,45 @@ export type TPageApprovalEvent = ApiSchema<"PageApprovalEvent">;
 export type TPageApprovalRegisterRow = ApiSchema<"PageApprovalRegisterRow">;
 export type TPageApprover = ApiSchema<"PageApprover">;
 
+// Hand-written until the API types are regenerated: PageBaselinePreview, PageBaselineRequest, PageBaselineQueued.
+export type TPageBaselineSkipReason =
+  | "archived"
+  | "already_baselined"
+  | "already_approved"
+  | "in_review"
+  | "rejected"
+  | "has_approval_history"
+  | "locked";
+export type TPageBaselineLegacyKind = "approved" | "other" | "none";
+export type TPageBaselineCandidate = {
+  page: string;
+  name: string;
+  is_locked: boolean;
+  skip_reason: TPageBaselineSkipReason | null;
+  skip_reason_label: string;
+  legacy_kind: TPageBaselineLegacyKind | null;
+  legacy_note: string;
+};
+export type TPageBaselinePreview = {
+  pages: TPageBaselineCandidate[];
+  totals: {
+    pages: number;
+    eligible: number;
+    locked: number;
+    skipped: number;
+    legacy_approved: number;
+    legacy_other: number;
+    legacy_none: number;
+  };
+};
+export type TPageBaselineRequest = {
+  page_ids?: string[];
+  next_review_date?: string | null;
+  comment?: string;
+  include_locked?: boolean;
+};
+export type TPageBaselineQueued = { queued: number; skipped: number };
+
 const pagePath = (slug: string, project_id: string, page_id: string) => ({ path: { slug, project_id, page_id } });
 const projectPath = (slug: string, project_id: string) => ({ path: { slug, project_id } });
 
@@ -97,6 +136,25 @@ export class PageApprovalService {
     return unwrap(
       apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/page-approvals/", {
         params: projectPath(workspaceSlug, projectId),
+      })
+    );
+  }
+
+  /** What baselining would do for each page of the project. Project admins only; writes nothing. */
+  async baselinePreview(workspaceSlug: string, projectId: string): Promise<TPageBaselinePreview> {
+    return unwrap(
+      apiClient.GET("/api/workspaces/{slug}/projects/{project_id}/page-approvals/baseline/", {
+        params: projectPath(workspaceSlug, projectId),
+      })
+    );
+  }
+
+  /** Queues the pages for baselining; the work runs in the background. */
+  async baseline(workspaceSlug: string, projectId: string, data: TPageBaselineRequest): Promise<TPageBaselineQueued> {
+    return unwrap(
+      apiClient.POST("/api/workspaces/{slug}/projects/{project_id}/page-approvals/baseline/", {
+        params: projectPath(workspaceSlug, projectId),
+        body: data,
       })
     );
   }
