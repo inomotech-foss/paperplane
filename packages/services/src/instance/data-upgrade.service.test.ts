@@ -18,9 +18,17 @@ const upgrade = (status: TDataUpgradeStatus): TDataUpgrade => ({
 });
 
 describe("hasActiveDataUpgrade", () => {
-  it("is true while an upgrade is pending or running", () => {
-    expect(hasActiveDataUpgrade([upgrade("done"), upgrade("pending")])).toBe(true);
+  it("is true while an upgrade is running", () => {
+    expect(hasActiveDataUpgrade([upgrade("done"), upgrade("running"), upgrade("pending")])).toBe(true);
     expect(hasActiveDataUpgrade([upgrade("running"), upgrade("failed")])).toBe(true);
+  });
+
+  it("is true while an upgrade is pending and none failed", () => {
+    expect(hasActiveDataUpgrade([upgrade("done"), upgrade("pending")])).toBe(true);
+  });
+
+  it("is false when the pending upgrades wait behind a failed one", () => {
+    expect(hasActiveDataUpgrade([upgrade("done"), upgrade("failed"), upgrade("pending")])).toBe(false);
   });
 
   it("is false once every upgrade is done or failed", () => {

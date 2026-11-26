@@ -11,9 +11,11 @@ import { createApiClient, unwrap } from "../client";
 export type TDataUpgrade = AdminApiSchema<"DataUpgrade">;
 export type TDataUpgradeStatus = AdminApiSchema<"DataUpgradeStatusEnum">;
 
-/** True while the worker still has an upgrade to run. */
+/** True while the worker still has an upgrade to run. After a failure, the pending ones wait for a retry. */
 export function hasActiveDataUpgrade(upgrades: TDataUpgrade[] | undefined): boolean {
-  return (upgrades ?? []).some((upgrade) => upgrade.status === "pending" || upgrade.status === "running");
+  const list = upgrades ?? [];
+  if (list.some((upgrade) => upgrade.status === "running")) return true;
+  return !list.some((upgrade) => upgrade.status === "failed") && list.some((upgrade) => upgrade.status === "pending");
 }
 
 /** @example formatDataUpgradeCounts({ rewritten: 274, unchanged: 80 }) // "rewritten 274, unchanged 80" */
