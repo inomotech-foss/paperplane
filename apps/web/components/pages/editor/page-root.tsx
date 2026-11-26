@@ -88,10 +88,10 @@ export const PageRoot = observer(function PageRoot(props: TPageRootProps) {
     isContentEditable,
     editor: { setEditorRef },
   } = page;
-  // approvals: readers see the version in force, editors the draft unless they switch
+  // approvals: readers see the version in force (approved or baseline), editors the draft unless they switch
   const { getProjectById } = useProject();
   const approvalsEnabled = !!(projectId && getProjectById(projectId)?.is_page_approval_enabled);
-  const approvedVersionId = approval.status?.approved_version;
+  const approvedVersionId = approval.status?.in_force_version;
   const showsApprovedVersion = !!approvedVersionId && approval.showsApproved(canCurrentUserEditPage);
   // hold the body back until a reader's status is in, so the draft never flashes up first
   const isApprovalPending = approvalsEnabled && !canCurrentUserEditPage && !approval.status && !approval.loadFailed;

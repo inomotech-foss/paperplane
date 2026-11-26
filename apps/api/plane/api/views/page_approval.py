@@ -7,6 +7,10 @@ API keys and OAuth tokens act for a person but are not that person at the
 keyboard, so there is deliberately no approve or reject here. Decisions are
 made in the app (plane.app.views.page.approval), which takes session
 cookies only.
+
+Nor is there a way to baseline a page here: a baseline puts content in force
+without review, so only an admin running the baseline_page_approvals
+command can do it. The read endpoints report baselines as such.
 """
 
 from drf_spectacular.utils import OpenApiRequest, OpenApiResponse
@@ -49,7 +53,10 @@ class PageApprovalAPIEndpoint(BaseAPIView):
         summary="Retrieve page approval status",
         description=(
             "Where the page stands in review: status, the version in force and who approved it, "
-            "the next review date and whether it is overdue."
+            "the next review date and whether it is overdue. A version in force can be a baseline "
+            "(in_force_kind=baseline, status baseline until the next submission): content put in force "
+            "without review when approvals were switched on. It names no approver; legacy_* carry the "
+            "approval the page recorded before, as written."
         ),
         responses={200: OpenApiResponse(description="Approval status", response=PageApprovalStatusSerializer)},
     )
@@ -130,7 +137,10 @@ class PageApprovalEventsAPIEndpoint(BaseAPIView):
     @page_docs(
         operation_id="list_page_approval_events",
         summary="List page approval events",
-        description="The page's approval log, newest first: submissions, approvals, rejections and review dates.",
+        description=(
+            "The page's approval log, newest first: submissions, approvals, rejections, review dates "
+            "and baselines (action baselined, which is not an approval)."
+        ),
         parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],
         responses={
             200: create_paginated_response(
@@ -162,8 +172,9 @@ class PageApprovalRegisterAPIEndpoint(BaseAPIView):
         operation_id="list_page_approvals",
         summary="List the document register",
         description=(
-            "Every live page of the project with its approval status, the version in force, "
-            "who approved it and when, the next review date and whether that is overdue. "
+            "Every live page of the project with its approval status, the version in force "
+            "(approved, or a baseline that was not reviewed), who approved it and when, "
+            "the next review date and whether that is overdue. "
             "Only for projects with page approvals switched on."
         ),
         parameters=[CURSOR_PARAMETER, PER_PAGE_PARAMETER],

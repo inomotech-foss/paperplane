@@ -137,6 +137,48 @@ def test_agents_cannot_approve_or_reject(registered):
     assert not set(schema["enum"]) & {"approve", "reject"}
 
 
+def test_agents_cannot_baseline_either(registered):
+    """A baseline puts content in force without review; only the admin command does it."""
+    from plane_mcp.tools.page import ACTIONS
+
+    forbidden = {"approve", "reject", "baseline", "baselined", "baseline_page", "mark_baseline"}
+    names = {action.name for action in ACTIONS}
+    schema = registered["page"].parameters["properties"]["action"]
+    assert not names & forbidden
+    assert not set(schema["enum"]) & forbidden
+    # and no action posts to an approval endpoint other than submit and review-date
+    assert {action.name for action in ACTIONS if not action.read} == {
+        "create",
+        "update",
+        "submit_for_review",
+        "set_review_date",
+    }
+
+
+def test_approval_status_relays_a_baseline_as_the_api_labels_it(registered, spy):
+    approval = {
+        "status": "baseline",
+        "status_label": "Baseline (migrated, not reviewed in Paperplane)",
+        "in_force_kind": "baseline",
+        "approved_by": None,
+        "legacy_note": "Carried over from Confluence: approved by Roger Knecht, 03.11.2025",
+        "results": [{"action": "baselined", "legacy_approved_by": "Roger Knecht"}],
+    }
+    spy.returns["pages._get"] = approval
+
+    result = registered["page"].fn(action="approval_status", project_id="p", page_id="pg")
+
+    assert result["approval"]["status_label"] == "Baseline (migrated, not reviewed in Paperplane)"
+    assert result["approval"]["approved_by"] is None
+    assert result["events"] == [{"action": "baselined", "legacy_approved_by": "Roger Knecht"}]
+
+
+def test_the_tool_explains_baselines(registered):
+    description = registered["page"].description
+    assert "baseline" in description
+    assert "not an approval" in description
+
+
 def test_page_approvals_is_a_project_feature(registered, spy):
     registered["project"].fn(action="update_features", project_id="p", page_approvals=True)
 

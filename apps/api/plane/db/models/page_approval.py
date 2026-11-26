@@ -11,6 +11,14 @@ Versions an approval points at are frozen. Version tracking neither coalesces
 later edits into them nor prunes them (see page_version_task), and they are
 RESTRICTed, so deleting one directly fails while deleting the page still
 removes everything.
+
+A baseline is not an approval. When approvals are switched on for an existing
+wiki, an admin can mark a page's current content as the version in force
+without anyone reviewing it (the baseline_page_approvals command). That
+version is kept in baseline_version, never in approved_version, and nobody is
+recorded as its approver. A Confluence approval found in the page is carried
+over as text in the legacy_* fields, for information only. The first real
+approval takes over: approved_version wins over baseline_version.
 """
 
 from django.conf import settings
@@ -24,12 +32,18 @@ class PageApproval(BaseModel):
     IN_REVIEW = "in_review"
     APPROVED = "approved"
     REJECTED = "rejected"
+    BASELINE = "baseline"
     STATUS_CHOICES = (
         (DRAFT, "Draft"),
         (IN_REVIEW, "In review"),
         (APPROVED, "Approved"),
         (REJECTED, "Rejected"),
+        (BASELINE, "Baseline (migrated, not reviewed in Paperplane)"),
     )
+
+    # What the version in force rests on
+    IN_FORCE_APPROVED = "approved"
+    IN_FORCE_BASELINE = "baseline"
 
     workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="page_approvals")
     project = models.ForeignKey("db.Project", on_delete=models.CASCADE, related_name="page_approvals")
@@ -59,6 +73,22 @@ class PageApproval(BaseModel):
 
     next_review_date = models.DateField(null=True, blank=True)
 
+    # The content put in force without review when approvals were switched on.
+    # In force only while nothing is approved; kept afterwards as history.
+    baseline_version = models.ForeignKey(
+        "db.PageVersion", on_delete=models.RESTRICT, null=True, blank=True, related_name="+"
+    )
+    baselined_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    baselined_at = models.DateTimeField(null=True, blank=True)
+    # An approval recorded in the page before it came here, as written there.
+    # Information only: legacy_approved_by is a name, never mapped to a user.
+    legacy_status = models.CharField(max_length=50, blank=True, default="")
+    legacy_approved_by = models.CharField(max_length=255, blank=True, default="")
+    legacy_approved_at = models.DateField(null=True, blank=True)
+    legacy_approved_at_raw = models.CharField(max_length=50, blank=True, default="")
+
     class Meta:
         verbose_name = "Page Approval"
         verbose_name_plural = "Page Approvals"
@@ -68,17 +98,36 @@ class PageApproval(BaseModel):
     def __str__(self):
         return f"{self.page_id} <{self.status}>"
 
+    @property
+    def in_force_version_id(self):
+        return self.approved_version_id or self.baseline_version_id
+
+    @property
+    def in_force_version(self):
+        if self.approved_version_id:
+            return self.approved_version
+        return self.baseline_version if self.baseline_version_id else None
+
+    @property
+    def in_force_kind(self):
+        """IN_FORCE_APPROVED, IN_FORCE_BASELINE, or None when nothing is in force."""
+        if self.approved_version_id:
+            return self.IN_FORCE_APPROVED
+        return self.IN_FORCE_BASELINE if self.baseline_version_id else None
+
 
 class PageApprovalEvent(BaseModel):
     SUBMITTED = "submitted"
     APPROVED = "approved"
     REJECTED = "rejected"
     REVIEW_DATE_SET = "review_date_set"
+    BASELINED = "baselined"
     ACTION_CHOICES = (
         (SUBMITTED, "Submitted"),
         (APPROVED, "Approved"),
         (REJECTED, "Rejected"),
         (REVIEW_DATE_SET, "Review date set"),
+        (BASELINED, "Baselined (migrated, not reviewed in Paperplane)"),
     )
 
     workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="page_approval_events")
@@ -94,6 +143,11 @@ class PageApprovalEvent(BaseModel):
     comment = models.TextField(blank=True, default="")
     revision = models.PositiveIntegerField(null=True, blank=True)
     next_review_date = models.DateField(null=True, blank=True)
+    # Baselined events only: the approval recorded in the page before, as written.
+    legacy_status = models.CharField(max_length=50, blank=True, default="")
+    legacy_approved_by = models.CharField(max_length=255, blank=True, default="")
+    legacy_approved_at = models.DateField(null=True, blank=True)
+    legacy_approved_at_raw = models.CharField(max_length=50, blank=True, default="")
 
     class Meta:
         verbose_name = "Page Approval Event"
