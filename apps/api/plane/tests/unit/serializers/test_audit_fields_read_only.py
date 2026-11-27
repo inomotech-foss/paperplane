@@ -10,7 +10,12 @@ from rest_framework import serializers
 
 from plane.utils.audit_fields import AUDIT_FIELDS
 
-PACKAGES = ("plane.app.serializers", "plane.api.serializers", "plane.license.api.serializers")
+PACKAGES = (
+    "plane.app.serializers",
+    "plane.api.serializers",
+    "plane.license.api.serializers",
+    "plane.space.serializer",
+)
 
 
 def _model_serializers() -> list[type[serializers.ModelSerializer]]:
