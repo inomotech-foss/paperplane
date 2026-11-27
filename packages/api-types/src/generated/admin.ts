@@ -478,12 +478,12 @@ export interface components {
             role: components["schemas"]["RoleEnum"];
             is_verified: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly user: string | null;
             /** Format: uuid */
@@ -561,12 +561,12 @@ export interface components {
             category: string;
             is_encrypted: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         InstanceDetail: {
             /** Format: uuid */

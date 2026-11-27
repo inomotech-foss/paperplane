@@ -13,8 +13,6 @@ const unpublished: ApiSchema<"UnpublishedDeployBoard"> = {
   view_props: null,
   is_activity_enabled: false,
   is_disabled: false,
-  created_by: null,
-  updated_by: null,
   intake: null,
   intake_issue_type: null,
 };
@@ -27,6 +25,8 @@ const board: ApiSchema<"DeployBoard"> = {
   view_props: { list: true, kanban: false },
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
+  created_by: null,
+  updated_by: null,
   entity_identifier: "p1",
   entity_name: "project",
   anchor: "abc",

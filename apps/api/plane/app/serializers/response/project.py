@@ -123,8 +123,6 @@ class UnpublishedDeployBoardSerializer(serializers.Serializer):
     view_props = serializers.JSONField(allow_null=True)
     is_activity_enabled = serializers.BooleanField()
     is_disabled = serializers.BooleanField()
-    created_by = serializers.UUIDField(allow_null=True)
-    updated_by = serializers.UUIDField(allow_null=True)
     intake = serializers.UUIDField(allow_null=True)
     intake_issue_type = serializers.UUIDField(allow_null=True)
 

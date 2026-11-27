@@ -36,7 +36,13 @@ def act_as_actor(task=None, **kwargs):
     stack.append(get_current_user())
     actor_id = task.request.get(HEADER) if task is not None else None
     if actor_id:
+        from django.db import close_old_connections
+
         from plane.db.models import User
+
+        # Runs before Celery's own connection cleanup for the task
+        if not task.request.is_eager:
+            close_old_connections()
 
         set_current_user(User.objects.filter(pk=actor_id).first())
 

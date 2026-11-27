@@ -42,6 +42,15 @@ class TestBaseModelAuditFields:
         assert workspace.created_by_id == create_user.id
         assert workspace.updated_by_id == create_user.id
 
+    def test_create_with_user_keeps_explicit_creator(self, create_user, other_user):
+        with impersonate(create_user):
+            workspace = make_workspace(create_user, created_by=other_user)
+            workspace.save()
+
+        workspace.refresh_from_db()
+        assert workspace.created_by_id == other_user.id
+        assert workspace.updated_by_id == other_user.id
+
     def test_create_with_created_by_id_sets_both_fields(self, create_user, other_user):
         with impersonate(create_user):
             workspace = make_workspace(create_user)

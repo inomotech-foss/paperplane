@@ -5342,12 +5342,12 @@ export interface components {
             /** Format: date-time */
             readonly expired_at: string | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly user: string;
             /** Format: uuid */
@@ -5374,12 +5374,12 @@ export interface components {
             /** Format: date-time */
             expired_at: string | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             user: string;
             /** Format: uuid */
@@ -5469,12 +5469,12 @@ export interface components {
             readonly query: unknown;
             query_dict: unknown;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
         };
@@ -5484,13 +5484,6 @@ export interface components {
             name: string;
             description?: string;
             query_dict?: unknown;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         Analytics: {
             total: number;
@@ -6326,12 +6319,12 @@ export interface components {
             /** Format: date-time */
             deleted_at: string | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly project: string;
             /** Format: uuid */
@@ -6460,12 +6453,12 @@ export interface components {
             display_properties: components["schemas"]["ClientJson"];
             rich_filters: components["schemas"]["ClientJson"];
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly project: string;
             /** Format: uuid */
@@ -6709,12 +6702,12 @@ export interface components {
             is_activity_enabled: boolean;
             is_disabled: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: uuid */
@@ -7185,12 +7178,12 @@ export interface components {
             type: components["schemas"]["EstimateTypeEnum"];
             last_used: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             project: string;
             /** Format: uuid */
@@ -7334,8 +7327,8 @@ export interface components {
              * Format: date-time
              */
             readonly updated_at: string;
-            created_by: (string | components["schemas"]["UserLite"]) | null;
-            updated_by: (string | components["schemas"]["UserLite"]) | null;
+            readonly created_by: (string | components["schemas"]["UserLite"]) | null;
+            readonly updated_by: (string | components["schemas"]["UserLite"]) | null;
             readonly attachment_count?: number | null;
             readonly link_count?: number | null;
             readonly is_draft: boolean;
@@ -7597,12 +7590,12 @@ export interface components {
             view_props: components["schemas"]["ClientJson"];
             logo_props: components["schemas"]["ClientJson"];
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly project: string;
             /** Format: uuid */
@@ -7663,13 +7656,6 @@ export interface components {
             is_default?: boolean;
             view_props?: components["schemas"]["ClientJson"];
             logo_props?: components["schemas"]["ClientJson"];
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         IntakeState: {
             /** Format: uuid */
@@ -7786,12 +7772,12 @@ export interface components {
             external_source: string | null;
             external_id: string | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             project: string;
             /** Format: uuid */
@@ -8044,12 +8030,12 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         IssueDetail: {
             /** Format: uuid */
@@ -8421,12 +8407,12 @@ export interface components {
             readonly deleted_at: string | null;
             reaction: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly project: string;
             /** Format: uuid */
@@ -8448,13 +8434,6 @@ export interface components {
         };
         IssueReactionRequest: {
             reaction: string;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         IssueRecentVisit: {
             /** Format: uuid */
@@ -8578,12 +8557,12 @@ export interface components {
             external_source: string | null;
             external_id: string | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             project: string;
             /** Format: uuid */
@@ -8612,12 +8591,12 @@ export interface components {
             /** Format: date-time */
             deleted_at: string | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly project: string;
             /** Format: uuid */
@@ -8630,13 +8609,6 @@ export interface components {
         IssueSubscriberRequest: {
             /** Format: date-time */
             deleted_at?: string | null;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
             /** Format: uuid */
             subscriber: string;
         };
@@ -8793,12 +8765,12 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         IssueView: {
             /** Format: uuid */
@@ -9123,12 +9095,12 @@ export interface components {
             display_properties: components["schemas"]["ClientJson"];
             rich_filters: components["schemas"]["ClientJson"];
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly project: string;
             /** Format: uuid */
@@ -9219,12 +9191,12 @@ export interface components {
             /** Format: date-time */
             archived_at: string | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             workspace: string;
             /** Format: uuid */
@@ -9819,12 +9791,12 @@ export interface components {
             readonly deleted_at: string | null;
             reaction: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: uuid */
@@ -9834,13 +9806,6 @@ export interface components {
         };
         PageCommentReactionRequest: {
             reaction: string;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         PageCommentRequest: {
             /** Format: uuid */
@@ -10083,12 +10048,12 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         PageVersionDetail: {
             /** Format: uuid */
@@ -10113,12 +10078,12 @@ export interface components {
              */
             readonly updated_at: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         PageWithIssues: {
             /** Format: uuid */
@@ -10347,13 +10312,6 @@ export interface components {
             deleted_at?: string | null;
             label?: string;
             description?: string;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         PatchedAnalyticViewRequest: {
             /** Format: date-time */
@@ -10361,13 +10319,6 @@ export interface components {
             name?: string;
             description?: string;
             query_dict?: unknown;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         PatchedAssetAttributesRequest: {
             /** @description Replaces the stored attributes when sent */
@@ -10432,13 +10383,6 @@ export interface components {
             is_votes_enabled?: boolean;
             is_activity_enabled?: boolean;
             is_disabled?: boolean;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
             /** Format: uuid */
             intake?: string | null;
             /** Format: uuid */
@@ -10857,13 +10801,6 @@ export interface components {
             preferences?: components["schemas"]["ClientJson"];
             /** Format: double */
             sort_order?: number;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         PatchedPublicIssueCommentRequest: {
             /** Format: date-time */
@@ -10981,13 +10918,6 @@ export interface components {
             deleted_at?: string | null;
             name?: string;
             colors?: components["schemas"]["ClientJson"];
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         PatchedWorkspaceUserLinkRequest: {
             /** Format: date-time */
@@ -10995,13 +10925,6 @@ export interface components {
             title?: string | null;
             url?: string;
             metadata?: unknown;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
             /** Format: uuid */
             project?: string | null;
         };
@@ -11014,13 +10937,6 @@ export interface components {
             rich_filters?: components["schemas"]["ClientJson"];
             navigation_project_limit?: number;
             navigation_control_preference?: components["schemas"]["NavigationControlPreferenceEnum"];
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         /**
          * @description * `jql` - JQL
@@ -11249,12 +11165,12 @@ export interface components {
             external_source: string | null;
             external_id: string | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             workspace: string;
             /** Format: uuid */
@@ -11376,12 +11292,12 @@ export interface components {
             sort_order: number;
             is_active: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         ProjectMemberDetail: {
             /** Format: uuid */
@@ -11436,12 +11352,12 @@ export interface components {
             responded_at: string | null;
             role: components["schemas"]["RoleEnum"];
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         ProjectMemberInvitePublic: {
             /** Format: uuid */
@@ -11600,12 +11516,12 @@ export interface components {
             /** Format: double */
             sort_order: number;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly project: string;
             /** Format: uuid */
@@ -12770,10 +12686,6 @@ export interface components {
             is_activity_enabled: boolean;
             is_disabled: boolean;
             /** Format: uuid */
-            created_by: string | null;
-            /** Format: uuid */
-            updated_by: string | null;
-            /** Format: uuid */
             intake: string | null;
             /** Format: uuid */
             intake_issue_type: string | null;
@@ -13593,12 +13505,12 @@ export interface components {
             response_body: string | null;
             retry_count: number;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
         };
@@ -13635,12 +13547,12 @@ export interface components {
             is_internal: boolean;
             version: string;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             workspace: string;
         };
@@ -14075,12 +13987,12 @@ export interface components {
             readonly responded_at: string | null;
             role: components["schemas"]["RoleEnum"];
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
         };
         WorkSpaceMemberInvitePublic: {
             /** Format: uuid */
@@ -14147,12 +14059,12 @@ export interface components {
             type: components["schemas"]["EstimateTypeEnum"];
             last_used: boolean;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             project: string;
             /** Format: uuid */
@@ -14261,12 +14173,12 @@ export interface components {
             explored_features: components["schemas"]["ClientJson"];
             pql_dialect: (components["schemas"]["PqlDialectEnum"] | components["schemas"]["NullEnum"]) | null;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             workspace: string;
             /** Format: uuid */
@@ -14367,12 +14279,12 @@ export interface components {
             name: string;
             colors: components["schemas"]["ClientJson"];
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: uuid */
@@ -14383,13 +14295,6 @@ export interface components {
             deleted_at?: string | null;
             name: string;
             colors?: components["schemas"]["ClientJson"];
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         WorkspaceUserData: {
             /** Format: email */
@@ -14419,12 +14324,12 @@ export interface components {
             url: string;
             metadata: unknown;
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: uuid */
@@ -14438,13 +14343,6 @@ export interface components {
             title?: string | null;
             url: string;
             metadata?: unknown;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
             /** Format: uuid */
             project?: string | null;
         };
@@ -14472,12 +14370,12 @@ export interface components {
             navigation_project_limit: number;
             navigation_control_preference: components["schemas"]["NavigationControlPreferenceEnum"];
             /** Format: uuid */
-            created_by: string | null;
+            readonly created_by: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by: string | null;
+            readonly updated_by: string | null;
             /** Format: uuid */
             readonly workspace: string;
             /** Format: uuid */

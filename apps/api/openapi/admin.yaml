@@ -923,10 +923,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
         user:
@@ -1151,10 +1153,12 @@ components:
         created_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
         updated_by:
           type: string
           format: uuid
+          readOnly: true
           nullable: true
           title: Last Modified By
       required:

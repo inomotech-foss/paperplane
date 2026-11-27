@@ -4,6 +4,8 @@
 
 from rest_framework import serializers
 
+from plane.utils.audit_fields import ReadOnlyAuditFieldsMixin
 
-class BaseSerializer(serializers.ModelSerializer):
+
+class BaseSerializer(ReadOnlyAuditFieldsMixin, serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(read_only=True)

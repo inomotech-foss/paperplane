@@ -20,8 +20,8 @@ class BaseModel(AuditModel):
     def save(self, *args, created_by_id=None, disable_auto_set_user=False, **kwargs):
         user_id = None if disable_auto_set_user else current_user_id()
         if self._state.adding:
-            if created_by_id or user_id:
-                self.created_by_id = created_by_id or user_id
+            # An explicit creator wins: tasks run as the requester but may write on someone else's behalf
+            self.created_by_id = created_by_id or self.created_by_id or user_id
             if self.updated_by_id is None:
                 self.updated_by_id = self.created_by_id
         elif user_id:
