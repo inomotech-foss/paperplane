@@ -19,7 +19,6 @@ HEADER = "plane_actor_id"
 _previous = threading.local()
 
 
-@before_task_publish.connect
 def attach_actor(headers=None, **kwargs):
     from plane.db.mixins import current_user_id
 
@@ -28,7 +27,6 @@ def attach_actor(headers=None, **kwargs):
         headers.setdefault(HEADER, str(user_id))
 
 
-@task_prerun.connect
 def act_as_actor(task=None, **kwargs):
     stack = getattr(_previous, "stack", None)
     if stack is None:
@@ -47,7 +45,12 @@ def act_as_actor(task=None, **kwargs):
         set_current_user(User.objects.filter(pk=actor_id).first())
 
 
-@task_postrun.connect
 def restore_actor(**kwargs):
     stack = getattr(_previous, "stack", None)
     set_current_user(stack.pop() if stack else None)
+
+
+def install():
+    before_task_publish.connect(attach_actor)
+    task_prerun.connect(act_as_actor)
+    task_postrun.connect(restore_actor)
