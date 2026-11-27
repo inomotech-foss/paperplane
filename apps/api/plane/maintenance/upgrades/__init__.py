@@ -8,10 +8,16 @@ an earlier one.
 """
 
 from plane.maintenance.upgrade import DataUpgrade
-from plane.maintenance.upgrades import backfill_creators, normalise_confluence_tables, sanitize_stored_html
+from plane.maintenance.upgrades import (
+    backfill_creators,
+    backfill_task_creators,
+    normalise_confluence_tables,
+    sanitize_stored_html,
+)
 
 UPGRADES: tuple[DataUpgrade, ...] = (
     normalise_confluence_tables.UPGRADE,
     backfill_creators.UPGRADE,
     sanitize_stored_html.UPGRADE,
+    backfill_task_creators.UPGRADE,
 )

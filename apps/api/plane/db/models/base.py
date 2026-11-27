@@ -7,18 +7,8 @@ import uuid
 # Django imports
 from django.db import models
 
-# Third party imports
-from crum import get_current_user
-
 # Module imports
-from ..mixins import AuditModel
-
-
-def current_user_id():
-    user = get_current_user()
-    if user is None or user.is_anonymous:
-        return None
-    return user.id
+from ..mixins import AuditModel, current_user_id
 
 
 class BaseModel(AuditModel):

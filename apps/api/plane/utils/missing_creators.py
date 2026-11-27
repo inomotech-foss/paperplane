@@ -18,6 +18,8 @@ OWNER_FIELDS = {
     "IssueVersion": "owned_by_id",
     "IssueView": "owned_by_id",
     "Page": "owned_by_id",
+    "PageApproval": "baselined_by_id",
+    "PageApprovalEvent": "actor_id",
     "PageComment": "actor_id",
     "PageVersion": "owned_by_id",
     "Sticky": "owner_id",
