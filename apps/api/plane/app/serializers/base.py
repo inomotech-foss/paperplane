@@ -7,6 +7,8 @@ from functools import cache
 from django.db import models
 from rest_framework import serializers
 
+from plane.utils.audit_fields import ReadOnlyAuditFieldsMixin
+
 
 # Relations in the expansion mapper that are to-many.
 MANY_EXPANSION_FIELDS = frozenset(
@@ -102,7 +104,7 @@ def expandable_keys(model):
     return frozenset(keys)
 
 
-class BaseSerializer(serializers.ModelSerializer):
+class BaseSerializer(ReadOnlyAuditFieldsMixin, serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(read_only=True)
 
 

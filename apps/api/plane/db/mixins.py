@@ -6,8 +6,12 @@
 from typing import Any
 
 # Django imports
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.utils import timezone
+
+# Third party imports
+from crum import get_current_user
 
 # Module imports
 from plane.bgtasks.deletion_task import soft_delete_related_objects
@@ -45,7 +49,31 @@ class UserAuditModel(models.Model):
         abstract = True
 
 
-class SoftDeletionQuerySet(models.QuerySet):
+def current_user_id():
+    user = get_current_user()
+    if user is None or user.is_anonymous:
+        return None
+    return user.id
+
+
+class AuditQuerySet(models.QuerySet):
+    def bulk_create(self, objs, *args, **kwargs):
+        """Record the creator as save() does, which bulk_create skips."""
+        objs = list(objs)
+        try:
+            self.model._meta.get_field("created_by")
+        except FieldDoesNotExist:
+            return super().bulk_create(objs, *args, **kwargs)
+        user_id = current_user_id()
+        for obj in objs:
+            if obj.created_by_id is None:
+                obj.created_by_id = user_id
+            if obj.updated_by_id is None:
+                obj.updated_by_id = obj.created_by_id
+        return super().bulk_create(objs, *args, **kwargs)
+
+
+class SoftDeletionQuerySet(AuditQuerySet):
     def delete(self, soft=True):
         if soft:
             return self.update(deleted_at=timezone.now())
@@ -64,7 +92,7 @@ class SoftDeleteModel(models.Model):
     deleted_at = models.DateTimeField(verbose_name="Deleted At", null=True, blank=True)
 
     objects = SoftDeletionManager()
-    all_objects = models.Manager()
+    all_objects = models.Manager.from_queryset(AuditQuerySet)()
 
     class Meta:
         abstract = True

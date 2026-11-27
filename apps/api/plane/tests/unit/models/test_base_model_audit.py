@@ -5,12 +5,17 @@ import pytest
 from crum import impersonate
 from django.contrib.auth.models import AnonymousUser
 
-from plane.db.models import User, Workspace
+from plane.db.models import IssueActivity, Project, User, Workspace
 
 
 @pytest.fixture
 def other_user(db):
     return User.objects.create(email="other@plane.so", username="other")
+
+
+@pytest.fixture
+def project(workspace):
+    return Project.objects.create(name="Audit", identifier="AUD", workspace=workspace)
 
 
 def make_workspace(owner, **kwargs):
@@ -36,6 +41,15 @@ class TestBaseModelAuditFields:
         workspace.refresh_from_db()
         assert workspace.created_by_id == create_user.id
         assert workspace.updated_by_id == create_user.id
+
+    def test_create_with_user_keeps_explicit_creator(self, create_user, other_user):
+        with impersonate(create_user):
+            workspace = make_workspace(create_user, created_by=other_user)
+            workspace.save()
+
+        workspace.refresh_from_db()
+        assert workspace.created_by_id == other_user.id
+        assert workspace.updated_by_id == other_user.id
 
     def test_create_with_created_by_id_sets_both_fields(self, create_user, other_user):
         with impersonate(create_user):
@@ -143,3 +157,29 @@ class TestBaseModelAuditFields:
         workspace.refresh_from_db()
         assert workspace.name == "Renamed"
         assert workspace.updated_by_id == create_user.id
+
+
+@pytest.mark.unit
+@pytest.mark.django_db
+class TestBulkCreateAuditFields:
+    def _activity(self, project, **kwargs):
+        return IssueActivity(project=project, workspace=project.workspace, verb="updated", **kwargs)
+
+    def test_records_the_current_user(self, create_user, project):
+        with impersonate(create_user):
+            (activity,) = IssueActivity.objects.bulk_create([self._activity(project)])
+
+        row = IssueActivity.objects.values("created_by_id", "updated_by_id").get(pk=activity.pk)
+        assert row == {"created_by_id": create_user.id, "updated_by_id": create_user.id}
+
+    def test_keeps_an_explicit_creator(self, create_user, other_user, project):
+        with impersonate(create_user):
+            (activity,) = IssueActivity.all_objects.bulk_create([self._activity(project, created_by=other_user)])
+
+        row = IssueActivity.objects.values("created_by_id", "updated_by_id").get(pk=activity.pk)
+        assert row == {"created_by_id": other_user.id, "updated_by_id": other_user.id}
+
+    def test_without_a_user_leaves_the_creator_empty(self, project):
+        (activity,) = IssueActivity.objects.bulk_create([self._activity(project)])
+
+        assert IssueActivity.objects.values_list("created_by_id", flat=True).get(pk=activity.pk) is None

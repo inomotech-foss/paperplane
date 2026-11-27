@@ -8,12 +8,15 @@ from django.db import models
 # Third party imports
 from rest_framework import serializers
 
+# Module imports
+from plane.utils.audit_fields import ReadOnlyAuditFieldsMixin
+
 
 # Distinguishes "the instance has no such attribute" from "the attribute is None".
 _MISSING = object()
 
 
-class BaseSerializer(serializers.ModelSerializer):
+class BaseSerializer(ReadOnlyAuditFieldsMixin, serializers.ModelSerializer):
     """
     Base serializer providing common functionality for all model serializers.
 

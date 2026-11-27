@@ -2501,12 +2501,12 @@ export interface components {
             /** Format: date-time */
             deleted_at?: string | null;
             /** Format: uuid */
-            created_by?: string | null;
+            readonly created_by?: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by?: string | null;
+            readonly updated_by?: string | null;
             /** Format: uuid */
             readonly project?: string;
             /** Format: uuid */
@@ -2564,12 +2564,12 @@ export interface components {
             timezone?: components["schemas"]["TimezoneEnum"];
             version?: number;
             /** Format: uuid */
-            created_by?: string | null;
+            readonly created_by?: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by?: string | null;
+            readonly updated_by?: string | null;
             /** Format: uuid */
             project: string;
             /** Format: uuid */
@@ -2882,7 +2882,7 @@ export interface components {
             is_uploaded?: boolean;
             storage_metadata?: unknown;
             /** Format: uuid */
-            created_by?: string | null;
+            readonly created_by?: string | null;
             /**
              * Last Modified By
              * Format: uuid
@@ -3751,12 +3751,12 @@ export interface components {
             archived_at?: string | null;
             logo_props?: unknown;
             /** Format: uuid */
-            created_by?: string | null;
+            readonly created_by?: string | null;
             /**
              * Last Modified By
              * Format: uuid
              */
-            updated_by?: string | null;
+            readonly updated_by?: string | null;
             /** Format: uuid */
             project: string;
             /** Format: uuid */
@@ -4920,13 +4920,6 @@ export interface components {
             background_color?: string | null;
             /** Format: double */
             sort_order?: number;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         /** @description Serializer for workspace invites. */
         PatchedWorkspaceInviteRequest: {
@@ -5253,13 +5246,6 @@ export interface components {
             background_color?: string | null;
             /** Format: double */
             sort_order?: number;
-            /** Format: uuid */
-            created_by?: string | null;
-            /**
-             * Last Modified By
-             * Format: uuid
-             */
-            updated_by?: string | null;
         };
         /**
          * @description * `Africa/Abidjan` - Africa/Abidjan

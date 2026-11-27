@@ -15,6 +15,7 @@ from celery.schedules import crontab, schedule
 
 # Module imports
 from plane.settings.redis import redis_instance
+from plane.utils import task_actor
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "plane.settings.production")
@@ -38,6 +39,7 @@ def _get_metrics_push_interval_minutes() -> int:
 METRICS_PUSH_INTERVAL_MINUTES = _get_metrics_push_interval_minutes()
 
 app = Celery("plane")
+task_actor.install()
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
